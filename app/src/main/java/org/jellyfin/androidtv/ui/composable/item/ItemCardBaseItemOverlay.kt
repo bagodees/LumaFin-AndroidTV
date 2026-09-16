@@ -3,18 +3,21 @@ package org.jellyfin.androidtv.ui.composable.item
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
@@ -35,6 +38,7 @@ import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.BaseItemKind
 import org.jellyfin.sdk.model.api.MediaType
 import org.koin.compose.koinInject
+import java.util.Locale
 
 @Composable
 @Stable
@@ -46,10 +50,13 @@ fun ItemCardBaseItemOverlay(
 		.fillMaxSize()
 		.padding(Tokens.Space.spaceXs)
 ) {
-	StateIndicator(
-		item = item,
+	Column(
 		modifier = Modifier.align(Alignment.TopStart),
-	)
+		verticalArrangement = Arrangement.spacedBy(Tokens.Space.spaceXs)
+	) {
+		StateIndicator(item = item)
+		RatingBadges(item = item)
+	}
 
 	WatchIndicator(
 		item = item,
@@ -101,6 +108,77 @@ private fun StateIndicator(
 					.size(24.dp)
 			)
 		}
+	}
+}
+
+// Item types that show rating badges, matching the webui rating badges mod
+private val ratedItemTypes = setOf(BaseItemKind.MOVIE, BaseItemKind.SERIES)
+private const val CRITIC_RATING_FRESH = 60f
+
+@Composable
+@Stable
+private fun RatingBadges(
+	item: BaseItemDto,
+	modifier: Modifier = Modifier,
+) {
+	if (item.type !in ratedItemTypes) return
+
+	val communityRating = item.communityRating
+	val criticRating = item.criticRating
+	if (communityRating == null && criticRating == null) return
+
+	Column(
+		modifier = modifier,
+		verticalArrangement = Arrangement.spacedBy(Tokens.Space.spaceXs)
+	) {
+		if (criticRating != null) {
+			val fresh = criticRating >= CRITIC_RATING_FRESH
+
+			RatingBadge(
+				containerColor = if (fresh) Tokens.Color.colorGreen600 else Tokens.Color.colorRed600,
+				contentColor = Tokens.Color.colorGrey25,
+				icon = if (fresh) R.drawable.ic_rt_fresh else R.drawable.ic_rt_rotten,
+				iconTint = Color.Unspecified,
+				text = "${criticRating.toInt()}%",
+			)
+		}
+
+		if (communityRating != null) {
+			RatingBadge(
+				containerColor = Tokens.Color.colorYellow400,
+				contentColor = Tokens.Color.colorGrey975,
+				icon = R.drawable.ic_star,
+				iconTint = Tokens.Color.colorGrey975,
+				text = String.format(Locale.getDefault(), "%.1f", communityRating),
+			)
+		}
+	}
+}
+
+@Composable
+private fun RatingBadge(
+	containerColor: Color,
+	contentColor: Color,
+	icon: Int,
+	iconTint: Color,
+	text: String,
+) = Badge(
+	shape = RoundedCornerShape(Tokens.Space.spaceXs),
+	containerColor = containerColor,
+	contentColor = contentColor,
+) {
+	Row(
+		horizontalArrangement = Arrangement.spacedBy(Tokens.Space.spaceXs),
+		verticalAlignment = Alignment.CenterVertically,
+	) {
+		Icon(
+			imageVector = ImageVector.vectorResource(icon),
+			contentDescription = null,
+			tint = iconTint,
+			modifier = Modifier.size(14.dp)
+		)
+
+		Text(text = text)
 	}
 }
 
