@@ -1,7 +1,7 @@
 <resources>
     <!-- Base Colors -->
-    <color name="jellyfin_blue">#00a4dc</color>
-    <color name="jellyfin_purple">#aa5cc3</color>
+    <color name="jellyfin_blue">#3C9CE4</color>
+    <color name="jellyfin_purple">#C2264B</color>
     <color name="midnight_blue">#031A6B</color>
     <color name="indigo_dye">#033860</color>
     <color name="spanish_blue">#1E76BA</color>

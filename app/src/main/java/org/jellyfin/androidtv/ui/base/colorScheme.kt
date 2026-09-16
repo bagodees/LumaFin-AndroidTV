@@ -5,6 +5,9 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import org.jellyfin.design.Tokens
 
+// LumaFin brand accent, sampled from the app logo
+private val LumaFinAccentBlue = Color(0xFF3C9CE4)
+
 fun colorScheme(): ColorScheme = ColorScheme(
 	background = Tokens.Color.colorGrey975,
 	onBackground = Tokens.Color.colorBluegrey25,
@@ -21,12 +24,12 @@ fun colorScheme(): ColorScheme = ColorScheme(
 	inputFocused = Color(0xE6CCCCCC),
 	onInputFocused = Color(0xFFDDDDDD),
 	rangeControlBackground = Tokens.Color.colorBluegrey700,
-	rangeControlFill = Tokens.Color.colorCyan500,
+	rangeControlFill = LumaFinAccentBlue,
 	rangeControlKnob = Tokens.Color.colorBluegrey100,
 	seekbarBuffer = Tokens.Color.colorBluegrey300,
 	recording = Tokens.Color.colorRed300,
 	onRecording = Tokens.Color.colorRed25,
-	badge = Tokens.Color.colorCyan500,
+	badge = LumaFinAccentBlue,
 	onBadge = Tokens.Color.colorBluegrey100,
 	listHeader = Tokens.Color.colorGrey50,
 	listOverline = Tokens.Color.colorGrey500,
