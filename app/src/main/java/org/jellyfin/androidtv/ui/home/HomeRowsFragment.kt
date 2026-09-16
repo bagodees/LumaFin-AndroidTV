@@ -121,6 +121,13 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 					rows.add(helper.loadOnNow())
 				}
 
+				HomeSectionType.LATEST_MOVIES -> rows.add(helper.loadLatestMovies())
+				HomeSectionType.LATEST_SHOWS -> rows.add(helper.loadLatestShows())
+				HomeSectionType.BECAUSE_YOU_WATCHED -> rows.add(HomeFragmentBecauseYouWatchedRow(api))
+				HomeSectionType.COLLECTIONS -> rows.add(helper.loadCollections())
+				HomeSectionType.WATCH_AGAIN -> rows.add(helper.loadWatchAgain())
+				HomeSectionType.GENRES -> rows.add(HomeFragmentGenreRow(api))
+
 				HomeSectionType.NONE -> Unit
 			}
 

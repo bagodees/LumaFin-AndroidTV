@@ -9,7 +9,11 @@ import org.jellyfin.androidtv.preference.UserPreferences
 import org.jellyfin.androidtv.ui.browsing.BrowseRowDef
 import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.BaseItemKind
+import org.jellyfin.sdk.model.api.ItemFilter
+import org.jellyfin.sdk.model.api.ItemSortBy
 import org.jellyfin.sdk.model.api.MediaType
+import org.jellyfin.sdk.model.api.SortOrder
+import org.jellyfin.sdk.model.api.request.GetItemsRequest
 import org.jellyfin.sdk.model.api.request.GetNextUpRequest
 import org.jellyfin.sdk.model.api.request.GetRecommendedProgramsRequest
 import org.jellyfin.sdk.model.api.request.GetRecordingsRequest
@@ -71,6 +75,62 @@ class HomeFragmentHelper(
 		return HomeFragmentBrowseRowDefRow(BrowseRowDef(context.getString(R.string.lbl_next_up), query, arrayOf(ChangeTriggerType.TvPlayback)))
 	}
 
+	fun loadLatestMovies(): HomeFragmentRow {
+		val query = GetItemsRequest(
+			fields = ItemRepository.browseFields,
+			includeItemTypes = setOf(BaseItemKind.MOVIE),
+			recursive = true,
+			sortBy = setOf(ItemSortBy.PREMIERE_DATE),
+			sortOrder = setOf(SortOrder.DESCENDING),
+			imageTypeLimit = 1,
+			limit = ITEM_LIMIT_LATEST_BY_RELEASE,
+		)
+
+		return HomeFragmentBrowseRowDefRow(BrowseRowDef(context.getString(R.string.home_section_latest_movies), query, ITEM_LIMIT_LATEST_BY_RELEASE, false, true, arrayOf(ChangeTriggerType.LibraryUpdated)))
+	}
+
+	fun loadLatestShows(): HomeFragmentRow {
+		val query = GetItemsRequest(
+			fields = ItemRepository.browseFields,
+			includeItemTypes = setOf(BaseItemKind.SERIES),
+			recursive = true,
+			sortBy = setOf(ItemSortBy.PREMIERE_DATE),
+			sortOrder = setOf(SortOrder.DESCENDING),
+			imageTypeLimit = 1,
+			limit = ITEM_LIMIT_LATEST_BY_RELEASE,
+		)
+
+		return HomeFragmentBrowseRowDefRow(BrowseRowDef(context.getString(R.string.home_section_latest_shows), query, ITEM_LIMIT_LATEST_BY_RELEASE, false, true, arrayOf(ChangeTriggerType.LibraryUpdated)))
+	}
+
+	fun loadCollections(): HomeFragmentRow {
+		val query = GetItemsRequest(
+			fields = ItemRepository.browseFields,
+			includeItemTypes = setOf(BaseItemKind.BOX_SET),
+			recursive = true,
+			sortBy = setOf(ItemSortBy.SORT_NAME),
+			imageTypeLimit = 1,
+			limit = ITEM_LIMIT_COLLECTIONS,
+		)
+
+		return HomeFragmentBrowseRowDefRow(BrowseRowDef(context.getString(R.string.home_section_collections), query, ITEM_LIMIT_COLLECTIONS, false, true, arrayOf(ChangeTriggerType.LibraryUpdated)))
+	}
+
+	fun loadWatchAgain(): HomeFragmentRow {
+		val query = GetItemsRequest(
+			fields = ItemRepository.browseFields,
+			includeItemTypes = setOf(BaseItemKind.MOVIE, BaseItemKind.SERIES),
+			recursive = true,
+			filters = setOf(ItemFilter.IS_PLAYED),
+			sortBy = setOf(ItemSortBy.DATE_PLAYED),
+			sortOrder = setOf(SortOrder.DESCENDING),
+			imageTypeLimit = 1,
+			limit = ITEM_LIMIT_WATCH_AGAIN,
+		)
+
+		return HomeFragmentBrowseRowDefRow(BrowseRowDef(context.getString(R.string.home_section_watch_again), query, ITEM_LIMIT_WATCH_AGAIN, false, true, arrayOf(ChangeTriggerType.TvPlayback, ChangeTriggerType.MoviePlayback)))
+	}
+
 	fun loadOnNow(): HomeFragmentRow {
 		val query = GetRecommendedProgramsRequest(
 			isAiring = true,
@@ -89,5 +149,8 @@ class HomeFragmentHelper(
 		private const val ITEM_LIMIT_RECORDINGS = 40
 		private const val ITEM_LIMIT_NEXT_UP = 50
 		private const val ITEM_LIMIT_ON_NOW = 20
+		private const val ITEM_LIMIT_LATEST_BY_RELEASE = 50
+		private const val ITEM_LIMIT_COLLECTIONS = 50
+		private const val ITEM_LIMIT_WATCH_AGAIN = 50
 	}
 }

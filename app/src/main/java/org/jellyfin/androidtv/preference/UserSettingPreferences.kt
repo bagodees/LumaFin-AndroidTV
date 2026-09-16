@@ -27,6 +27,12 @@ class UserSettingPreferences(
 		val homesection7 = enumPreference("homesection7", HomeSectionType.NONE)
 		val homesection8 = enumPreference("homesection8", HomeSectionType.NONE)
 		val homesection9 = enumPreference("homesection9", HomeSectionType.NONE)
+		val homesection10 = enumPreference("homesection10", HomeSectionType.LATEST_MOVIES)
+		val homesection11 = enumPreference("homesection11", HomeSectionType.LATEST_SHOWS)
+		val homesection12 = enumPreference("homesection12", HomeSectionType.BECAUSE_YOU_WATCHED)
+		val homesection13 = enumPreference("homesection13", HomeSectionType.COLLECTIONS)
+		val homesection14 = enumPreference("homesection14", HomeSectionType.WATCH_AGAIN)
+		val homesection15 = enumPreference("homesection15", HomeSectionType.GENRES)
 	}
 
 	val homesections = listOf(
@@ -40,6 +46,12 @@ class UserSettingPreferences(
 		homesection7,
 		homesection8,
 		homesection9,
+		homesection10,
+		homesection11,
+		homesection12,
+		homesection13,
+		homesection14,
+		homesection15,
 	)
 
 	val activeHomesections
