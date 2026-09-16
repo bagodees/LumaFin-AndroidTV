@@ -37,7 +37,7 @@ fun SettingsAboutScreen(launchedFromLogin: Boolean = false) {
 
 		item {
 			val heading = "LumaFin app version"
-			val caption = "jellyfin-androidtv ${BuildConfig.VERSION_NAME} ${BuildConfig.BUILD_TYPE}"
+			val caption = "LumaFin ${BuildConfig.VERSION_NAME} ${BuildConfig.BUILD_TYPE}"
 			ListButton(
 				leadingContent = { Icon(painterResource(R.drawable.ic_jellyfin), contentDescription = null) },
 				headingContent = { Text(heading) },
