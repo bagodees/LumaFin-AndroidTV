@@ -429,6 +429,12 @@
     <string name="home_section_active_recordings">Active recordings</string>
     <string name="home_section_next_up">Next up</string>
     <string name="home_section_livetv">Live TV</string>
+    <string name="home_section_latest_movies">Latest movies (by release date)</string>
+    <string name="home_section_latest_shows">Latest shows (by release date)</string>
+    <string name="home_section_because_you_watched">Because you watched</string>
+    <string name="home_section_collections">Collections</string>
+    <string name="home_section_watch_again">Watch again</string>
+    <string name="home_section_genres">Genres</string>
     <string name="home_section_none">None</string>
     <string name="home_section_i">Home section %1$d</string>
     <string name="searchable_hint">Search Jellyfin</string>
