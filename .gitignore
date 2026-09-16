@@ -7,3 +7,6 @@ local.properties
 .kotlin/
 build/
 captures/
+
+# Claude Code local session state
+.claude/
