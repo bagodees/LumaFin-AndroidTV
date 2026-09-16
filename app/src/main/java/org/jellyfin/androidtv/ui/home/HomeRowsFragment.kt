@@ -80,6 +80,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 	private var currentItem: BaseRowItem? = null
 	private var currentRow: ListRow? = null
 	private var justLoaded = true
+	private var loadedHomeSections: List<HomeSectionType> = emptyList()
 
 	// Special rows
 	private val notificationsRow by lazy { NotificationsHomeFragmentRow(lifecycleScope, notificationsRepository) }
@@ -90,67 +91,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 
 		adapter = MutableObjectAdapter<Row>(PositionableListRowPresenter())
 
-		lifecycleScope.launch(Dispatchers.IO) {
-			val currentUser = withTimeout(30.seconds) {
-				userRepository.currentUser.filterNotNull().first()
-			}
-
-			// Start out with default sections
-			val homesections = userSettingPreferences.activeHomesections
-
-			// Make sure the rows are empty
-			val rows = mutableListOf<HomeFragmentRow>()
-
-			// Check for coroutine cancellation
-			if (!isActive) return@launch
-
-			// Actually add the sections
-			for (section in homesections) when (section) {
-				HomeSectionType.LATEST_MEDIA -> rows.add(helper.loadRecentlyAdded(userViewsRepository.views.first()))
-				HomeSectionType.LIBRARY_TILES_SMALL -> rows.add(HomeFragmentViewsRow(small = false))
-				HomeSectionType.LIBRARY_BUTTONS -> rows.add(HomeFragmentViewsRow(small = true))
-				HomeSectionType.RESUME -> rows.add(helper.loadResumeVideo())
-				HomeSectionType.RESUME_AUDIO -> rows.add(helper.loadResumeAudio())
-				HomeSectionType.RESUME_BOOK -> Unit // Books are not (yet) supported
-				HomeSectionType.ACTIVE_RECORDINGS -> rows.add(helper.loadLatestLiveTvRecordings())
-				HomeSectionType.NEXT_UP -> rows.add(helper.loadNextUp())
-				HomeSectionType.LIVE_TV -> if (currentUser.policy?.enableLiveTvAccess == true) {
-					rows.add(HomeFragmentLiveTVRow(requireActivity(), userRepository))
-					rows.add(helper.loadOnNow())
-				}
-
-				HomeSectionType.LATEST_MOVIES -> rows.add(helper.loadLatestMovies())
-				HomeSectionType.LATEST_SHOWS -> rows.add(helper.loadLatestShows())
-				HomeSectionType.BECAUSE_YOU_WATCHED -> rows.add(HomeFragmentBecauseYouWatchedRow(api))
-				HomeSectionType.COLLECTIONS -> rows.add(helper.loadCollections())
-				HomeSectionType.WATCH_AGAIN -> rows.add(helper.loadWatchAgain())
-				HomeSectionType.GENRES -> rows.add(HomeFragmentGenreRow(api))
-
-				HomeSectionType.NONE -> Unit
-			}
-
-			// Add sections to layout
-			withContext(Dispatchers.Main) {
-				val cardPresenter = CardPresenter()
-
-				// Add rows in order
-				notificationsRow.addToRowsAdapter(requireContext(), cardPresenter, adapter as MutableObjectAdapter<Row>)
-				nowPlaying.addToRowsAdapter(requireContext(), cardPresenter, adapter as MutableObjectAdapter<Row>)
-				for (row in rows) row.addToRowsAdapter(requireContext(), cardPresenter, adapter as MutableObjectAdapter<Row>)
-
-				// Wire up Live TV sibling rows so the On Now row removes the buttons row when empty
-				@Suppress("UNCHECKED_CAST")
-				val rowsAdapter = adapter as MutableObjectAdapter<Row>
-				for (i in 0 until rowsAdapter.size()) {
-					val listRow = rowsAdapter.get(i) as? ListRow ?: continue
-					val itemAdapter = listRow.adapter as? ItemRowAdapter ?: continue
-					if (itemAdapter.queryType == QueryType.LiveTvProgram && i > 0) {
-						val previousRow = rowsAdapter.get(i - 1)
-						if (previousRow != null) itemAdapter.setSiblingRow(previousRow)
-					}
-				}
-			}
-		}
+		loadHomeRows()
 
 		onItemViewClickedListener = CompositeClickedListener().apply {
 			registerListener(ItemViewClickedListener())
@@ -186,6 +127,88 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 		mediaManager.addAudioEventListener(this)
 	}
 
+	/**
+	 * Rebuilds the home rows if the home section preferences (order/selection) have changed
+	 * since they were last loaded. Called when the settings dialog is dismissed, since that
+	 * dialog is an overlay within this same fragment's lifecycle - onResume() never fires for it.
+	 */
+	fun reloadHomeRowsIfSectionsChanged() {
+		lifecycleScope.launch(Dispatchers.IO) {
+			val sectionsChanged = userSettingPreferences.activeHomesections != loadedHomeSections
+			if (sectionsChanged) withContext(Dispatchers.Main) { loadHomeRows() }
+		}
+	}
+
+	private fun loadHomeRows() {
+		lifecycleScope.launch(Dispatchers.IO) {
+			val currentUser = withTimeout(30.seconds) {
+				userRepository.currentUser.filterNotNull().first()
+			}
+
+			// Start out with default sections
+			val homesections = userSettingPreferences.activeHomesections
+			loadedHomeSections = homesections
+
+			// Make sure the rows are empty
+			val rows = mutableListOf<HomeFragmentRow>()
+
+			// Check for coroutine cancellation
+			if (!isActive) return@launch
+
+			// Actually add the sections
+			for (section in homesections) when (section) {
+				HomeSectionType.LATEST_MEDIA -> rows.add(helper.loadRecentlyAdded(userViewsRepository.views.first()))
+				HomeSectionType.LIBRARY_TILES_SMALL -> rows.add(HomeFragmentViewsRow(small = false))
+				HomeSectionType.LIBRARY_BUTTONS -> rows.add(HomeFragmentViewsRow(small = true))
+				HomeSectionType.RESUME -> rows.add(helper.loadResumeVideo())
+				HomeSectionType.RESUME_AUDIO -> rows.add(helper.loadResumeAudio())
+				HomeSectionType.RESUME_BOOK -> Unit // Books are not (yet) supported
+				HomeSectionType.ACTIVE_RECORDINGS -> rows.add(helper.loadLatestLiveTvRecordings())
+				HomeSectionType.NEXT_UP -> rows.add(helper.loadNextUp())
+				HomeSectionType.LIVE_TV -> if (currentUser.policy?.enableLiveTvAccess == true) {
+					rows.add(HomeFragmentLiveTVRow(requireActivity(), userRepository))
+					rows.add(helper.loadOnNow())
+				}
+
+				HomeSectionType.LATEST_MOVIES -> rows.add(helper.loadLatestMovies())
+				HomeSectionType.LATEST_SHOWS -> rows.add(helper.loadLatestShows())
+				HomeSectionType.BECAUSE_YOU_WATCHED -> rows.add(HomeFragmentBecauseYouWatchedRow(api))
+				HomeSectionType.COLLECTIONS -> rows.add(helper.loadCollections())
+				HomeSectionType.WATCH_AGAIN -> rows.add(helper.loadWatchAgain())
+				HomeSectionType.GENRES -> rows.add(HomeFragmentGenreRow(api))
+
+				HomeSectionType.NONE -> Unit
+			}
+
+			// Add sections to layout
+			withContext(Dispatchers.Main) {
+				@Suppress("UNCHECKED_CAST")
+				val rowsAdapter = adapter as MutableObjectAdapter<Row>
+				val cardPresenter = CardPresenter()
+
+				// Clear any rows from a previous load (e.g. rebuilding after a home section preference change)
+				rowsAdapter.clear()
+				currentItem = null
+				currentRow = null
+
+				// Add rows in order
+				notificationsRow.addToRowsAdapter(requireContext(), cardPresenter, rowsAdapter)
+				nowPlaying.addToRowsAdapter(requireContext(), cardPresenter, rowsAdapter)
+				for (row in rows) row.addToRowsAdapter(requireContext(), cardPresenter, rowsAdapter)
+
+				// Wire up Live TV sibling rows so the On Now row removes the buttons row when empty
+				for (i in 0 until rowsAdapter.size()) {
+					val listRow = rowsAdapter.get(i) as? ListRow ?: continue
+					val itemAdapter = listRow.adapter as? ItemRowAdapter ?: continue
+					if (itemAdapter.queryType == QueryType.LiveTvProgram && i > 0) {
+						val previousRow = rowsAdapter.get(i - 1)
+						if (previousRow != null) itemAdapter.setSiblingRow(previousRow)
+					}
+				}
+			}
+		}
+	}
+
 	override fun onKey(v: View?, keyCode: Int, event: KeyEvent?): Boolean {
 		if (event?.action != KeyEvent.ACTION_UP) return false
 		return keyProcessor.handleKey(keyCode, currentItem, activity)
@@ -202,9 +225,20 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 		}
 
 		if (!justLoaded) {
-			//Re-retrieve anything that needs it but delay slightly so we don't take away gui landing
-			refreshCurrentItem()
-			refreshRows()
+			lifecycleScope.launch(Dispatchers.IO) {
+				val sectionsChanged = userSettingPreferences.activeHomesections != loadedHomeSections
+
+				withContext(Dispatchers.Main) {
+					if (sectionsChanged) {
+						// Home section preferences changed (e.g. reordered in Settings) - rebuild from scratch
+						loadHomeRows()
+					} else {
+						//Re-retrieve anything that needs it but delay slightly so we don't take away gui landing
+						refreshCurrentItem()
+						refreshRows()
+					}
+				}
+			}
 		} else {
 			justLoaded = false
 		}

@@ -8,6 +8,7 @@ import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,9 +30,11 @@ import kotlinx.coroutines.flow.onEach
 import org.jellyfin.androidtv.auth.repository.ServerRepository
 import org.jellyfin.androidtv.auth.repository.SessionRepository
 import org.jellyfin.androidtv.data.repository.NotificationsRepository
+import org.jellyfin.androidtv.ui.settings.compat.SettingsViewModel
 import org.jellyfin.androidtv.ui.shared.toolbar.MainToolbar
 import org.jellyfin.androidtv.ui.shared.toolbar.MainToolbarActiveButton
 import org.koin.android.ext.android.inject
+import org.koin.compose.viewmodel.koinActivityViewModel
 
 class HomeFragment : Fragment() {
 	private val sessionRepository by inject<SessionRepository>()
@@ -53,6 +56,15 @@ class HomeFragment : Fragment() {
 			// issue we add custom behavior that only allows focus exit when the current selected row is the first one. Additionally when
 			// we do switch the focus, we reset the leanback state so it won't cause weird behavior when focus is regained
 			var rowsSupportFragment by remember { mutableStateOf<HomeRowsFragment?>(null) }
+
+			// The settings screen is a dialog overlay rather than a separate navigation destination, so
+			// HomeRowsFragment never receives an onResume() call when it closes. Reload manually instead.
+			val settingsViewModel = koinActivityViewModel<SettingsViewModel>()
+			val settingsVisible by settingsViewModel.visible.collectAsState()
+			LaunchedEffect(settingsVisible) {
+				if (!settingsVisible) rowsSupportFragment?.reloadHomeRowsIfSectionsChanged()
+			}
+
 			AndroidFragment<HomeRowsFragment>(
 				modifier = Modifier
 					.focusGroup()
