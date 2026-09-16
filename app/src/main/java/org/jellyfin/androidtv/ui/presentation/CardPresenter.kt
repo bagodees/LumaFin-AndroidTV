@@ -141,19 +141,13 @@ private fun BaseRowItem.getDisplayConfig(imageType: ImageType, uniformAspect: Bo
 	BaseRowType.BaseItem -> {
 		val preferSeriesPoster = this is BaseItemDtoBaseRowItem && preferSeriesPoster
 		val primaryAspectRatio = baseItem?.primaryImageAspectRatio?.toFloat()
-		val defaultAspectRatio = when {
-			preferParentThumb && (baseItem?.parentThumbItemId != null || baseItem?.seriesThumbImageTag != null) -> ImageHelper.ASPECT_RATIO_16_9.toFloat()
-			baseItem?.type == BaseItemKind.EPISODE && primaryAspectRatio != null -> primaryAspectRatio
-			baseItem?.type == BaseItemKind.EPISODE && (baseItem.parentThumbItemId != null || baseItem.seriesThumbImageTag != null) -> ImageHelper.ASPECT_RATIO_16_9.toFloat()
-			baseItem?.type == BaseItemKind.USER_VIEW -> ImageHelper.ASPECT_RATIO_16_9.toFloat()
-			else -> primaryAspectRatio ?: ImageHelper.ASPECT_RATIO_7_9.toFloat()
-		}
 
+		// LumaFin: cards are uniform landscape tiles (Thumb -> Backdrop -> Primary, see
+		// BaseItemDtoBaseRowItem.getImage) rather than per-type portrait posters.
 		val base = BaseRowItemDisplayConfig(
 			aspectRatio = when (imageType) {
 				ImageType.BANNER -> ImageHelper.ASPECT_RATIO_BANNER.toFloat()
-				ImageType.THUMB -> ImageHelper.ASPECT_RATIO_16_9.toFloat()
-				else -> defaultAspectRatio
+				else -> ImageHelper.ASPECT_RATIO_16_9.toFloat()
 			},
 			image = getImage(imageType),
 			iconRes = R.drawable.ic_clapperboard,
@@ -162,17 +156,16 @@ private fun BaseRowItem.getDisplayConfig(imageType: ImageType, uniformAspect: Bo
 		when (baseItem?.type) {
 			BaseItemKind.AUDIO, BaseItemKind.MUSIC_ALBUM -> base.copy(
 				iconRes = R.drawable.ic_music_album,
-				aspectRatio = if (uniformAspect || base.aspectRatio < 0.8f) 1f else base.aspectRatio,
+				aspectRatio = if (uniformAspect) 1f else primaryAspectRatio ?: 1f,
 			)
 
 			BaseItemKind.PERSON,
 			BaseItemKind.MUSIC_ARTIST -> base.copy(
 				iconRes = R.drawable.ic_user,
-				aspectRatio = if (uniformAspect || base.aspectRatio < 0.8f) 1f else base.aspectRatio,
+				aspectRatio = if (uniformAspect) 1f else primaryAspectRatio ?: 1f,
 			)
 
 			BaseItemKind.SEASON, BaseItemKind.SERIES -> base.copy(
-				aspectRatio = if (imageType == ImageType.POSTER) ImageHelper.ASPECT_RATIO_2_3.toFloat() else base.aspectRatio,
 				iconRes = R.drawable.ic_tv
 			)
 
@@ -183,14 +176,12 @@ private fun BaseRowItem.getDisplayConfig(imageType: ImageType, uniformAspect: Bo
 				)
 
 				false -> base.copy(
-					aspectRatio = ImageHelper.ASPECT_RATIO_16_9.toFloat(),
 					iconRes = R.drawable.ic_tv,
 					overrideShowInfo = true,
 				)
 			}
 
 			BaseItemKind.COLLECTION_FOLDER, BaseItemKind.USER_VIEW -> base.copy(
-				aspectRatio = ImageHelper.ASPECT_RATIO_16_9.toFloat(),
 				iconRes = R.drawable.ic_folder,
 			)
 
@@ -204,14 +195,6 @@ private fun BaseRowItem.getDisplayConfig(imageType: ImageType, uniformAspect: Bo
 
 			BaseItemKind.PHOTO_ALBUM, BaseItemKind.PLAYLIST -> base.copy(
 				iconRes = R.drawable.ic_folder
-			)
-
-			BaseItemKind.MOVIE, BaseItemKind.VIDEO -> base.copy(
-				aspectRatio = when (imageType) {
-					ImageType.POSTER -> ImageHelper.ASPECT_RATIO_2_3.toFloat()
-					else -> base.aspectRatio
-				},
-				iconRes = R.drawable.ic_clapperboard,
 			)
 
 			else -> base

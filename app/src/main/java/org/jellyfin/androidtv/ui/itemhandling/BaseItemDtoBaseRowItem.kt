@@ -3,7 +3,9 @@ package org.jellyfin.androidtv.ui.itemhandling
 import android.content.Context
 import org.jellyfin.androidtv.util.apiclient.JellyfinImage
 import org.jellyfin.androidtv.util.apiclient.albumPrimaryImage
+import org.jellyfin.androidtv.util.apiclient.itemBackdropImages
 import org.jellyfin.androidtv.util.apiclient.itemImages
+import org.jellyfin.androidtv.util.apiclient.parentBackdropImages
 import org.jellyfin.androidtv.util.apiclient.parentImages
 import org.jellyfin.androidtv.util.apiclient.seriesPrimaryImage
 import org.jellyfin.androidtv.util.apiclient.seriesThumbImage
@@ -108,13 +110,21 @@ open class BaseItemDtoBaseRowItem @JvmOverloads constructor(
 
 			preferParentThumb && baseItem?.type == BaseItemKind.EPISODE -> baseItem.parentImages[ImageType.THUMB]
 				?: baseItem.seriesThumbImage
+				?: baseItem.parentBackdropImages.firstOrNull()
+				?: baseItem.parentImages[ImageType.PRIMARY]
+				?: baseItem.seriesPrimaryImage
 
-			baseItem?.type == BaseItemKind.SEASON -> baseItem.itemImages[ImageType.PRIMARY]
+			baseItem?.type == BaseItemKind.SEASON -> baseItem.itemImages[ImageType.THUMB]
+				?: baseItem.seriesThumbImage
+				?: baseItem.itemBackdropImages.firstOrNull()
+				?: baseItem.itemImages[ImageType.PRIMARY]
 				?: baseItem.seriesPrimaryImage
 			baseItem?.type == BaseItemKind.PROGRAM -> baseItem.itemImages[ImageType.THUMB]
 			baseItem?.type == BaseItemKind.AUDIO -> baseItem.albumPrimaryImage
 			else -> null
-		} ?: baseItem?.itemImages[ImageType.PRIMARY]
+		} ?: baseItem?.itemImages[ImageType.THUMB]
+			?: baseItem?.itemBackdropImages?.firstOrNull()
+			?: baseItem?.itemImages[ImageType.PRIMARY]
 
 		return when (imageType) {
 			BaseRowImageType.BANNER -> baseItem?.itemImages[ImageType.BANNER] ?: primaryImage

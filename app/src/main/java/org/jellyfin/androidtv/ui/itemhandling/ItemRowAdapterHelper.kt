@@ -170,8 +170,6 @@ fun ItemRowAdapter.retrieveLatestMedia(api: ApiClient, query: GetLatestMediaRequ
 						item,
 						preferParentThumb,
 						isStaticHeight,
-						BaseRowItemSelectAction.ShowDetails,
-						preferParentThumb,
 					)
 				}
 			)

@@ -368,7 +368,7 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
                 } else if (fType == BaseItemKind.COLLECTION_FOLDER && CollectionType.MUSIC.equals(folder.getCollectionType())) {
                     return cardHeight;
                 } else {
-                    return cardHeight * ImageHelper.ASPECT_RATIO_2_3;
+                    return cardHeight * ImageHelper.ASPECT_RATIO_16_9;
                 }
             case THUMB:
                 return cardHeight * ImageHelper.ASPECT_RATIO_16_9;
@@ -389,7 +389,7 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
                 } else if (fType == BaseItemKind.COLLECTION_FOLDER && CollectionType.MUSIC.equals(folder.getCollectionType())) {
                     return cardWidth;
                 } else {
-                    return cardWidth / ImageHelper.ASPECT_RATIO_2_3;
+                    return cardWidth / ImageHelper.ASPECT_RATIO_16_9;
                 }
             case THUMB:
                 return cardWidth / ImageHelper.ASPECT_RATIO_16_9;
