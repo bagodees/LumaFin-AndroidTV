@@ -5,6 +5,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.lifecycle.ProcessLifecycleOwner
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.jellyfin.preference.Preference
 import org.jellyfin.preference.store.AsyncPreferenceStore
 import org.jellyfin.preference.store.PreferenceStore
@@ -19,7 +23,11 @@ fun <ME, MV, T : Any> rememberPreference(store: PreferenceStore<ME, MV>, prefere
 	LaunchedEffect(mutableState.value) {
 		if (store[preference] != mutableState.value) {
 			store[preference] = mutableState.value
-			if (store is AsyncPreferenceStore) store.commit()
+			// Commit on the process (not composition) scope so navigating away or closing the
+			// settings dialog right after a change doesn't cancel the network write mid-flight.
+			if (store is AsyncPreferenceStore) {
+				ProcessLifecycleOwner.get().lifecycleScope.launch(Dispatchers.IO) { store.commit() }
+			}
 		}
 	}
 	return mutableState
@@ -35,7 +43,9 @@ fun <ME, MV, T : Enum<T>> rememberPreference(
 	LaunchedEffect(mutableState.value) {
 		if (store[preference] != mutableState.value) {
 			store[preference] = mutableState.value
-			if (store is AsyncPreferenceStore) store.commit()
+			if (store is AsyncPreferenceStore) {
+				ProcessLifecycleOwner.get().lifecycleScope.launch(Dispatchers.IO) { store.commit() }
+			}
 		}
 	}
 	return mutableState
