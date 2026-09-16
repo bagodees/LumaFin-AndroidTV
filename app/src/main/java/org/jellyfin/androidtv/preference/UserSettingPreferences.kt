@@ -1,17 +1,18 @@
 package org.jellyfin.androidtv.preference
 
+import android.content.Context
+import androidx.preference.PreferenceManager
 import org.jellyfin.androidtv.constant.HomeSectionType
-import org.jellyfin.androidtv.preference.store.DisplayPreferencesStore
 import org.jellyfin.preference.enumPreference
 import org.jellyfin.preference.intPreference
-import org.jellyfin.sdk.api.client.ApiClient
+import org.jellyfin.preference.store.SharedPreferenceStore
 
-class UserSettingPreferences(
-	api: ApiClient,
-) : DisplayPreferencesStore(
-	displayPreferencesId = "usersettings",
-	api = api,
-	app = "emby",
+/**
+ * Stored locally on-device (not synced via the server's shared display preferences) so that
+ * home layout changes can't be reverted by another client or a session refresh racing the save.
+ */
+class UserSettingPreferences(context: Context) : SharedPreferenceStore(
+	sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 ) {
 	companion object {
 		val skipBackLength = intPreference("skipBackLength", 10_000)

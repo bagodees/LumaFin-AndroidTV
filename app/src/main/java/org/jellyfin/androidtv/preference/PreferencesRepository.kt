@@ -10,7 +10,6 @@ import kotlin.collections.set
 class PreferencesRepository(
 	private val api: ApiClient,
 	private val liveTvPreferences: LiveTvPreferences,
-	private val userSettingPreferences: UserSettingPreferences,
 ) {
 	private val libraryPreferences = mutableMapOf<String, LibraryPreferences>()
 
@@ -26,10 +25,7 @@ class PreferencesRepository(
 	}
 
 	suspend fun onSessionChanged() {
-		// Note: Do not run parallel as the server can't deal with that
-		// Relevant server issue: https://github.com/jellyfin/jellyfin/issues/5261
 		liveTvPreferences.update()
-		userSettingPreferences.update()
 
 		libraryPreferences.clear()
 	}
