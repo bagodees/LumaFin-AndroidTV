@@ -175,7 +175,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 				HomeSectionType.LATEST_MOVIES -> rows.add(helper.loadLatestMovies())
 				HomeSectionType.LATEST_SHOWS -> rows.add(helper.loadLatestShows())
 				HomeSectionType.BECAUSE_YOU_WATCHED -> rows.add(HomeFragmentBecauseYouWatchedRow(api))
-				HomeSectionType.COLLECTIONS -> rows.add(helper.loadCollections())
+				HomeSectionType.COLLECTIONS -> rows.add(HomeFragmentCollectionsRow(api, userViewsRepository.views.first()))
 				HomeSectionType.WATCH_AGAIN -> rows.add(helper.loadWatchAgain())
 				HomeSectionType.GENRES -> rows.add(HomeFragmentGenreRow(api))
 

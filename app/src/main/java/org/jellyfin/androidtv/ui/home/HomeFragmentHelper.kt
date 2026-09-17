@@ -103,19 +103,6 @@ class HomeFragmentHelper(
 		return HomeFragmentBrowseRowDefRow(BrowseRowDef(context.getString(R.string.home_section_latest_shows), query, ITEM_LIMIT_LATEST_BY_RELEASE, false, true, arrayOf(ChangeTriggerType.LibraryUpdated)))
 	}
 
-	fun loadCollections(): HomeFragmentRow {
-		val query = GetItemsRequest(
-			fields = ItemRepository.browseFields,
-			includeItemTypes = setOf(BaseItemKind.BOX_SET),
-			recursive = true,
-			sortBy = setOf(ItemSortBy.SORT_NAME),
-			imageTypeLimit = 1,
-			limit = ITEM_LIMIT_COLLECTIONS,
-		)
-
-		return HomeFragmentBrowseRowDefRow(BrowseRowDef(context.getString(R.string.home_section_collections), query, ITEM_LIMIT_COLLECTIONS, false, true, arrayOf(ChangeTriggerType.LibraryUpdated)))
-	}
-
 	fun loadWatchAgain(): HomeFragmentRow {
 		val query = GetItemsRequest(
 			fields = ItemRepository.browseFields,
@@ -150,7 +137,6 @@ class HomeFragmentHelper(
 		private const val ITEM_LIMIT_NEXT_UP = 50
 		private const val ITEM_LIMIT_ON_NOW = 20
 		private const val ITEM_LIMIT_LATEST_BY_RELEASE = 50
-		private const val ITEM_LIMIT_COLLECTIONS = 50
 		private const val ITEM_LIMIT_WATCH_AGAIN = 50
 	}
 }
