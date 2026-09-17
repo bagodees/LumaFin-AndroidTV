@@ -6,6 +6,9 @@ import androidx.leanback.widget.HeaderItem
 import androidx.leanback.widget.ListRow
 import androidx.leanback.widget.Row
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.ui.presentation.CardPresenter
@@ -23,8 +26,8 @@ import org.koin.core.component.inject
 
 /**
  * Adds a single "Genres" row containing one collage tile per genre (a 2x2 grid of that
- * genre's top-rated movies), picked at random from the genres present in the user's movie
- * libraries. Selecting a tile opens a full grid of that genre.
+ * genre's top-rated movies) for every genre present in the user's movie libraries.
+ * Selecting a tile opens a full grid of that genre.
  */
 class HomeFragmentGenreRow(
 	private val api: ApiClient,
@@ -40,27 +43,29 @@ class HomeFragmentGenreRow(
 				).content.items
 			}.getOrDefault(emptyList())
 				.mapNotNull { it.name }
-				.shuffled()
-				.take(GENRE_ROW_COUNT)
 
-			genres.mapNotNull { genre ->
-				val items = runCatching {
-					api.itemsApi.getItems(
-						includeItemTypes = setOf(BaseItemKind.MOVIE),
-						genres = setOf(genre),
-						recursive = true,
-						sortBy = setOf(ItemSortBy.COMMUNITY_RATING),
-						sortOrder = setOf(SortOrder.DESCENDING),
-						imageTypeLimit = 1,
-						limit = TILE_IMAGE_COUNT,
-					).content.items
-				}.getOrDefault(emptyList())
+			coroutineScope {
+				genres.map { genre ->
+					async {
+						val items = runCatching {
+							api.itemsApi.getItems(
+								includeItemTypes = setOf(BaseItemKind.MOVIE),
+								genres = setOf(genre),
+								recursive = true,
+								sortBy = setOf(ItemSortBy.COMMUNITY_RATING),
+								sortOrder = setOf(SortOrder.DESCENDING),
+								imageTypeLimit = 1,
+								limit = TILE_IMAGE_COUNT,
+							).content.items
+						}.getOrDefault(emptyList())
 
-				val imageUrls = items.mapNotNull { item ->
-					imageHelper.getPrimaryImageUrl(item, width = TILE_IMAGE_SIZE, height = TILE_IMAGE_SIZE)
-				}
+						val imageUrls = items.mapNotNull { item ->
+							imageHelper.getPrimaryImageUrl(item, width = TILE_IMAGE_SIZE, height = TILE_IMAGE_SIZE)
+						}
 
-				if (imageUrls.isEmpty()) null else GenreTile(genre, imageUrls)
+						if (imageUrls.isEmpty()) null else GenreTile(genre, imageUrls)
+					}
+				}.awaitAll().filterNotNull()
 			}
 		}
 
@@ -74,7 +79,6 @@ class HomeFragmentGenreRow(
 	}
 
 	companion object {
-		private const val GENRE_ROW_COUNT = 6
 		private const val TILE_IMAGE_COUNT = 4
 		private const val TILE_IMAGE_SIZE = 300
 	}
