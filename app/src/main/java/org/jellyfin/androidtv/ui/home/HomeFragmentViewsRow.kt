@@ -18,7 +18,7 @@ class HomeFragmentViewsRow(
 		val largeCardPresenter = CardPresenter(true, 126)
 	}
 
-	override fun addToRowsAdapter(context: Context, cardPresenter: CardPresenter, rowsAdapter: MutableObjectAdapter<Row>) {
+	override suspend fun addToRowsAdapter(context: Context, cardPresenter: CardPresenter, rowsAdapter: MutableObjectAdapter<Row>) {
 		val presenter = if (small) smallCardPresenter else largeCardPresenter
 		val rowAdapter = ItemRowAdapter(context, GetUserViewsRequest, presenter, rowsAdapter)
 

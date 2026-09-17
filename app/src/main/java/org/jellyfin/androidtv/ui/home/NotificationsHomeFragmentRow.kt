@@ -45,7 +45,7 @@ class NotificationsHomeFragmentRow(
 		}
 	}
 
-	override fun addToRowsAdapter(context: Context, cardPresenter: CardPresenter, rowsAdapter: MutableObjectAdapter<Row>) {
+	override suspend fun addToRowsAdapter(context: Context, cardPresenter: CardPresenter, rowsAdapter: MutableObjectAdapter<Row>) {
 		this.rowsAdapter = rowsAdapter
 		update(notificationsRepository.notifications.value.isEmpty())
 	}

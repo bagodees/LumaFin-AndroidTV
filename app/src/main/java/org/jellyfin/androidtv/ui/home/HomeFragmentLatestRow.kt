@@ -17,13 +17,13 @@ class HomeFragmentLatestRow(
 	private val userRepository: UserRepository,
 	private val userViews: Collection<BaseItemDto>,
 ) : HomeFragmentRow {
-	override fun addToRowsAdapter(context: Context, cardPresenter: CardPresenter, rowsAdapter: MutableObjectAdapter<Row>) {
+	override suspend fun addToRowsAdapter(context: Context, cardPresenter: CardPresenter, rowsAdapter: MutableObjectAdapter<Row>) {
 		// Get configuration (to find excluded items)
 		val configuration = userRepository.currentUser.value?.configuration
 
 		// Create a list of views to include
 		val latestItemsExcludes = configuration?.latestItemsExcludes.orEmpty()
-		userViews
+		val rows = userViews
 			.filterNot { item -> item.collectionType in EXCLUDED_COLLECTION_TYPES || item.id in latestItemsExcludes }
 			.map { item ->
 				// Create query and add it to a new row
@@ -37,10 +37,10 @@ class HomeFragmentLatestRow(
 
 				val title = context.getString(R.string.lbl_latest_in, item.name)
 				HomeFragmentBrowseRowDefRow(BrowseRowDef(title, request, arrayOf(ChangeTriggerType.LibraryUpdated)))
-			}.forEach { row ->
-				// Add row to adapter
-				row.addToRowsAdapter(context, cardPresenter, rowsAdapter)
 			}
+
+		// Add rows to adapter
+		for (row in rows) row.addToRowsAdapter(context, cardPresenter, rowsAdapter)
 	}
 
 	companion object {
