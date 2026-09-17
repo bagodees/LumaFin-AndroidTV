@@ -2,10 +2,7 @@ package org.jellyfin.androidtv.ui.home
 
 import android.content.Context
 import androidx.leanback.widget.Row
-import androidx.lifecycle.ProcessLifecycleOwner
-import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jellyfin.androidtv.constant.ChangeTriggerType
 import org.jellyfin.androidtv.data.repository.ItemRepository
@@ -27,9 +24,9 @@ import org.jellyfin.sdk.model.api.request.GetItemsRequest
 class HomeFragmentGenreRow(
 	private val api: ApiClient,
 ) : HomeFragmentRow {
-	override fun addToRowsAdapter(context: Context, cardPresenter: CardPresenter, rowsAdapter: MutableObjectAdapter<Row>) {
-		ProcessLifecycleOwner.get().lifecycleScope.launch(Dispatchers.IO) {
-			val genres = runCatching {
+	override suspend fun addToRowsAdapter(context: Context, cardPresenter: CardPresenter, rowsAdapter: MutableObjectAdapter<Row>) {
+		val genres = withContext(Dispatchers.IO) {
+			runCatching {
 				api.genresApi.getGenres(
 					includeItemTypes = setOf(BaseItemKind.MOVIE),
 					sortBy = setOf(ItemSortBy.SORT_NAME),
@@ -38,24 +35,22 @@ class HomeFragmentGenreRow(
 				.mapNotNull { it.name }
 				.shuffled()
 				.take(GENRE_ROW_COUNT)
+		}
 
-			withContext(Dispatchers.Main) {
-				for (genre in genres) {
-					val query = GetItemsRequest(
-						fields = ItemRepository.browseFields,
-						includeItemTypes = setOf(BaseItemKind.MOVIE),
-						genres = setOf(genre),
-						recursive = true,
-						sortBy = setOf(ItemSortBy.COMMUNITY_RATING),
-						sortOrder = setOf(SortOrder.DESCENDING),
-						imageTypeLimit = 1,
-						limit = ITEMS_PER_GENRE,
-					)
+		for (genre in genres) {
+			val query = GetItemsRequest(
+				fields = ItemRepository.browseFields,
+				includeItemTypes = setOf(BaseItemKind.MOVIE),
+				genres = setOf(genre),
+				recursive = true,
+				sortBy = setOf(ItemSortBy.COMMUNITY_RATING),
+				sortOrder = setOf(SortOrder.DESCENDING),
+				imageTypeLimit = 1,
+				limit = ITEMS_PER_GENRE,
+			)
 
-					val row = HomeFragmentBrowseRowDefRow(BrowseRowDef(genre, query, ITEMS_PER_GENRE, false, true, arrayOf(ChangeTriggerType.LibraryUpdated)))
-					row.addToRowsAdapter(context, cardPresenter, rowsAdapter)
-				}
-			}
+			val row = HomeFragmentBrowseRowDefRow(BrowseRowDef(genre, query, ITEMS_PER_GENRE, false, true, arrayOf(ChangeTriggerType.LibraryUpdated)))
+			row.addToRowsAdapter(context, cardPresenter, rowsAdapter)
 		}
 	}
 

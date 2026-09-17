@@ -2,10 +2,7 @@ package org.jellyfin.androidtv.ui.home
 
 import android.content.Context
 import androidx.leanback.widget.Row
-import androidx.lifecycle.ProcessLifecycleOwner
-import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.constant.QueryType
@@ -27,9 +24,9 @@ import org.jellyfin.sdk.model.api.request.GetSimilarItemsRequest
 class HomeFragmentBecauseYouWatchedRow(
 	private val api: ApiClient,
 ) : HomeFragmentRow {
-	override fun addToRowsAdapter(context: Context, cardPresenter: CardPresenter, rowsAdapter: MutableObjectAdapter<Row>) {
-		ProcessLifecycleOwner.get().lifecycleScope.launch(Dispatchers.IO) {
-			val seeds = runCatching {
+	override suspend fun addToRowsAdapter(context: Context, cardPresenter: CardPresenter, rowsAdapter: MutableObjectAdapter<Row>) {
+		val seeds = withContext(Dispatchers.IO) {
+			runCatching {
 				api.itemsApi.getItems(
 					includeItemTypes = setOf(BaseItemKind.MOVIE),
 					sortBy = setOf(ItemSortBy.DATE_PLAYED),
@@ -38,20 +35,18 @@ class HomeFragmentBecauseYouWatchedRow(
 					limit = SEED_COUNT,
 				).content.items
 			}.getOrDefault(emptyList())
+		}
 
-			withContext(Dispatchers.Main) {
-				for (seed in seeds) {
-					val similarQuery = GetSimilarItemsRequest(
-						itemId = seed.id,
-						fields = ItemRepository.itemFields,
-						limit = SIMILAR_ITEM_LIMIT,
-					)
+		for (seed in seeds) {
+			val similarQuery = GetSimilarItemsRequest(
+				itemId = seed.id,
+				fields = ItemRepository.itemFields,
+				limit = SIMILAR_ITEM_LIMIT,
+			)
 
-					val title = context.getString(R.string.because_you_watched, seed.name)
-					val row = HomeFragmentBrowseRowDefRow(BrowseRowDef(title, similarQuery, QueryType.SimilarMovies))
-					row.addToRowsAdapter(context, cardPresenter, rowsAdapter)
-				}
-			}
+			val title = context.getString(R.string.because_you_watched, seed.name)
+			val row = HomeFragmentBrowseRowDefRow(BrowseRowDef(title, similarQuery, QueryType.SimilarMovies))
+			row.addToRowsAdapter(context, cardPresenter, rowsAdapter)
 		}
 	}
 

@@ -19,7 +19,7 @@ class HomeFragmentNowPlayingRow(
 ) : HomeFragmentRow {
 	private var row: ListRow? = null
 
-	override fun addToRowsAdapter(
+	override suspend fun addToRowsAdapter(
 		context: Context,
 		cardPresenter: CardPresenter,
 		rowsAdapter: MutableObjectAdapter<Row>
