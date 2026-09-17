@@ -90,6 +90,7 @@ class GenreTilePresenter @JvmOverloads constructor(
 
 				Text(
 					text = value.name,
+					color = Tokens.Color.colorGrey25,
 					modifier = Modifier.padding(top = 8.dp)
 				)
 			}
