@@ -297,6 +297,11 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 				}
 			}
 
+			if (item is GenreTile) {
+				navigationRepository.navigate(Destinations.genreDetails(item.name))
+				return
+			}
+
 			if (item !is BaseRowItem) return
 			if (row !is ListRow) return
 			@Suppress("UNCHECKED_CAST")

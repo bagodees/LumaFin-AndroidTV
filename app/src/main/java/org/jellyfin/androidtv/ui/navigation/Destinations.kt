@@ -10,6 +10,7 @@ import org.jellyfin.androidtv.ui.browsing.ByGenreFragment
 import org.jellyfin.androidtv.ui.browsing.ByLetterFragment
 import org.jellyfin.androidtv.ui.browsing.CollectionFragment
 import org.jellyfin.androidtv.ui.browsing.GenericFolderFragment
+import org.jellyfin.androidtv.ui.browsing.GenreItemsFragment
 import org.jellyfin.androidtv.ui.browsing.SuggestedMoviesFragment
 import org.jellyfin.androidtv.ui.home.HomeFragment
 import org.jellyfin.androidtv.ui.itemdetail.FullDetailsFragment
@@ -24,6 +25,7 @@ import org.jellyfin.androidtv.ui.player.photo.PhotoPlayerFragment
 import org.jellyfin.androidtv.ui.player.video.VideoPlayerFragment
 import org.jellyfin.androidtv.ui.search.SearchFragment
 import org.jellyfin.sdk.model.api.BaseItemDto
+import org.jellyfin.sdk.model.api.BaseItemKind
 import org.jellyfin.sdk.model.api.ItemSortBy
 import org.jellyfin.sdk.model.api.SeriesTimerInfoDto
 import org.jellyfin.sdk.model.api.SortOrder
@@ -65,6 +67,11 @@ object Destinations {
 		fragmentDestination<ByGenreFragment> {
 			putString(Extras.Folder, Json.encodeToString(item))
 			putString(Extras.IncludeType, includeType)
+		}
+
+	fun genreDetails(genreName: String) =
+		fragmentDestination<GenreItemsFragment> {
+			putString(Extras.Folder, Json.encodeToString(BaseItemDto(id = UUID.randomUUID(), name = genreName, type = BaseItemKind.FOLDER)))
 		}
 
 	// TODO only pass item id instead of complete JSON to browsing destinations
