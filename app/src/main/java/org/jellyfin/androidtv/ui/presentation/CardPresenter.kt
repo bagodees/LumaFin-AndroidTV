@@ -293,7 +293,7 @@ private fun CardViewHolderContent(
 	// The focused card is the visual anchor for a TV row. Gently dim the artwork on
 	// its neighbours so focus remains clear without relying on an oversized zoom.
 	val cardAlpha by animateFloatAsState(
-		targetValue = if (focused) 1f else 0.82f,
+		targetValue = if (focused) 1f else 0.7f,
 		label = "CardFocusAlpha",
 	)
 
