@@ -420,6 +420,7 @@
     <string name="license_author">Author</string>
     <string name="license_license">License</string>
     <string name="home_prefs">Home</string>
+    <string name="home_sections_hidden">Hidden</string>
     <string name="home_sections">Home sections</string>
     <string name="home_section_latest_media">Recently added media</string>
     <string name="home_section_library">My media</string>
@@ -435,6 +436,19 @@
     <string name="home_section_collections">Collections</string>
     <string name="home_section_watch_again">Watch again</string>
     <string name="home_section_genres">Genres</string>
+    <string name="home_section_continue_watching_next_up">Continue Watching / Next Up</string>
+    <string name="home_section_favorites">Favorites</string>
+    <string name="home_section_recently_added_movies">Recently Added Movies</string>
+    <string name="home_section_recently_added_shows">Recently Added Shows</string>
+    <string name="home_section_recently_added_albums">Recently Added Albums</string>
+    <string name="home_section_recently_added_artists">Recently Added Artists</string>
+    <string name="home_section_recently_added_music_videos">Recently Added Music Videos</string>
+    <string name="home_section_recently_added_books">Recently Added Books</string>
+    <string name="home_section_recently_added_audiobooks">Recently Added Audiobooks</string>
+    <string name="home_section_latest_albums">Latest Albums</string>
+    <string name="home_section_latest_music_videos">Latest Music Videos</string>
+    <string name="home_section_latest_books">Latest Books</string>
+    <string name="home_section_latest_audiobooks">Latest Audiobooks</string>
     <string name="home_section_none">None</string>
     <string name="home_section_i">Home section %1$d</string>
     <string name="searchable_hint">Search LumaFin</string>

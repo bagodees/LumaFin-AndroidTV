@@ -176,6 +176,19 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 				HomeSectionType.COLLECTIONS -> rows.add(HomeFragmentCollectionsRow(api, userViewsRepository.views.first()))
 				HomeSectionType.WATCH_AGAIN -> rows.add(helper.loadWatchAgain())
 				HomeSectionType.GENRES -> rows.add(HomeFragmentGenreRow(api))
+				HomeSectionType.CONTINUE_WATCHING_NEXT_UP -> rows.add(HomeFragmentContinueWatchingNextUpRow(api))
+				HomeSectionType.FAVORITES -> rows.add(helper.loadFavorites())
+				HomeSectionType.RECENTLY_ADDED_MOVIES -> rows.add(helper.loadRecentlyAddedMovies())
+				HomeSectionType.RECENTLY_ADDED_SHOWS -> rows.add(helper.loadRecentlyAddedShows())
+				HomeSectionType.RECENTLY_ADDED_ALBUMS -> rows.add(helper.loadRecentlyAddedAlbums())
+				HomeSectionType.RECENTLY_ADDED_ARTISTS -> rows.add(helper.loadRecentlyAddedArtists())
+				HomeSectionType.RECENTLY_ADDED_MUSIC_VIDEOS -> rows.add(helper.loadRecentlyAddedMusicVideos())
+				HomeSectionType.RECENTLY_ADDED_BOOKS -> rows.add(helper.loadRecentlyAddedBooks())
+				HomeSectionType.RECENTLY_ADDED_AUDIOBOOKS -> rows.add(helper.loadRecentlyAddedAudiobooks())
+				HomeSectionType.LATEST_ALBUMS -> rows.add(helper.loadLatestAlbums())
+				HomeSectionType.LATEST_MUSIC_VIDEOS -> rows.add(helper.loadLatestMusicVideos())
+				HomeSectionType.LATEST_BOOKS -> rows.add(helper.loadLatestBooks())
+				HomeSectionType.LATEST_AUDIOBOOKS -> rows.add(helper.loadLatestAudiobooks())
 
 				HomeSectionType.NONE -> Unit
 			}

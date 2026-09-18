@@ -111,6 +111,62 @@ class HomeFragmentHelper(
 		return HomeFragmentBrowseRowDefRow(BrowseRowDef(context.getString(R.string.home_section_watch_again), query, ITEM_LIMIT_WATCH_AGAIN, false, true, arrayOf(ChangeTriggerType.TvPlayback, ChangeTriggerType.MoviePlayback)))
 	}
 
+	fun loadFavorites(): HomeFragmentRow {
+		val query = GetItemsRequest(
+			fields = ItemRepository.browseFields,
+			includeItemTypes = setOf(BaseItemKind.MOVIE, BaseItemKind.SERIES, BaseItemKind.EPISODE, BaseItemKind.MUSIC_ALBUM, BaseItemKind.MUSIC_ARTIST),
+			recursive = true,
+			filters = setOf(ItemFilter.IS_FAVORITE),
+			sortBy = setOf(ItemSortBy.SORT_NAME),
+			imageTypeLimit = 1,
+			limit = ITEM_LIMIT_FAVORITES,
+		)
+
+		return HomeFragmentBrowseRowDefRow(BrowseRowDef(context.getString(R.string.home_section_favorites), query, ITEM_LIMIT_FAVORITES, false, true, arrayOf(ChangeTriggerType.LibraryUpdated, ChangeTriggerType.FavoriteUpdate)))
+	}
+
+	fun loadRecentlyAddedMovies(): HomeFragmentRow = loadRecentlyAddedByType(BaseItemKind.MOVIE, context.getString(R.string.home_section_recently_added_movies))
+	fun loadRecentlyAddedShows(): HomeFragmentRow = loadRecentlyAddedByType(BaseItemKind.SERIES, context.getString(R.string.home_section_recently_added_shows))
+	fun loadRecentlyAddedAlbums(): HomeFragmentRow = loadRecentlyAddedByType(BaseItemKind.MUSIC_ALBUM, context.getString(R.string.home_section_recently_added_albums))
+	fun loadRecentlyAddedArtists(): HomeFragmentRow = loadRecentlyAddedByType(BaseItemKind.MUSIC_ARTIST, context.getString(R.string.home_section_recently_added_artists))
+	fun loadRecentlyAddedMusicVideos(): HomeFragmentRow = loadRecentlyAddedByType(BaseItemKind.MUSIC_VIDEO, context.getString(R.string.home_section_recently_added_music_videos))
+	fun loadRecentlyAddedBooks(): HomeFragmentRow = loadRecentlyAddedByType(BaseItemKind.BOOK, context.getString(R.string.home_section_recently_added_books))
+	fun loadRecentlyAddedAudiobooks(): HomeFragmentRow = loadRecentlyAddedByType(BaseItemKind.AUDIO_BOOK, context.getString(R.string.home_section_recently_added_audiobooks))
+
+	fun loadLatestAlbums(): HomeFragmentRow = loadLatestByType(BaseItemKind.MUSIC_ALBUM, context.getString(R.string.home_section_latest_albums))
+	fun loadLatestMusicVideos(): HomeFragmentRow = loadLatestByType(BaseItemKind.MUSIC_VIDEO, context.getString(R.string.home_section_latest_music_videos))
+	fun loadLatestBooks(): HomeFragmentRow = loadLatestByType(BaseItemKind.BOOK, context.getString(R.string.home_section_latest_books))
+	fun loadLatestAudiobooks(): HomeFragmentRow = loadLatestByType(BaseItemKind.AUDIO_BOOK, context.getString(R.string.home_section_latest_audiobooks))
+
+	// "Latest X" sorts by release date; "Recently added X" sorts by date added to the library
+	private fun loadLatestByType(itemType: BaseItemKind, title: String): HomeFragmentRow {
+		val query = GetItemsRequest(
+			fields = ItemRepository.browseFields,
+			includeItemTypes = setOf(itemType),
+			recursive = true,
+			sortBy = setOf(ItemSortBy.PREMIERE_DATE),
+			sortOrder = setOf(SortOrder.DESCENDING),
+			imageTypeLimit = 1,
+			limit = ITEM_LIMIT_LATEST_BY_RELEASE,
+		)
+
+		return HomeFragmentBrowseRowDefRow(BrowseRowDef(title, query, ITEM_LIMIT_LATEST_BY_RELEASE, false, true, arrayOf(ChangeTriggerType.LibraryUpdated)))
+	}
+
+	private fun loadRecentlyAddedByType(itemType: BaseItemKind, title: String): HomeFragmentRow {
+		val query = GetItemsRequest(
+			fields = ItemRepository.browseFields,
+			includeItemTypes = setOf(itemType),
+			recursive = true,
+			sortBy = setOf(ItemSortBy.DATE_CREATED),
+			sortOrder = setOf(SortOrder.DESCENDING),
+			imageTypeLimit = 1,
+			limit = ITEM_LIMIT_RECENTLY_ADDED,
+		)
+
+		return HomeFragmentBrowseRowDefRow(BrowseRowDef(title, query, ITEM_LIMIT_RECENTLY_ADDED, false, true, arrayOf(ChangeTriggerType.LibraryUpdated)))
+	}
+
 	fun loadOnNow(): HomeFragmentRow {
 		val query = GetRecommendedProgramsRequest(
 			isAiring = true,
@@ -131,5 +187,7 @@ class HomeFragmentHelper(
 		private const val ITEM_LIMIT_ON_NOW = 20
 		private const val ITEM_LIMIT_LATEST_BY_RELEASE = 50
 		private const val ITEM_LIMIT_WATCH_AGAIN = 50
+		private const val ITEM_LIMIT_RECENTLY_ADDED = 50
+		private const val ITEM_LIMIT_FAVORITES = 50
 	}
 }
