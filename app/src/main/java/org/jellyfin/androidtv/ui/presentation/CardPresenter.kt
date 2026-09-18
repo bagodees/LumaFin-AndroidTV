@@ -3,6 +3,7 @@ package org.jellyfin.androidtv.ui.presentation
 import android.view.KeyEvent
 import android.view.ViewGroup
 import android.widget.ImageView
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
@@ -18,6 +19,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -288,6 +290,12 @@ private fun CardViewHolderContent(
 	}
 
 	val usePreview = displayConfig.overrideShowInfo ?: showInfo
+	// The focused card is the visual anchor for a TV row. Gently dim the artwork on
+	// its neighbours so focus remains clear without relying on an oversized zoom.
+	val cardAlpha by animateFloatAsState(
+		targetValue = if (focused) 1f else 0.82f,
+		label = "CardFocusAlpha",
+	)
 
 	val card = @Composable {
 		ItemCard(
@@ -358,6 +366,7 @@ private fun CardViewHolderContent(
 			},
 			modifier = Modifier
 				.size(size)
+				.graphicsLayer(alpha = cardAlpha)
 		)
 	}
 
