@@ -5,6 +5,7 @@ import androidx.preference.PreferenceManager
 import org.jellyfin.androidtv.constant.HomeSectionType
 import org.jellyfin.preference.enumPreference
 import org.jellyfin.preference.intPreference
+import org.jellyfin.preference.stringPreference
 import org.jellyfin.preference.store.SharedPreferenceStore
 
 /**
@@ -18,45 +19,66 @@ class UserSettingPreferences(context: Context) : SharedPreferenceStore(
 		val skipBackLength = intPreference("skipBackLength", 10_000)
 		val skipForwardLength = intPreference("skipForwardLength", 30_000)
 
-		val homesection0 = enumPreference("homesection0", HomeSectionType.RESUME)
-		val homesection1 = enumPreference("homesection1", HomeSectionType.NEXT_UP)
-		val homesection2 = enumPreference("homesection2", HomeSectionType.LATEST_MOVIES)
-		val homesection3 = enumPreference("homesection3", HomeSectionType.LATEST_SHOWS)
-		val homesection4 = enumPreference("homesection4", HomeSectionType.BECAUSE_YOU_WATCHED)
-		val homesection5 = enumPreference("homesection5", HomeSectionType.LIBRARY_TILES_SMALL)
-		val homesection6 = enumPreference("homesection6", HomeSectionType.LATEST_MEDIA)
-		val homesection7 = enumPreference("homesection7", HomeSectionType.WATCH_AGAIN)
-		val homesection8 = enumPreference("homesection8", HomeSectionType.COLLECTIONS)
-		val homesection9 = enumPreference("homesection9", HomeSectionType.GENRES)
-		val homesection10 = enumPreference("homesection10", HomeSectionType.NONE)
-		val homesection11 = enumPreference("homesection11", HomeSectionType.NONE)
-		val homesection12 = enumPreference("homesection12", HomeSectionType.NONE)
-		val homesection13 = enumPreference("homesection13", HomeSectionType.NONE)
-		val homesection14 = enumPreference("homesection14", HomeSectionType.NONE)
-		val homesection15 = enumPreference("homesection15", HomeSectionType.NONE)
+		// Ordered, comma separated list of enabled HomeSectionType#serializedName values.
+		// Types not present in the list are hidden. Replaces the old fixed homesection0..27
+		// slot-based layout, which required navigating into a numbered slot to change what it
+		// showed instead of just reordering/toggling sections directly.
+		private val homeSectionOrderRaw = stringPreference("homeSectionOrder", "")
+
+		// Legacy slots, kept only so an existing configured order can be migrated once into
+		// homeSectionOrderRaw. Do not add new slots here.
+		private val legacyHomeSectionSlots = listOf(
+			enumPreference("homesection0", HomeSectionType.RESUME),
+			enumPreference("homesection1", HomeSectionType.NEXT_UP),
+			enumPreference("homesection2", HomeSectionType.LATEST_MOVIES),
+			enumPreference("homesection3", HomeSectionType.LATEST_SHOWS),
+			enumPreference("homesection4", HomeSectionType.BECAUSE_YOU_WATCHED),
+			enumPreference("homesection5", HomeSectionType.LIBRARY_TILES_SMALL),
+			enumPreference("homesection6", HomeSectionType.LATEST_MEDIA),
+			enumPreference("homesection7", HomeSectionType.WATCH_AGAIN),
+			enumPreference("homesection8", HomeSectionType.COLLECTIONS),
+			enumPreference("homesection9", HomeSectionType.GENRES),
+			enumPreference("homesection10", HomeSectionType.NONE),
+			enumPreference("homesection11", HomeSectionType.NONE),
+			enumPreference("homesection12", HomeSectionType.NONE),
+			enumPreference("homesection13", HomeSectionType.NONE),
+			enumPreference("homesection14", HomeSectionType.NONE),
+			enumPreference("homesection15", HomeSectionType.NONE),
+		)
+
+		// Default order for a fresh install (no legacy slots configured either)
+		private val defaultHomeSectionOrder = listOf(
+			HomeSectionType.RESUME,
+			HomeSectionType.NEXT_UP,
+			HomeSectionType.LATEST_MOVIES,
+			HomeSectionType.LATEST_SHOWS,
+			HomeSectionType.BECAUSE_YOU_WATCHED,
+			HomeSectionType.LIBRARY_TILES_SMALL,
+			HomeSectionType.LATEST_MEDIA,
+			HomeSectionType.WATCH_AGAIN,
+			HomeSectionType.COLLECTIONS,
+			HomeSectionType.GENRES,
+		)
 	}
 
-	val homesections = listOf(
-		homesection0,
-		homesection1,
-		homesection2,
-		homesection3,
-		homesection4,
-		homesection5,
-		homesection6,
-		homesection7,
-		homesection8,
-		homesection9,
-		homesection10,
-		homesection11,
-		homesection12,
-		homesection13,
-		homesection14,
-		homesection15,
-	)
+	/**
+	 * All section types that can be shown on Home, in their configured order. Every type not
+	 * present is hidden. Reading this before anything has been saved migrates the old
+	 * homesection0..15 slots (if configured) or falls back to [defaultHomeSectionOrder].
+	 */
+	var activeHomesections: List<HomeSectionType>
+		get() {
+			val raw = this[homeSectionOrderRaw]
+			if (raw.isNotBlank()) {
+				return raw.split(',').mapNotNull { name -> HomeSectionType.entries.find { it.serializedName == name } }
+			}
 
-	val activeHomesections
-		get() = homesections
-			.map(::get)
-			.filterNot { it == HomeSectionType.NONE }
+			val legacyOrder = legacyHomeSectionSlots.map(::get).filterNot { it == HomeSectionType.NONE }
+			val migratedOrder = legacyOrder.ifEmpty { defaultHomeSectionOrder }
+			activeHomesections = migratedOrder
+			return migratedOrder
+		}
+		set(value) {
+			this[homeSectionOrderRaw] = value.joinToString(",") { it.serializedName }
+		}
 }
