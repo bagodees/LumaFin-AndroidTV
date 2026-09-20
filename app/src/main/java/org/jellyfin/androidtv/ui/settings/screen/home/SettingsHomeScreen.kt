@@ -1,6 +1,9 @@
 package org.jellyfin.androidtv.ui.settings.screen.home
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -9,6 +12,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
@@ -30,16 +34,16 @@ import org.jellyfin.androidtv.ui.settings.composable.SettingsColumn
 import org.koin.compose.koinInject
 
 /**
- * A single reorderable, toggleable list of every home section type, instead of navigating into
- * numbered slots to assign a type to each. Enabled sections are shown in their display order at
- * the top; while one is focused, left/right moves it up/down. Selecting any row toggles it
- * between shown and hidden - hidden sections are listed below, dimmed, in declaration order.
+ * A single list of every home section type. Selecting a shown section picks it up ("grab" mode):
+ * up/down then moves it through the list and OK or Back drops it. Left on a shown section hides
+ * it; selecting a hidden section shows it again.
  */
 @Composable
 fun SettingsHomeScreen() {
 	val userSettingPreferences = koinInject<UserSettingPreferences>()
 
 	var visibleSections by remember { mutableStateOf(userSettingPreferences.activeHomesections) }
+	var grabbed by remember { mutableStateOf<HomeSectionType?>(null) }
 	val hiddenSections = remember(visibleSections) {
 		HomeSectionType.entries.filter { it != HomeSectionType.NONE && it !in visibleSections }
 	}
@@ -49,26 +53,39 @@ fun SettingsHomeScreen() {
 		userSettingPreferences.activeHomesections = newOrder
 	}
 
+	fun move(type: HomeSectionType, delta: Int) {
+		val index = visibleSections.indexOf(type)
+		val target = index + delta
+		if (index < 0 || target !in visibleSections.indices) return
+		persist(visibleSections.toMutableList().apply { add(target, removeAt(index)) })
+	}
+
+	BackHandler(enabled = grabbed != null) { grabbed = null }
+
 	SettingsColumn {
 		item {
 			ListSection(
 				overlineContent = { Text(stringResource(R.string.pref_customization).uppercase()) },
 				headingContent = { Text(stringResource(R.string.home_prefs)) },
+				captionContent = { Text(stringResource(R.string.home_sections_hint)) },
 			)
 		}
 
 		items(visibleSections, key = { "visible_${it.name}" }) { type ->
-			val index = visibleSections.indexOf(type)
+			val isGrabbed = grabbed == type
 
 			HomeSectionRow(
 				type = type,
 				visible = true,
-				onToggle = { persist(visibleSections - type) },
-				onMoveUp = {
-					if (index > 0) persist(visibleSections.toMutableList().apply { add(index - 1, removeAt(index)) })
-				},
-				onMoveDown = {
-					if (index in 0 until visibleSections.lastIndex) persist(visibleSections.toMutableList().apply { add(index + 1, removeAt(index)) })
+				grabbed = isGrabbed,
+				onClick = { grabbed = if (isGrabbed) null else type },
+				onKey = { key ->
+					when {
+						isGrabbed && key == Key.DirectionUp -> { move(type, -1); true }
+						isGrabbed && key == Key.DirectionDown -> { move(type, 1); true }
+						!isGrabbed && grabbed == null && key == Key.DirectionLeft -> { persist(visibleSections - type); true }
+						else -> false
+					}
 				},
 				modifier = Modifier.focusKey("home_section_${type.name}")
 			)
@@ -85,9 +102,9 @@ fun SettingsHomeScreen() {
 				HomeSectionRow(
 					type = type,
 					visible = false,
-					onToggle = { persist(visibleSections + type) },
-					onMoveUp = {},
-					onMoveDown = {},
+					grabbed = false,
+					onClick = { if (grabbed == null) persist(visibleSections + type) },
+					onKey = { false },
 					modifier = Modifier.focusKey("home_section_${type.name}")
 				)
 			}
@@ -99,22 +116,17 @@ fun SettingsHomeScreen() {
 private fun HomeSectionRow(
 	type: HomeSectionType,
 	visible: Boolean,
-	onToggle: () -> Unit,
-	onMoveUp: () -> Unit,
-	onMoveDown: () -> Unit,
+	grabbed: Boolean,
+	onClick: () -> Unit,
+	onKey: (Key) -> Boolean,
 	modifier: Modifier = Modifier,
 ) {
 	ListButton(
 		modifier = modifier
 			.alpha(if (visible) 1f else 0.5f)
+			.then(if (grabbed) Modifier.background(Color(0x3300A4DC), RoundedCornerShape(8.dp)) else Modifier)
 			.onKeyEvent { event ->
-				if (!visible || event.type != KeyEventType.KeyDown) return@onKeyEvent false
-
-				when (event.key) {
-					Key.DirectionLeft -> { onMoveUp(); true }
-					Key.DirectionRight -> { onMoveDown(); true }
-					else -> false
-				}
+				if (event.type != KeyEventType.KeyDown) false else onKey(event.key)
 			},
 		leadingContent = {
 			Icon(
@@ -124,6 +136,15 @@ private fun HomeSectionRow(
 			)
 		},
 		headingContent = { Text(stringResource(type.nameRes)) },
-		onClick = onToggle,
+		trailingContent = if (visible) {
+			{
+				Icon(
+					imageVector = ImageVector.vectorResource(R.drawable.ic_drag_handle),
+					contentDescription = null,
+					modifier = Modifier.size(24.dp),
+				)
+			}
+		} else null,
+		onClick = onClick,
 	)
 }

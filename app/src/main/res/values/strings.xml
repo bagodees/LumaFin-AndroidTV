@@ -421,6 +421,7 @@
     <string name="license_license">License</string>
     <string name="home_prefs">Home</string>
     <string name="home_sections_hidden">Hidden</string>
+    <string name="home_sections_hint">Press OK to pick up a section, then use up/down to move it. Press left to hide.</string>
     <string name="home_sections">Home sections</string>
     <string name="home_section_latest_media">Recently added media</string>
     <string name="home_section_library">My media</string>
