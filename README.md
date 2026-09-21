@@ -1,4 +1,6 @@
-<h1 align="center">LumaFin</h1>
+<p align="center">
+<img alt="LumaFin" src="docs/branding/lumafin-wordmark.png" width="520"/>
+</p>
 <h3 align="center">A personalized Android TV client for <a href="https://jellyfin.org">Jellyfin</a></h3>
 
 ---
@@ -29,11 +31,19 @@ This is not an officially supported Jellyfin project - it's built for personal u
   posters. Continue Watching and Recently Added correctly show series artwork for TV episodes.
 - **Rating badges** - movie and series cards show critic (Rotten Tomatoes-style) and community rating badges,
   matching the webui's grimmdev Rating Badges mod.
-- **More home section types** - in addition to the built-in sections, you can add Latest Movies, Latest Shows,
-  Because You Watched, Collections, Watch Again, and Genre rows to the home screen.
-- **Live home section reordering** - changes to home section layout in Settings apply immediately, no app restart
-  required, and are stored locally on-device so they can't be reverted by a session refresh or another Jellyfin
-  client.
+- **More home section types** - beyond the built-in sections you can add Latest Movies, Latest Shows, Because You
+  Watched, Collections, Watch Again, Genres, Favorites, a combined Continue Watching / Next Up row, and Recently
+  Added / Latest rows for movies, shows, albums, artists, music videos, books and audiobooks.
+- **Reorderable home settings** - Settings > Customization > Home is a single list of every section. Press OK on a
+  shown section to pick it up, move it with up/down and drop it with OK or Back; press left to hide a section, and
+  hidden sections wait in a dimmed list below. Changes apply immediately and are stored locally on-device so they
+  can't be reverted by a session refresh or another Jellyfin client.
+- **Web-style playback controls** - seek bar with elapsed and remaining time, chapter tick marks, a single controls
+  row with the focused button's name, and secondary controls (subtitles, audio, chapters, speed, quality, zoom) on
+  the right.
+- **Richer episode and movie details** - artwork on the left, series name above the episode title, runtime, genres,
+  director and end time in the header, Favorite kept on the button row, and audio and subtitle pickers that apply
+  when you press Play.
 - **LumaFin branding** - its own icon, Android TV banner, splash screen, and accent color theme, with its own
   application ID so it can be installed alongside the official Jellyfin app.
 
