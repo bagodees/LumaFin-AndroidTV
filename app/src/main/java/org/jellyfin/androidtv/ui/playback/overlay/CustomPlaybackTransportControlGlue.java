@@ -6,10 +6,10 @@ import android.content.Context;
 import android.os.Handler;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.leanback.media.PlaybackTransportControlGlue;
@@ -24,6 +24,7 @@ import androidx.leanback.widget.RowPresenter;
 
 import org.jellyfin.androidtv.R;
 import org.jellyfin.androidtv.preference.UserPreferences;
+import org.jellyfin.androidtv.preference.UserSettingPreferences;
 import org.jellyfin.androidtv.preference.constant.ClockBehavior;
 import org.jellyfin.androidtv.ui.playback.PlaybackController;
 import org.jellyfin.androidtv.ui.playback.overlay.action.AndroidAction;
@@ -74,12 +75,25 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
     private ArrayObjectAdapter primaryActionsAdapter;
     private ArrayObjectAdapter secondaryActionsAdapter;
 
-    // Injected views
+    // Views from the (overridden) transport row layout
     private TextView mEndsText = null;
+    private TextView mRemainingText = null;
+    private TextView mFocusLabel = null;
+    private ChapterTicksView mChapterTicks = null;
+    private View mControlsDock = null;
+    private View mSecondaryDock = null;
+    private ViewTreeObserver.OnGlobalFocusChangeListener mFocusListener = null;
 
     private final Handler mHandler = new Handler();
     private Runnable mRefreshEndTime;
     private Runnable mRefreshViewVisibility;
+    private final Runnable mRefreshRemaining = new Runnable() {
+        @Override
+        public void run() {
+            updateRemainingTime();
+            mHandler.postDelayed(this, 1000);
+        }
+    };
 
     private LinearLayout mButtonRef;
 
@@ -95,7 +109,7 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
         };
 
         mRefreshViewVisibility = () -> {
-            if (mButtonRef != null && mButtonRef.getVisibility() != mEndsText.getVisibility())
+            if (mButtonRef != null && mEndsText != null && mButtonRef.getVisibility() != mEndsText.getVisibility())
                 mEndsText.setVisibility(mButtonRef.getVisibility());
             else
                 mHandler.postDelayed(mRefreshViewVisibility, 100);
@@ -108,6 +122,7 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
     protected void onDetachedFromHost() {
         mHandler.removeCallbacks(mRefreshEndTime);
         mHandler.removeCallbacks(mRefreshViewVisibility);
+        mHandler.removeCallbacks(mRefreshRemaining);
 
         closedCaptionsAction.removePopup();
         playbackSpeedAction.dismissPopup();
@@ -131,34 +146,32 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
             protected RowPresenter.ViewHolder createRowViewHolder(ViewGroup parent) {
                 RowPresenter.ViewHolder vh = super.createRowViewHolder(parent);
 
+                View root = vh.view;
+                mEndsText = root.findViewById(R.id.ends_at);
+                mRemainingText = root.findViewById(R.id.remaining_time);
+                mFocusLabel = root.findViewById(R.id.focus_label);
+                mChapterTicks = root.findViewById(R.id.chapter_ticks);
+                mControlsDock = root.findViewById(androidx.leanback.R.id.controls_dock);
+                mSecondaryDock = root.findViewById(androidx.leanback.R.id.secondary_controls_dock);
+                mButtonRef = (LinearLayout) ((FrameLayout) mControlsDock).getChildAt(0);
+
+                root.findViewById(androidx.leanback.R.id.playback_progress).setOnKeyListener((v, keyCode, event) -> {
+                    if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN && event.getAction() == KeyEvent.ACTION_DOWN) {
+                        int index = primaryActionsAdapter.indexOf(playPauseAction);
+                        if (mButtonRef != null && index >= 0 && index < mButtonRef.getChildCount()) {
+                            mButtonRef.getChildAt(index).requestFocus();
+                            return true;
+                        }
+                    }
+                    return false;
+                });
+
                 ClockBehavior showClock = KoinJavaComponent.<UserPreferences>get(UserPreferences.class).get(UserPreferences.Companion.getClockBehavior());
-
                 if (showClock == ClockBehavior.ALWAYS || showClock == ClockBehavior.IN_VIDEO) {
-                    Context context = parent.getContext();
-                    mEndsText = new TextView(context);
-                    mEndsText.setTextAppearance(context, androidx.leanback.R.style.Widget_Leanback_PlaybackControlsTimeStyle);
                     setEndTime();
-
-                    LinearLayout view = (LinearLayout) vh.view;
-
-                    PlaybackTransportRowView bar = (PlaybackTransportRowView) view.getChildAt(1);
-                    FrameLayout v = (FrameLayout) bar.getChildAt(0);
-                    mButtonRef = (LinearLayout) v.getChildAt(0);
-
-                    bar.removeViewAt(0);
-                    RelativeLayout rl = new RelativeLayout(context);
-                    RelativeLayout.LayoutParams rlp = new RelativeLayout.LayoutParams(
-                            RelativeLayout.LayoutParams.WRAP_CONTENT,
-                            RelativeLayout.LayoutParams.WRAP_CONTENT);
-                    rl.addView(v);
-
-                    RelativeLayout.LayoutParams rlp2 = new RelativeLayout.LayoutParams(
-                            RelativeLayout.LayoutParams.WRAP_CONTENT,
-                            RelativeLayout.LayoutParams.WRAP_CONTENT);
-                    rlp2.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
-                    rlp2.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
-                    rl.addView(mEndsText, rlp2);
-                    bar.addView(rl, 0, rlp);
+                } else {
+                    mEndsText.setVisibility(View.GONE);
+                    mEndsText = null;
                 }
 
                 return vh;
@@ -174,12 +187,25 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
             protected void onBindRowViewHolder(RowPresenter.ViewHolder vh, Object item) {
                 super.onBindRowViewHolder(vh, item);
                 vh.setOnKeyListener(CustomPlaybackTransportControlGlue.this);
+
+                updateChapterTicks();
+                mHandler.removeCallbacks(mRefreshRemaining);
+                mHandler.post(mRefreshRemaining);
+
+                mFocusListener = (oldFocus, newFocus) -> updateFocusLabel(newFocus);
+                vh.view.getViewTreeObserver().addOnGlobalFocusChangeListener(mFocusListener);
             }
 
             @Override
             protected void onUnbindRowViewHolder(RowPresenter.ViewHolder vh) {
                 super.onUnbindRowViewHolder(vh);
                 vh.setOnKeyListener(null);
+
+                mHandler.removeCallbacks(mRefreshRemaining);
+                if (mFocusListener != null) {
+                    vh.view.getViewTreeObserver().removeOnGlobalFocusChangeListener(mFocusListener);
+                    mFocusListener = null;
+                }
             }
         };
         rowPresenter.setDescriptionPresenter(detailsPresenter);
@@ -188,8 +214,11 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
 
     private void initActions(Context context) {
         playPauseAction = new PlayPauseAction(context);
+        UserSettingPreferences userSettingPreferences = KoinJavaComponent.get(UserSettingPreferences.class);
         rewindAction = new RewindAction(context);
+        rewindAction.setLabels(new String[]{context.getString(R.string.lbl_skip_back, userSettingPreferences.get(UserSettingPreferences.Companion.getSkipBackLength()) / 1000)});
         fastForwardAction = new FastForwardAction(context);
+        fastForwardAction.setLabels(new String[]{context.getString(R.string.lbl_skip_forward, userSettingPreferences.get(UserSettingPreferences.Companion.getSkipForwardLength()) / 1000)});
         skipPreviousAction = new SkipPreviousAction(context);
         skipNextAction = new SkipNextAction(context);
         selectAudioAction = new SelectAudioAction(context, this);
@@ -234,43 +263,44 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
         if (secondaryActionsAdapter.size() > 0)
             secondaryActionsAdapter.clear();
 
-        // Primary Items
-        primaryActionsAdapter.add(playPauseAction);
         VideoPlayerAdapter playerAdapter = getPlayerAdapter();
+
+        // Primary items: previous, skip back, play/pause, skip forward, next
+        if (!playerAdapter.isLiveTv() && playerAdapter.hasPreviousItem()) {
+            primaryActionsAdapter.add(skipPreviousAction);
+        }
 
         if (playerAdapter.canSeek()) {
             primaryActionsAdapter.add(rewindAction);
+        }
+
+        primaryActionsAdapter.add(playPauseAction);
+
+        if (playerAdapter.canSeek()) {
             primaryActionsAdapter.add(fastForwardAction);
         }
 
-        if (playerAdapter.hasSubs()) {
-            primaryActionsAdapter.add(closedCaptionsAction);
+        if (!playerAdapter.isLiveTv() && playerAdapter.hasNextItem()) {
+            primaryActionsAdapter.add(skipNextAction);
         }
 
-        if (playerAdapter.hasMultiAudio()) {
-            primaryActionsAdapter.add(selectAudioAction);
-        }
-
-        if (playerAdapter.isLiveTv()) {
-            primaryActionsAdapter.add(channelBarChannelAction);
-            primaryActionsAdapter.add(guideAction);
-        }
-
-        // Secondary Items
+        // Secondary items: everything else on the right of the row
         if (playerAdapter.isLiveTv()) {
             secondaryActionsAdapter.add(previousLiveTvChannelAction);
+            secondaryActionsAdapter.add(channelBarChannelAction);
+            secondaryActionsAdapter.add(guideAction);
             if (playerAdapter.canRecordLiveTv()) {
                 secondaryActionsAdapter.add(recordAction);
                 recordingStateChanged();
             }
         }
 
-        if (playerAdapter.hasPreviousItem()) {
-            secondaryActionsAdapter.add(skipPreviousAction);
+        if (playerAdapter.hasSubs()) {
+            secondaryActionsAdapter.add(closedCaptionsAction);
         }
 
-        if (playerAdapter.hasNextItem()) {
-            secondaryActionsAdapter.add(skipNextAction);
+        if (playerAdapter.hasMultiAudio()) {
+            secondaryActionsAdapter.add(selectAudioAction);
         }
 
         if (playerAdapter.hasChapters()) {
@@ -283,6 +313,8 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
         }
 
         secondaryActionsAdapter.add(zoomAction);
+
+        updateChapterTicks();
     }
 
     @Override
@@ -305,6 +337,74 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
             // class to notify rather than poll. But communication is unidirectional at the moment:
             mHandler.postDelayed(mRefreshEndTime, 5000);  // 5 seconds
         }
+    }
+
+    private void updateChapterTicks() {
+        if (mChapterTicks == null) return;
+        VideoPlayerAdapter adapter = getPlayerAdapter();
+        org.jellyfin.sdk.model.api.BaseItemDto item = adapter.getCurrentlyPlayingItem();
+        java.util.List<org.jellyfin.sdk.model.api.ChapterInfo> chapters = item != null ? item.getChapters() : null;
+        if (chapters == null || chapters.isEmpty()) {
+            mChapterTicks.setChapters(new long[0], 0);
+            return;
+        }
+        long[] positions = new long[chapters.size()];
+        for (int i = 0; i < positions.length; i++) {
+            positions[i] = chapters.get(i).getStartPositionTicks() / 10000;
+        }
+        mChapterTicks.setChapters(positions, adapter.getDuration());
+    }
+
+    private static String formatTime(long ms) {
+        long totalSeconds = Math.max(0, ms) / 1000;
+        long h = totalSeconds / 3600;
+        long m = (totalSeconds % 3600) / 60;
+        long sec = totalSeconds % 60;
+        return h > 0
+                ? String.format(java.util.Locale.US, "%d:%02d:%02d", h, m, sec)
+                : String.format(java.util.Locale.US, "%d:%02d", m, sec);
+    }
+
+    private void updateRemainingTime() {
+        if (mRemainingText == null) return;
+        long duration = getPlayerAdapter().getDuration();
+        if (duration < 1) {
+            mRemainingText.setText("");
+            return;
+        }
+        mRemainingText.setText("-" + formatTime(duration - getPlayerAdapter().getCurrentPosition()));
+    }
+
+    private void updateFocusLabel(View focused) {
+        if (mFocusLabel == null) return;
+        CharSequence label = null;
+        View entry = focused;
+        while (entry != null && entry.getParent() instanceof ViewGroup
+                && ((ViewGroup) entry.getParent()).getParent() != mControlsDock
+                && ((ViewGroup) entry.getParent()).getParent() != mSecondaryDock) {
+            entry = (View) entry.getParent();
+        }
+        if (entry != null && entry.getParent() instanceof ViewGroup) {
+            ViewGroup bar = (ViewGroup) entry.getParent();
+            ArrayObjectAdapter adapter = null;
+            if (bar.getParent() == mControlsDock) adapter = primaryActionsAdapter;
+            else if (bar.getParent() == mSecondaryDock) adapter = secondaryActionsAdapter;
+
+            int index = bar.indexOfChild(entry);
+            if (adapter != null && index >= 0 && index < adapter.size() && adapter.get(index) instanceof Action) {
+                Action action = (Action) adapter.get(index);
+                label = action.getLabel1();
+                if (label == null && action instanceof PlaybackControlsRow.MultiAction) {
+                    PlaybackControlsRow.MultiAction multi = (PlaybackControlsRow.MultiAction) action;
+                    try {
+                        label = multi.getLabel(multi.getIndex());
+                    } catch (RuntimeException ignored) {
+                        // labels not set for this action
+                    }
+                }
+            }
+        }
+        mFocusLabel.setText(label != null ? label : "");
     }
 
     private void setEndTime() {
@@ -365,7 +465,7 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
     }
 
     public void setInjectedViewsVisibility() {
-        if (mButtonRef != null && mButtonRef.getVisibility() != mEndsText.getVisibility())
+        if (mButtonRef != null && mEndsText != null && mButtonRef.getVisibility() != mEndsText.getVisibility())
             mEndsText.setVisibility(mButtonRef.getVisibility());
         mHandler.removeCallbacks(mRefreshViewVisibility);
         mHandler.postDelayed(mRefreshViewVisibility, 100);
