@@ -526,6 +526,11 @@ public class PlaybackController implements PlaybackControllerNotifiable {
             internalOptions.setSubtitleStreamIndex(mCurrentOptions.getSubtitleStreamIndex());
             internalOptions.setAudioStreamIndex(mCurrentOptions.getAudioStreamIndex());
         }
+        PlaybackTrackSelection.Selection chosenTracks = PlaybackTrackSelection.INSTANCE.get(item.getId());
+        if (chosenTracks != null) {
+            if (chosenTracks.getAudioIndex() != null) internalOptions.setAudioStreamIndex(chosenTracks.getAudioIndex());
+            if (chosenTracks.getSubtitleIndex() != null) internalOptions.setSubtitleStreamIndex(chosenTracks.getSubtitleIndex());
+        }
         if (forcedSubtitleIndex != null) {
             internalOptions.setSubtitleStreamIndex(forcedSubtitleIndex);
         }
@@ -665,6 +670,17 @@ public class PlaybackController implements PlaybackControllerNotifiable {
             mCurrentOptions.setSubtitleStreamIndex(response.getMediaSource().getDefaultSubtitleStreamIndex());
         }
         setDefaultAudioIndex(response);
+
+        // Tracks picked on the details screen take priority over saved-language and server defaults
+        PlaybackTrackSelection.Selection chosenTracks = PlaybackTrackSelection.INSTANCE.consume(item.getId());
+        if (chosenTracks != null) {
+            if (chosenTracks.getSubtitleIndex() != null) {
+                mCurrentOptions.setSubtitleStreamIndex(chosenTracks.getSubtitleIndex() == PlaybackTrackSelection.SUBTITLES_OFF ? null : chosenTracks.getSubtitleIndex());
+            }
+            if (chosenTracks.getAudioIndex() != null) {
+                mCurrentOptions.setAudioStreamIndex(chosenTracks.getAudioIndex());
+            }
+        }
         Timber.i("default audio index set to %s remote default %s", mDefaultAudioIndex, response.getMediaSource().getDefaultAudioStreamIndex());
         Timber.i("default sub index set to %s remote default %s", mCurrentOptions.getSubtitleStreamIndex(), response.getMediaSource().getDefaultSubtitleStreamIndex());
 

@@ -9,6 +9,7 @@ import org.jellyfin.sdk.model.api.BaseItemDto
 class MyDetailsOverviewRow @JvmOverloads constructor(
 	val item: BaseItemDto,
 	var imageDrawable: String? = null,
+	var thumbnailImage: String? = null,
 	var summary: String? = null,
 	var infoItem1: InfoItem? = null,
 	var infoItem2: InfoItem? = null,

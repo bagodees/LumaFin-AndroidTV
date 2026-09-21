@@ -6,6 +6,7 @@ import android.net.Uri
 import androidx.annotation.AnyRes
 import org.jellyfin.androidtv.util.apiclient.albumPrimaryImage
 import org.jellyfin.androidtv.util.apiclient.getUrl
+import org.jellyfin.androidtv.util.apiclient.itemBackdropImages
 import org.jellyfin.androidtv.util.apiclient.itemImages
 import org.jellyfin.androidtv.util.apiclient.parentImages
 import org.jellyfin.androidtv.util.apiclient.seriesPrimaryImage
@@ -67,6 +68,21 @@ class ImageHelper(
 			fillWidth = fillWidth,
 			fillHeight = fillHeight,
 		)
+	}
+
+	/**
+	 * Landscape artwork in the same order home rows use: thumb, then backdrop, then primary.
+	 */
+	fun getLandscapeImageUrl(
+		item: BaseItemDto,
+		fillWidth: Int? = null,
+		fillHeight: Int? = null,
+	): String? {
+		val image = item.itemImages[ImageType.THUMB]
+			?: item.itemBackdropImages.firstOrNull()
+			?: item.itemImages[ImageType.PRIMARY]
+
+		return image?.getUrl(api = api, fillWidth = fillWidth, fillHeight = fillHeight)
 	}
 
 	fun getLogoImageUrl(

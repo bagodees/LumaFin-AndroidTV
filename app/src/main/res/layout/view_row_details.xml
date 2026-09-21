@@ -31,6 +31,13 @@
             app:layout_constraintGuide_begin="170dp" />
 
         <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guide_thumb_end"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_begin="280dp" />
+
+        <androidx.constraintlayout.widget.Guideline
             android:id="@+id/guide_main_end"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -60,10 +67,24 @@
             android:fontFamily="sans-serif-light"
             android:maxLines="2"
             android:textSize="30sp"
-            app:layout_constraintBottom_toTopOf="@id/fdMainInfoRow"
+            app:layout_constraintBottom_toTopOf="@id/fdSubtitle"
             app:layout_constraintEnd_toEndOf="@id/guide_right_end"
             app:layout_constraintStart_toStartOf="@id/guide_main_start"
             tools:text="fdTitle" />
+
+        <TextView
+            android:id="@+id/fdSubtitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            app:layout_constraintBottom_toTopOf="@id/fdMainInfoRow"
+            app:layout_constraintEnd_toEndOf="@id/guide_right_end"
+            app:layout_constraintStart_toStartOf="@id/guide_main_start"
+            tools:text="fdSubtitle" />
 
         <LinearLayout
             android:id="@+id/fdMainInfoRow"
@@ -85,6 +106,64 @@
             tools:text="fdGenreRow" />
 
         <!-- Left -->
+
+        <org.jellyfin.androidtv.ui.AsyncImageView
+            android:id="@+id/fdThumb"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:adjustViewBounds="true"
+            android:background="@drawable/shape_card"
+            android:maxHeight="150dp"
+            android:scaleType="fitStart"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="@id/guide_thumb_end"
+            app:layout_constraintHorizontal_bias="0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/guide_top"
+            android:layout_marginStart="40dp"
+            android:layout_marginTop="4dp" />
+
+        <LinearLayout
+            android:id="@+id/fdTrackColumn"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="40dp"
+            android:layout_marginTop="8dp"
+            android:orientation="vertical"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="@id/guide_thumb_end"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/fdThumb">
+
+            <TextView
+                android:id="@+id/fdAudioChip"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_track_chip"
+                android:clickable="true"
+                android:ellipsize="end"
+                android:focusable="true"
+                android:maxLines="1"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="5dp"
+                android:textSize="13sp"
+                tools:text="Audio: English" />
+
+            <TextView
+                android:id="@+id/fdSubtitleChip"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_track_chip"
+                android:clickable="true"
+                android:ellipsize="end"
+                android:focusable="true"
+                android:maxLines="1"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="5dp"
+                android:textSize="13sp"
+                tools:text="Subtitles: Off" />
+        </LinearLayout>
 
         <TextView
             android:id="@+id/infoTitle1"

@@ -419,7 +419,14 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
             mDetailsOverviewRow = new MyDetailsOverviewRow(item);
 
             String primaryImageUrl = imageHelper.getValue().getLogoImageUrl(mBaseItem, 600);
-            if (primaryImageUrl == null) {
+            boolean showThumbnail = item.getType() == BaseItemKind.EPISODE || item.getType() == BaseItemKind.MOVIE;
+            if (showThumbnail) {
+                // Artwork goes on the left; the logo (if any) stays on the right
+                int thumbHeight = Utils.convertDpToPixel(requireContext(), 180);
+                mDetailsOverviewRow.setThumbnailImage(item.getType() == BaseItemKind.MOVIE
+                        ? imageHelper.getValue().getLandscapeImageUrl(item, null, thumbHeight)
+                        : imageHelper.getValue().getPrimaryImageUrl(mBaseItem, false, null, thumbHeight));
+            } else if (primaryImageUrl == null) {
                 primaryImageUrl = imageHelper.getValue().getPrimaryImageUrl(mBaseItem, false, null, posterHeight);
             }
 
@@ -442,6 +449,7 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
                                 getString(R.string.lbl_directed_by),
                                 director != null ? director.getName() : getString(R.string.lbl_bracket_unknown));
                     }
+                    if (showThumbnail && director == null) firstRow = new InfoItem();
                     mDetailsOverviewRow.setInfoItem1(firstRow);
 
                     if ((item.getRunTimeTicks() != null && item.getRunTimeTicks() > 0) || item.getRunTimeTicks() != null) {
@@ -1125,10 +1133,10 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
 
         List<TextUnderButton> actionsList = new ArrayList<>();
         // added in order of priority (should match res/menu/menu_details_more.xml)
+        if (favButton != null) actionsList.add(favButton);
         if (queueButton != null) actionsList.add(queueButton);
         if (trailerButton != null) actionsList.add(trailerButton);
         if (shuffleButton != null) actionsList.add(shuffleButton);
-        if (favButton != null) actionsList.add(favButton);
         if (goToSeriesButton != null) actionsList.add(goToSeriesButton);
 
         // reverse the list so the less important actions are hidden first
@@ -1136,7 +1144,7 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
 
         collapsedOptions = 0;
         for (TextUnderButton action : actionsList) {
-            if (visibleOptions - (ViewKt.isVisible(action) ? 1 : 0) + (!ViewKt.isVisible(moreButton) && collapsedOptions > 0 ? 1 : 0) < 5) {
+            if (visibleOptions - (ViewKt.isVisible(action) ? 1 : 0) + (!ViewKt.isVisible(moreButton) && collapsedOptions > 0 ? 1 : 0) < 7) {
                 if (!ViewKt.isVisible(action)) {
                     action.setVisibility(View.VISIBLE);
                     visibleOptions++;
