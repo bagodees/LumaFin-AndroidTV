@@ -17,6 +17,7 @@ import org.jellyfin.sdk.model.api.request.GetNextUpRequest
 import org.jellyfin.sdk.model.api.request.GetRecommendedProgramsRequest
 import org.jellyfin.sdk.model.api.request.GetRecordingsRequest
 import org.jellyfin.sdk.model.api.request.GetResumeItemsRequest
+import java.time.LocalDateTime
 
 class HomeFragmentHelper(
 	private val context: Context,
@@ -73,6 +74,8 @@ class HomeFragmentHelper(
 			fields = ItemRepository.browseFields,
 			includeItemTypes = setOf(BaseItemKind.MOVIE),
 			recursive = true,
+			// Skip items that have not premiered yet
+			maxPremiereDate = LocalDateTime.now(),
 			sortBy = setOf(ItemSortBy.PREMIERE_DATE),
 			sortOrder = setOf(SortOrder.DESCENDING),
 			imageTypeLimit = 1,
@@ -87,6 +90,8 @@ class HomeFragmentHelper(
 			fields = ItemRepository.browseFields,
 			includeItemTypes = setOf(BaseItemKind.SERIES),
 			recursive = true,
+			// Skip items that have not premiered yet
+			maxPremiereDate = LocalDateTime.now(),
 			sortBy = setOf(ItemSortBy.PREMIERE_DATE),
 			sortOrder = setOf(SortOrder.DESCENDING),
 			imageTypeLimit = 1,
@@ -144,6 +149,8 @@ class HomeFragmentHelper(
 			fields = ItemRepository.browseFields,
 			includeItemTypes = setOf(itemType),
 			recursive = true,
+			// Skip items that have not premiered yet
+			maxPremiereDate = LocalDateTime.now(),
 			sortBy = setOf(ItemSortBy.PREMIERE_DATE),
 			sortOrder = setOf(SortOrder.DESCENDING),
 			imageTypeLimit = 1,
