@@ -5,9 +5,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -31,6 +34,7 @@ import org.jellyfin.androidtv.ui.base.list.ListButton
 import org.jellyfin.androidtv.ui.base.list.ListSection
 import org.jellyfin.androidtv.ui.navigation.focus.focusKey
 import org.jellyfin.androidtv.ui.settings.composable.SettingsColumn
+import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
 /**
@@ -44,6 +48,8 @@ fun SettingsHomeScreen() {
 
 	var visibleSections by remember { mutableStateOf(userSettingPreferences.activeHomesections) }
 	var grabbed by remember { mutableStateOf<HomeSectionType?>(null) }
+	val listState = rememberLazyListState()
+	val scope = rememberCoroutineScope()
 	val hiddenSections = remember(visibleSections) {
 		HomeSectionType.entries.filter { it != HomeSectionType.NONE && it !in visibleSections }
 	}
@@ -53,16 +59,58 @@ fun SettingsHomeScreen() {
 		userSettingPreferences.activeHomesections = newOrder
 	}
 
+	// Scroll the list one row ahead of the move first so the picked-up row stays composed
+	// (and focused) instead of leaving the viewport and losing focus.
 	fun move(type: HomeSectionType, delta: Int) {
-		val index = visibleSections.indexOf(type)
-		val target = index + delta
-		if (index < 0 || target !in visibleSections.indices) return
-		persist(visibleSections.toMutableList().apply { add(target, removeAt(index)) })
+		scope.launch {
+			val index = visibleSections.indexOf(type)
+			val target = index + delta
+			if (index < 0 || target !in visibleSections.indices) return@launch
+
+			// +1 accounts for the header item preceding the visible sections
+			val targetItem = listState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == target + 1 }
+			val viewportEnd = listState.layoutInfo.viewportEndOffset
+			val fullyVisible = targetItem != null &&
+				targetItem.offset >= listState.layoutInfo.viewportStartOffset &&
+				targetItem.offset + targetItem.size <= viewportEnd
+			if (!fullyVisible) {
+				if (delta < 0) listState.animateScrollToItem(target + 1)
+				else listState.animateScrollToItem(listState.firstVisibleItemIndex + 1)
+			}
+			persist(visibleSections.toMutableList().apply { add(target, removeAt(index)) })
+		}
 	}
 
 	BackHandler(enabled = grabbed != null) { grabbed = null }
 
-	SettingsColumn {
+	// Keep the picked-up row on screen after each move, including reaching the very top/bottom.
+	LaunchedEffect(visibleSections, grabbed) {
+		val type = grabbed ?: return@LaunchedEffect
+		// +1 accounts for the header item preceding the visible sections
+		val lazyIndex = visibleSections.indexOf(type) + 1
+		if (lazyIndex <= 0) return@LaunchedEffect
+
+		if (lazyIndex == 1) {
+			listState.animateScrollToItem(0)
+			return@LaunchedEffect
+		}
+
+		val info = listState.layoutInfo
+		val item = info.visibleItemsInfo.firstOrNull { it.index == lazyIndex }
+		val fullyVisible = item != null &&
+			item.offset >= info.viewportStartOffset &&
+			item.offset + item.size <= info.viewportEndOffset
+		if (fullyVisible) return@LaunchedEffect
+
+		if (lazyIndex < listState.firstVisibleItemIndex + 1) {
+			listState.animateScrollToItem(lazyIndex)
+		} else {
+			val rowSize = item?.size ?: info.visibleItemsInfo.lastOrNull()?.size ?: 0
+			listState.animateScrollToItem(lazyIndex, -(info.viewportEndOffset - info.viewportStartOffset - rowSize))
+		}
+	}
+
+	SettingsColumn(state = listState) {
 		item {
 			ListSection(
 				overlineContent = { Text(stringResource(R.string.pref_customization).uppercase()) },
