@@ -155,17 +155,6 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
                 mSecondaryDock = root.findViewById(androidx.leanback.R.id.secondary_controls_dock);
                 mButtonRef = (LinearLayout) ((FrameLayout) mControlsDock).getChildAt(0);
 
-                root.findViewById(androidx.leanback.R.id.playback_progress).setOnKeyListener((v, keyCode, event) -> {
-                    if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN && event.getAction() == KeyEvent.ACTION_DOWN) {
-                        int index = primaryActionsAdapter.indexOf(playPauseAction);
-                        if (mButtonRef != null && index >= 0 && index < mButtonRef.getChildCount()) {
-                            mButtonRef.getChildAt(index).requestFocus();
-                            return true;
-                        }
-                    }
-                    return false;
-                });
-
                 ClockBehavior showClock = KoinJavaComponent.<UserPreferences>get(UserPreferences.class).get(UserPreferences.Companion.getClockBehavior());
                 if (showClock == ClockBehavior.ALWAYS || showClock == ClockBehavior.IN_VIDEO) {
                     setEndTime();
@@ -473,6 +462,18 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
 
     @Override
     public boolean onKey(View v, int keyCode, KeyEvent event) {
+        // Down from the seek bar lands on play/pause. The seek bar's own key listener must stay
+        // untouched, since it is what handles left/right scrubbing.
+        if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN && event.getAction() == KeyEvent.ACTION_DOWN) {
+            View focused = v.findFocus();
+            if (focused != null && focused.getId() == androidx.leanback.R.id.playback_progress && mButtonRef != null) {
+                int index = primaryActionsAdapter.indexOf(playPauseAction);
+                if (index >= 0 && index < mButtonRef.getChildCount() && mButtonRef.getChildAt(index).requestFocus()) {
+                    return true;
+                }
+            }
+        }
+
         if (event.getAction() != KeyEvent.ACTION_UP) {
             // The below actions are only handled on key up
             return super.onKey(v, keyCode, event);
