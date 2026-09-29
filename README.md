@@ -60,6 +60,12 @@ the `assembleDebug` Gradle task to generate an apk file:
 
 The task will create an APK file in the `/app/build/outputs/apk/debug` directory.
 
+## Support LumaFin
+
+LumaFin is maintained in spare time. If it makes your Jellyfin setup better, you can support ongoing Android TV
+improvements, testing, and maintenance through [GitHub Sponsors](https://github.com/sponsors/bagodees). Sponsorship is
+entirely optional — LumaFin will remain free and open source.
+
 ## Branching
 
 The `lumafin-main` branch is the active development branch and default branch for this fork, carrying all LumaFin
