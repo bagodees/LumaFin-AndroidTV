@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Jellyfin documentation
+  - name: Jellyfin server documentation
     url:  https://jellyfin.org/docs/general/getting-help.html
-    about: Our documentation contains lots of help for common issues
-  - name: Jellyfin contact
+    about: Help with Jellyfin server setup and common server-side problems
+  - name: Jellyfin server community
     url: https://jellyfin.org/contact/
-    about: Our community is ready to help you get started with Jellyfin
+    about: Community help for Jellyfin server questions

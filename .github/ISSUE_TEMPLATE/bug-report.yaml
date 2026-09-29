@@ -6,16 +6,14 @@ body:
   - type: checkboxes
     id: before-posting
     attributes:
-      label: "This issue respects the following points:"
-      description: All conditions are **required**.
+      label: "Before submitting:"
+      description: Please confirm the following.
       options:
-        - label: I have discussed this issue in the [Jellyfin forum](https://forum.jellyfin.org/) and/or [troubleshooting chat](https://jellyfin.org/contact) before opening this issue.
+        - label: I have searched the existing [LumaFin issues](https://github.com/bagodees/LumaFin-AndroidTV/issues) and this has not already been reported.
           required: true
-        - label: This issue is **not** already reported on [GitHub](https://github.com/jellyfin/jellyfin-androidtv/issues?q=is%3Aopen+is%3Aissue) _(I've searched it)_.
+        - label: This report addresses one issue only.
           required: true
-        - label: I agree to follow Jellyfin's [Code of Conduct](https://jellyfin.org/docs/general/community-standards.html#code-of-conduct).
-          required: true
-        - label: This report addresses only a single issue; If you encounter multiple issues, kindly create separate reports for each one.
+        - label: I have removed private information, such as server addresses, account names, access tokens, and passwords, from any logs or screenshots.
           required: true
   - type: markdown
     attributes:
@@ -42,9 +40,8 @@ body:
     attributes:
       label: Logs
       description: |
-        Please paste your crash logs here if applicable. You can find these in your servers dashboard under "logs".
-        The file name should start with "upload_org.jellyfin.androidtv".
-        Make sure that they don't contain any sensitive information like server URL, auth tokens or passwords.
+        Paste relevant LumaFin client or Jellyfin server logs here if available.
+        Remove server addresses, account names, access tokens, and passwords before submitting.
       placeholder: Paste logs…
   - type: markdown
     attributes:
@@ -53,9 +50,9 @@ body:
   - type: input
     id: app-version
     attributes:
-      label: Application version
-      description: The version of the installed Jellyfin for Android TV app.
-      placeholder: 0.18.2
+      label: LumaFin version
+      description: The version shown in the installed LumaFin app.
+      placeholder: 0.1.7
     validations:
       required: true
   - type: dropdown
@@ -64,10 +61,9 @@ body:
       label: Where did you install the app from?
       description: Choose the appropriate app store or installation method.
       options:
-        - Google Play Store
-        - Amazon Appstore
-        - F-Droid
+        - GitHub Release
         - Sideloaded APK
+        - Google Play Store
   - type: input
     id: device-info
     attributes:
@@ -100,7 +96,7 @@ body:
     id: other-sources
     attributes:
       label: Other sources
-      description: Please link the related forum topics or chat messages that prompted you open this issue.
-      placeholder: https://forum.jellyfin.org/…
+      description: Link related issues or discussions, if any.
+      placeholder: https://github.com/bagodees/LumaFin-AndroidTV/issues/…
     validations:
       required: false
