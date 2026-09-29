@@ -1,7 +1,7 @@
 <p align="center">
 <img alt="LumaFin" src="docs/branding/lumafin-wordmark.png" width="520"/>
 </p>
-<h3 align="center">A personalized Android TV client for <a href="https://jellyfin.org">Jellyfin</a></h3>
+<h3 align="center">A modified Android TV client for <a href="https://jellyfin.org">Jellyfin</a></h3>
 
 ---
 
