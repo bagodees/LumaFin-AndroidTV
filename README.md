@@ -24,6 +24,17 @@ This is not an officially supported Jellyfin project - it's built for personal u
 [LICENSE](LICENSE) for license details, and the upstream project at
 [jellyfin/jellyfin-androidtv](https://github.com/jellyfin/jellyfin-androidtv) for the official Android TV client.
 
+## Screenshots
+
+<p align="center">
+  <img alt="LumaFin home screen" src="docs/screenshots/home-screen.png" width="100%" />
+</p>
+
+<p align="center">
+  <img alt="LumaFin movie details screen" src="docs/screenshots/movie-details.png" width="49%" />
+  <img alt="LumaFin episode details screen" src="docs/screenshots/episode-details.png" width="49%" />
+</p>
+
 ## What's different from upstream
 
 - **Landscape, thumbnail-first artwork** - content cards throughout the app use a Thumbnail → Backdrop → Primary
