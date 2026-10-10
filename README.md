@@ -13,6 +13,7 @@
 <img alt="Current Release" src="https://img.shields.io/github/v/release/bagodees/LumaFin-AndroidTV.svg"/>
 </a>
 </p>
+<p align="center"><strong>Download and install: <a href="https://getlumafin.com">getlumafin.com</a></strong></p>
 
 LumaFin is a personal fork of [jellyfin-androidtv](https://github.com/jellyfin/jellyfin-androidtv), the official Jellyfin
 client for Android TV, Nvidia Shield, and Amazon Fire TV devices. It tracks upstream Jellyfin for bug fixes and new
@@ -60,6 +61,11 @@ This is not an officially supported Jellyfin project - it's built for personal u
   when you press Play.
 - **LumaFin branding** - its own icon, Android TV banner, splash screen, and accent color theme, with its own
   application ID so it can be installed alongside the official Jellyfin app.
+
+## Installing
+
+Download the latest APK and follow the step-by-step guide at **[getlumafin.com](https://getlumafin.com)**. On a TV with
+the free Downloader app, entering `getlumafin.com/android` fetches the newest release directly.
 
 ## Building
 
