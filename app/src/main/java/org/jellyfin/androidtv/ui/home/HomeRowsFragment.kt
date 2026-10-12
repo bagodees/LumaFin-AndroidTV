@@ -80,6 +80,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 	private var currentItem: BaseRowItem? = null
 	private var currentRow: ListRow? = null
 	private var justLoaded = true
+	private var handledPlaybackRevision = 0L
 	private var loadedHomeSections: List<HomeSectionType> = emptyList()
 	private var loadedLatestMoviesLimit = 50
 	private var loadedLatestShowsLimit = 50
@@ -127,6 +128,19 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 
 		lifecycleScope.launch {
 			lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+				// Receive completion both after returning and if reporting finishes late.
+				dataRefreshService.playbackUpdates
+					.onEach { revision ->
+						if (revision > handledPlaybackRevision) {
+							handledPlaybackRevision = revision
+							// Empty rows are removed from the visible adapter, so refreshing
+							// existing rows cannot bring Next up back. Recreate all configured
+							// rows in their saved order after the server finishes the report.
+							loadHomeRows()
+						}
+					}
+					.launchIn(this)
+
 				api.webSocket.subscribe<UserDataChangedMessage>()
 					.onEach { refreshRows(force = true, delayed = false) }
 					.launchIn(this)
@@ -266,9 +280,9 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 						// Home section preferences changed (e.g. reordered in Settings) - rebuild from scratch
 						loadHomeRows()
 					} else {
-						//Re-retrieve anything that needs it but delay slightly so we don't take away gui landing
-						refreshCurrentItem()
-						refreshRows()
+						// Removed empty rows have no adapter left to refresh. Returning
+						// from details or playback must query every configured section.
+						loadHomeRows()
 					}
 				}
 			}
@@ -289,7 +303,12 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 	}
 
 	private fun refreshRows(force: Boolean = false, delayed: Boolean = true) {
-		lifecycleScope.launch(Dispatchers.IO) {
+		if (force) {
+			// Server watch-status changes can make a previously empty row visible.
+			loadHomeRows()
+			return
+		}
+		lifecycleScope.launch {
 			if (delayed) delay(1.5.seconds)
 
 			repeat(adapter.size()) { i ->

@@ -11,14 +11,12 @@ import org.jellyfin.androidtv.ui.playback.PlaybackController
 import org.jellyfin.sdk.api.client.ApiClient
 import org.jellyfin.sdk.api.client.extensions.playStateApi
 import org.jellyfin.sdk.model.api.BaseItemDto
-import org.jellyfin.sdk.model.api.BaseItemKind
 import org.jellyfin.sdk.model.api.PlaybackOrder
 import org.jellyfin.sdk.model.api.PlaybackProgressInfo
 import org.jellyfin.sdk.model.api.PlaybackStartInfo
 import org.jellyfin.sdk.model.api.PlaybackStopInfo
 import org.jellyfin.sdk.model.api.RepeatMode
 import timber.log.Timber
-import java.time.Instant
 
 class ReportingHelper(
 	private val dataRefreshService: DataRefreshService,
@@ -103,14 +101,7 @@ class ReportingHelper(
 			runCatching {
 				api.playStateApi.reportPlaybackStopped(info)
 			}.onFailure { error -> Timber.e(error, "Failed to report stopped playback!") }
-		}
-
-		// Update dataRefreshService
-		dataRefreshService.lastPlayback = Instant.now()
-		when (item.type) {
-			BaseItemKind.MOVIE -> dataRefreshService.lastMoviePlayback = Instant.now()
-			BaseItemKind.EPISODE -> dataRefreshService.lastTvPlayback = Instant.now()
-			else -> Unit
+			dataRefreshService.playbackReportFinished(item)
 		}
 	}
 }
