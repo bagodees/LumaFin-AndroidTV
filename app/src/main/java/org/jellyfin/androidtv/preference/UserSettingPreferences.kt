@@ -3,6 +3,7 @@ package org.jellyfin.androidtv.preference
 import android.content.Context
 import androidx.preference.PreferenceManager
 import org.jellyfin.androidtv.constant.HomeSectionType
+import org.jellyfin.androidtv.constant.HomeLayoutPreset
 import org.jellyfin.preference.enumPreference
 import org.jellyfin.preference.intPreference
 import org.jellyfin.preference.stringPreference
@@ -47,18 +48,7 @@ class UserSettingPreferences(context: Context) : SharedPreferenceStore(
 		)
 
 		// Default order for a fresh install (no legacy slots configured either)
-		val defaultHomeSectionOrder = listOf(
-			HomeSectionType.RESUME,
-			HomeSectionType.NEXT_UP,
-			HomeSectionType.LATEST_MOVIES,
-			HomeSectionType.LATEST_SHOWS,
-			HomeSectionType.BECAUSE_YOU_WATCHED,
-			HomeSectionType.LIBRARY_TILES_SMALL,
-			HomeSectionType.LATEST_MEDIA,
-			HomeSectionType.WATCH_AGAIN,
-			HomeSectionType.COLLECTIONS,
-			HomeSectionType.GENRES,
-		)
+		val defaultHomeSectionOrder = HomeLayoutPreset.MIXED_LIBRARY.sections
 	}
 
 	/**

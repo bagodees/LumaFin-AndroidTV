@@ -25,9 +25,11 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.constant.HomeSectionType
+import org.jellyfin.androidtv.constant.HomeLayoutPreset
 import org.jellyfin.androidtv.preference.UserSettingPreferences
 import org.jellyfin.androidtv.ui.base.Icon
 import org.jellyfin.androidtv.ui.base.Text
+import org.jellyfin.androidtv.ui.base.form.RadioButton
 import org.jellyfin.androidtv.ui.base.list.ListButton
 import org.jellyfin.androidtv.ui.base.list.ListControlDefaults
 import org.jellyfin.androidtv.ui.base.list.ListSection
@@ -48,6 +50,8 @@ fun SettingsHomeScreen() {
 	var visibleSections by remember { mutableStateOf(userSettingPreferences.activeHomesections) }
 	var grabbed by remember { mutableStateOf<HomeSectionType?>(null) }
 	var layoutBeforeReset by remember { mutableStateOf<List<HomeSectionType>?>(null) }
+	var layoutBeforePreset by remember { mutableStateOf<List<HomeSectionType>?>(null) }
+	var presetsExpanded by remember { mutableStateOf(false) }
 	val listState = rememberLazyListState()
 	val scope = rememberCoroutineScope()
 	val hiddenSections = remember(visibleSections) {
@@ -56,6 +60,7 @@ fun SettingsHomeScreen() {
 
 	fun persist(newOrder: List<HomeSectionType>) {
 		layoutBeforeReset = null
+		layoutBeforePreset = null
 		visibleSections = newOrder
 		userSettingPreferences.activeHomesections = newOrder
 	}
@@ -138,6 +143,47 @@ fun SettingsHomeScreen() {
 				},
 				modifier = Modifier.focusKey("home_section_${type.name}")
 			)
+		}
+
+		item(key = "home_layout_presets") {
+			ListButton(
+				headingContent = { Text(stringResource(R.string.home_layout_presets)) },
+				captionContent = { Text(stringResource(R.string.home_layout_presets_description)) },
+				enabled = grabbed == null,
+				onClick = { presetsExpanded = !presetsExpanded },
+				modifier = Modifier.focusKey("home_layout_presets")
+			)
+		}
+
+		if (presetsExpanded) {
+			items(HomeLayoutPreset.entries, key = { "preset_${it.name}" }) { preset ->
+				ListButton(
+					headingContent = { Text(stringResource(preset.nameRes)) },
+					captionContent = { Text(stringResource(preset.descriptionRes)) },
+					trailingContent = { RadioButton(checked = visibleSections == preset.sections) },
+					enabled = grabbed == null,
+					onClick = {
+						if (visibleSections != preset.sections) {
+							val previous = visibleSections.toList()
+							persist(preset.sections)
+							layoutBeforePreset = previous
+						}
+					},
+					modifier = Modifier.focusKey("home_preset_${preset.name}")
+				)
+			}
+		}
+
+		if (layoutBeforePreset != null) {
+			item(key = "undo_home_preset") {
+				ListButton(
+					headingContent = { Text(stringResource(R.string.home_layout_undo_preset)) },
+					captionContent = { Text(stringResource(R.string.home_layout_undo_preset_description)) },
+					enabled = grabbed == null,
+					onClick = { layoutBeforePreset?.let(::persist) },
+					modifier = Modifier.focusKey("undo_home_preset")
+				)
+			}
 		}
 
 		item(key = "reset_home_layout") {
