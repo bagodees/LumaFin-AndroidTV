@@ -19,6 +19,8 @@ class UserSettingPreferences(context: Context) : SharedPreferenceStore(
 	companion object {
 		val skipBackLength = intPreference("skipBackLength", 10_000)
 		val skipForwardLength = intPreference("skipForwardLength", 30_000)
+		val latestMoviesItemLimit = intPreference("home_latest_movies_limit", 50)
+		val latestShowsItemLimit = intPreference("home_latest_shows_limit", 50)
 
 		// Ordered, comma separated list of enabled HomeSectionType#serializedName values.
 		// Types not present in the list are hidden. Replaces the old fixed homesection0..27

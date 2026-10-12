@@ -69,7 +69,7 @@ class HomeFragmentHelper(
 		return HomeFragmentBrowseRowDefRow(BrowseRowDef(context.getString(R.string.lbl_next_up), query, arrayOf(ChangeTriggerType.TvPlayback)))
 	}
 
-	fun loadLatestMovies(): HomeFragmentRow {
+	fun loadLatestMovies(itemLimit: Int = ITEM_LIMIT_LATEST_BY_RELEASE): HomeFragmentRow {
 		val query = GetItemsRequest(
 			fields = ItemRepository.browseFields,
 			includeItemTypes = setOf(BaseItemKind.MOVIE),
@@ -79,13 +79,15 @@ class HomeFragmentHelper(
 			sortBy = setOf(ItemSortBy.PREMIERE_DATE),
 			sortOrder = setOf(SortOrder.DESCENDING),
 			imageTypeLimit = 1,
-			limit = ITEM_LIMIT_LATEST_BY_RELEASE,
+			startIndex = 0,
+			limit = itemLimit.coerceIn(5, 50),
+			enableTotalRecordCount = false,
 		)
 
-		return HomeFragmentBrowseRowDefRow(BrowseRowDef(context.getString(R.string.home_section_latest_movies), query, ITEM_LIMIT_LATEST_BY_RELEASE, false, true, arrayOf(ChangeTriggerType.LibraryUpdated)))
+		return HomeFragmentBrowseRowDefRow(BrowseRowDef(context.getString(R.string.home_section_latest_movies), query, 0, false, true, arrayOf(ChangeTriggerType.LibraryUpdated)))
 	}
 
-	fun loadLatestShows(): HomeFragmentRow {
+	fun loadLatestShows(itemLimit: Int = ITEM_LIMIT_LATEST_BY_RELEASE): HomeFragmentRow {
 		val query = GetItemsRequest(
 			fields = ItemRepository.browseFields,
 			includeItemTypes = setOf(BaseItemKind.SERIES),
@@ -95,10 +97,12 @@ class HomeFragmentHelper(
 			sortBy = setOf(ItemSortBy.PREMIERE_DATE),
 			sortOrder = setOf(SortOrder.DESCENDING),
 			imageTypeLimit = 1,
-			limit = ITEM_LIMIT_LATEST_BY_RELEASE,
+			startIndex = 0,
+			limit = itemLimit.coerceIn(5, 50),
+			enableTotalRecordCount = false,
 		)
 
-		return HomeFragmentBrowseRowDefRow(BrowseRowDef(context.getString(R.string.home_section_latest_shows), query, ITEM_LIMIT_LATEST_BY_RELEASE, false, true, arrayOf(ChangeTriggerType.LibraryUpdated)))
+		return HomeFragmentBrowseRowDefRow(BrowseRowDef(context.getString(R.string.home_section_latest_shows), query, 0, false, true, arrayOf(ChangeTriggerType.LibraryUpdated)))
 	}
 
 	fun loadWatchAgain(): HomeFragmentRow {

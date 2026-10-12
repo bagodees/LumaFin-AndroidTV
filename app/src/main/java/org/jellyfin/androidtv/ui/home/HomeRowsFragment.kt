@@ -81,6 +81,12 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 	private var currentRow: ListRow? = null
 	private var justLoaded = true
 	private var loadedHomeSections: List<HomeSectionType> = emptyList()
+	private var loadedLatestMoviesLimit = 50
+	private var loadedLatestShowsLimit = 50
+
+	private fun homePreferencesChanged() = userSettingPreferences.activeHomesections != loadedHomeSections ||
+		userSettingPreferences[UserSettingPreferences.latestMoviesItemLimit] != loadedLatestMoviesLimit ||
+		userSettingPreferences[UserSettingPreferences.latestShowsItemLimit] != loadedLatestShowsLimit
 
 	// Special rows
 	private val notificationsRow by lazy { NotificationsHomeFragmentRow(lifecycleScope, notificationsRepository) }
@@ -134,7 +140,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 	 */
 	fun reloadHomeRowsIfSectionsChanged() {
 		lifecycleScope.launch(Dispatchers.IO) {
-			val sectionsChanged = userSettingPreferences.activeHomesections != loadedHomeSections
+			val sectionsChanged = homePreferencesChanged()
 			if (sectionsChanged) withContext(Dispatchers.Main) { loadHomeRows() }
 		}
 	}
@@ -148,6 +154,8 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 			// Start out with default sections
 			val homesections = userSettingPreferences.activeHomesections
 			loadedHomeSections = homesections
+			loadedLatestMoviesLimit = userSettingPreferences[UserSettingPreferences.latestMoviesItemLimit]
+			loadedLatestShowsLimit = userSettingPreferences[UserSettingPreferences.latestShowsItemLimit]
 
 			// Make sure the rows are empty
 			val rows = mutableListOf<HomeFragmentRow>()
@@ -170,8 +178,8 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 					rows.add(helper.loadOnNow())
 				}
 
-				HomeSectionType.LATEST_MOVIES -> rows.add(helper.loadLatestMovies())
-				HomeSectionType.LATEST_SHOWS -> rows.add(helper.loadLatestShows())
+				HomeSectionType.LATEST_MOVIES -> rows.add(helper.loadLatestMovies(loadedLatestMoviesLimit))
+				HomeSectionType.LATEST_SHOWS -> rows.add(helper.loadLatestShows(loadedLatestShowsLimit))
 				HomeSectionType.BECAUSE_YOU_WATCHED -> rows.add(HomeFragmentBecauseYouWatchedRow(api))
 				HomeSectionType.COLLECTIONS -> rows.add(HomeFragmentCollectionsRow(api, userViewsRepository.views.first()))
 				HomeSectionType.WATCH_AGAIN -> rows.add(helper.loadWatchAgain())
@@ -239,7 +247,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 
 		if (!justLoaded) {
 			lifecycleScope.launch(Dispatchers.IO) {
-				val sectionsChanged = userSettingPreferences.activeHomesections != loadedHomeSections
+				val sectionsChanged = homePreferencesChanged()
 
 				withContext(Dispatchers.Main) {
 					if (sectionsChanged) {

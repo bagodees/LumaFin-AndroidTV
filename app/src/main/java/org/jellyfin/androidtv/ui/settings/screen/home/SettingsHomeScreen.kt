@@ -2,6 +2,11 @@ package org.jellyfin.androidtv.ui.settings.screen.home
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
@@ -12,6 +17,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -30,13 +36,17 @@ import org.jellyfin.androidtv.preference.UserSettingPreferences
 import org.jellyfin.androidtv.ui.base.Icon
 import org.jellyfin.androidtv.ui.base.Text
 import org.jellyfin.androidtv.ui.base.form.RadioButton
+import org.jellyfin.androidtv.ui.base.form.RangeControl
 import org.jellyfin.androidtv.ui.base.list.ListButton
 import org.jellyfin.androidtv.ui.base.list.ListControlDefaults
+import org.jellyfin.androidtv.ui.base.list.ListControl
 import org.jellyfin.androidtv.ui.base.list.ListSection
 import org.jellyfin.androidtv.ui.navigation.focus.focusKey
 import org.jellyfin.androidtv.ui.settings.composable.SettingsColumn
+import org.jellyfin.androidtv.ui.settings.compat.rememberPreference
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
+import kotlin.math.roundToInt
 
 /**
  * A single list of every home section type. Selecting a shown section picks it up ("grab" mode):
@@ -52,6 +62,9 @@ fun SettingsHomeScreen() {
 	var layoutBeforeReset by remember { mutableStateOf<List<HomeSectionType>?>(null) }
 	var layoutBeforePreset by remember { mutableStateOf<List<HomeSectionType>?>(null) }
 	var presetsExpanded by remember { mutableStateOf(false) }
+	var limitsExpanded by remember { mutableStateOf(false) }
+	var latestMoviesLimit by rememberPreference(userSettingPreferences, UserSettingPreferences.latestMoviesItemLimit)
+	var latestShowsLimit by rememberPreference(userSettingPreferences, UserSettingPreferences.latestShowsItemLimit)
 	val listState = rememberLazyListState()
 	val scope = rememberCoroutineScope()
 	val hiddenSections = remember(visibleSections) {
@@ -186,6 +199,36 @@ fun SettingsHomeScreen() {
 			}
 		}
 
+		item(key = "home_item_limits") {
+			ListButton(
+				headingContent = { Text(stringResource(R.string.home_item_limits)) },
+				captionContent = { Text(stringResource(R.string.home_item_limits_description)) },
+				enabled = grabbed == null,
+				onClick = { limitsExpanded = !limitsExpanded },
+				modifier = Modifier.focusKey("home_item_limits")
+			)
+		}
+		if (limitsExpanded) {
+			item(key = "latest_movies_limit") {
+				HomeItemLimitControl(R.string.home_section_latest_movies, latestMoviesLimit, grabbed == null) { latestMoviesLimit = it }
+			}
+			item(key = "latest_shows_limit") {
+				HomeItemLimitControl(R.string.home_section_latest_shows, latestShowsLimit, grabbed == null) { latestShowsLimit = it }
+			}
+			item(key = "reset_home_item_limits") {
+				ListButton(
+					headingContent = { Text(stringResource(R.string.home_item_limits_reset)) },
+					captionContent = { Text(stringResource(R.string.home_item_limits_reset_description)) },
+					enabled = grabbed == null,
+					onClick = {
+						latestMoviesLimit = UserSettingPreferences.latestMoviesItemLimit.defaultValue
+						latestShowsLimit = UserSettingPreferences.latestShowsItemLimit.defaultValue
+					},
+					modifier = Modifier.focusKey("reset_home_item_limits")
+				)
+			}
+		}
+
 		item(key = "reset_home_layout") {
 			val canUndo = layoutBeforeReset != null
 			ListButton(
@@ -227,6 +270,33 @@ fun SettingsHomeScreen() {
 					modifier = Modifier.focusKey("home_section_${type.name}")
 				)
 			}
+		}
+	}
+}
+
+@Composable
+private fun HomeItemLimitControl(titleRes: Int, value: Int, enabled: Boolean, onValueChange: (Int) -> Unit) {
+	val interactionSource = remember { MutableInteractionSource() }
+	ListControl(
+		headingContent = { Text(stringResource(titleRes)) },
+		captionContent = { Text(stringResource(R.string.home_item_limit_hint)) },
+		enabled = enabled,
+		interactionSource = interactionSource,
+		modifier = Modifier.focusKey("home_item_limit_$titleRes"),
+	) {
+		Row(verticalAlignment = Alignment.CenterVertically) {
+			RangeControl(
+				modifier = Modifier.height(4.dp).weight(1f),
+				interactionSource = interactionSource,
+				min = 5f,
+				max = 50f,
+				stepForward = 5f,
+				value = value.coerceIn(5, 50).toFloat(),
+				onValueChange = { onValueChange(it.roundToInt()) },
+				enabled = enabled,
+			)
+			Spacer(Modifier.width(16.dp))
+			Text(value.toString())
 		}
 	}
 }
