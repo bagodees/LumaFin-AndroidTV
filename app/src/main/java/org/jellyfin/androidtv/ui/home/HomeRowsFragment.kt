@@ -83,10 +83,12 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 	private var loadedHomeSections: List<HomeSectionType> = emptyList()
 	private var loadedLatestMoviesLimit = 50
 	private var loadedLatestShowsLimit = 50
+	private var loadedHideWatchedLatestMovies = false
 
 	private fun homePreferencesChanged() = userSettingPreferences.activeHomesections != loadedHomeSections ||
 		userSettingPreferences[UserSettingPreferences.latestMoviesItemLimit] != loadedLatestMoviesLimit ||
-		userSettingPreferences[UserSettingPreferences.latestShowsItemLimit] != loadedLatestShowsLimit
+		userSettingPreferences[UserSettingPreferences.latestShowsItemLimit] != loadedLatestShowsLimit ||
+		userSettingPreferences[UserSettingPreferences.hideWatchedLatestMovies] != loadedHideWatchedLatestMovies
 
 	// Special rows
 	private val notificationsRow by lazy { NotificationsHomeFragmentRow(lifecycleScope, notificationsRepository) }
@@ -156,6 +158,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 			loadedHomeSections = homesections
 			loadedLatestMoviesLimit = userSettingPreferences[UserSettingPreferences.latestMoviesItemLimit]
 			loadedLatestShowsLimit = userSettingPreferences[UserSettingPreferences.latestShowsItemLimit]
+			loadedHideWatchedLatestMovies = userSettingPreferences[UserSettingPreferences.hideWatchedLatestMovies]
 
 			// Make sure the rows are empty
 			val rows = mutableListOf<HomeFragmentRow>()
@@ -178,7 +181,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 					rows.add(helper.loadOnNow())
 				}
 
-				HomeSectionType.LATEST_MOVIES -> rows.add(helper.loadLatestMovies(loadedLatestMoviesLimit))
+				HomeSectionType.LATEST_MOVIES -> rows.add(helper.loadLatestMovies(loadedLatestMoviesLimit, loadedHideWatchedLatestMovies))
 				HomeSectionType.LATEST_SHOWS -> rows.add(helper.loadLatestShows(loadedLatestShowsLimit))
 				HomeSectionType.BECAUSE_YOU_WATCHED -> rows.add(HomeFragmentBecauseYouWatchedRow(api))
 				HomeSectionType.COLLECTIONS -> rows.add(HomeFragmentCollectionsRow(api, userViewsRepository.views.first()))

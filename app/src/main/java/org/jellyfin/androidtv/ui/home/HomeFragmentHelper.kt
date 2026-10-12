@@ -69,10 +69,11 @@ class HomeFragmentHelper(
 		return HomeFragmentBrowseRowDefRow(BrowseRowDef(context.getString(R.string.lbl_next_up), query, arrayOf(ChangeTriggerType.TvPlayback)))
 	}
 
-	fun loadLatestMovies(itemLimit: Int = ITEM_LIMIT_LATEST_BY_RELEASE): HomeFragmentRow {
+	fun loadLatestMovies(itemLimit: Int = ITEM_LIMIT_LATEST_BY_RELEASE, hideWatched: Boolean = false): HomeFragmentRow {
 		val query = GetItemsRequest(
 			fields = ItemRepository.browseFields,
 			includeItemTypes = setOf(BaseItemKind.MOVIE),
+			filters = if (hideWatched) setOf(ItemFilter.IS_UNPLAYED) else emptySet(),
 			recursive = true,
 			// Skip items that have not premiered yet
 			maxPremiereDate = LocalDateTime.now(),
@@ -84,7 +85,7 @@ class HomeFragmentHelper(
 			enableTotalRecordCount = false,
 		)
 
-		return HomeFragmentBrowseRowDefRow(BrowseRowDef(context.getString(R.string.home_section_latest_movies), query, 0, false, true, arrayOf(ChangeTriggerType.LibraryUpdated)))
+		return HomeFragmentBrowseRowDefRow(BrowseRowDef(context.getString(R.string.home_section_latest_movies), query, 0, false, true, arrayOf(ChangeTriggerType.LibraryUpdated, ChangeTriggerType.MoviePlayback)))
 	}
 
 	fun loadLatestShows(itemLimit: Int = ITEM_LIMIT_LATEST_BY_RELEASE): HomeFragmentRow {

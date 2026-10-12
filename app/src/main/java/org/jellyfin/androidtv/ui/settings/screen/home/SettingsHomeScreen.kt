@@ -36,6 +36,7 @@ import org.jellyfin.androidtv.preference.UserSettingPreferences
 import org.jellyfin.androidtv.ui.base.Icon
 import org.jellyfin.androidtv.ui.base.Text
 import org.jellyfin.androidtv.ui.base.form.RadioButton
+import org.jellyfin.androidtv.ui.base.form.Checkbox
 import org.jellyfin.androidtv.ui.base.form.RangeControl
 import org.jellyfin.androidtv.ui.base.list.ListButton
 import org.jellyfin.androidtv.ui.base.list.ListControlDefaults
@@ -65,6 +66,7 @@ fun SettingsHomeScreen() {
 	var limitsExpanded by remember { mutableStateOf(false) }
 	var latestMoviesLimit by rememberPreference(userSettingPreferences, UserSettingPreferences.latestMoviesItemLimit)
 	var latestShowsLimit by rememberPreference(userSettingPreferences, UserSettingPreferences.latestShowsItemLimit)
+	var hideWatchedLatestMovies by rememberPreference(userSettingPreferences, UserSettingPreferences.hideWatchedLatestMovies)
 	val listState = rememberLazyListState()
 	val scope = rememberCoroutineScope()
 	val hiddenSections = remember(visibleSections) {
@@ -209,6 +211,16 @@ fun SettingsHomeScreen() {
 			)
 		}
 		if (limitsExpanded) {
+			item(key = "hide_watched_latest_movies") {
+				ListButton(
+					headingContent = { Text(stringResource(R.string.home_hide_watched_latest_movies)) },
+					captionContent = { Text(stringResource(R.string.home_hide_watched_latest_movies_description)) },
+					trailingContent = { Checkbox(checked = hideWatchedLatestMovies) },
+					enabled = grabbed == null,
+					onClick = { hideWatchedLatestMovies = !hideWatchedLatestMovies },
+					modifier = Modifier.focusKey("hide_watched_latest_movies")
+				)
+			}
 			item(key = "latest_movies_limit") {
 				HomeItemLimitControl(R.string.home_section_latest_movies, latestMoviesLimit, grabbed == null) { latestMoviesLimit = it }
 			}

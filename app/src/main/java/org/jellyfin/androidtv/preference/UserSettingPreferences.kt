@@ -5,6 +5,7 @@ import androidx.preference.PreferenceManager
 import org.jellyfin.androidtv.constant.HomeSectionType
 import org.jellyfin.androidtv.constant.HomeLayoutPreset
 import org.jellyfin.preference.enumPreference
+import org.jellyfin.preference.booleanPreference
 import org.jellyfin.preference.intPreference
 import org.jellyfin.preference.stringPreference
 import org.jellyfin.preference.store.SharedPreferenceStore
@@ -21,6 +22,7 @@ class UserSettingPreferences(context: Context) : SharedPreferenceStore(
 		val skipForwardLength = intPreference("skipForwardLength", 30_000)
 		val latestMoviesItemLimit = intPreference("home_latest_movies_limit", 50)
 		val latestShowsItemLimit = intPreference("home_latest_shows_limit", 50)
+		val hideWatchedLatestMovies = booleanPreference("home_latest_movies_hide_watched", false)
 
 		// Ordered, comma separated list of enabled HomeSectionType#serializedName values.
 		// Types not present in the list are hidden. Replaces the old fixed homesection0..27

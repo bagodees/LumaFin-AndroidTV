@@ -432,8 +432,10 @@
     <string name="home_sections_hint">Press OK to pick up a section, then use up/down to move it. Press left to hide.</string>
     <string name="home_layout_reset">Reset home layout</string>
     <string name="home_layout_presets">Home layout presets</string>
-    <string name="home_item_limits">Home row item limits</string>
-    <string name="home_item_limits_description">Show or hide limits for Latest movies and Latest shows. Changes apply when you close settings.</string>
+    <string name="home_item_limits">Home row options</string>
+    <string name="home_item_limits_description">Show or hide item limits and the watched-movie filter. Changes apply when you close settings.</string>
+    <string name="home_hide_watched_latest_movies">Hide watched movies in Latest movies</string>
+    <string name="home_hide_watched_latest_movies_description">Show unwatched movies in this row. Watched movies remain in your library and Watch Again.</string>
     <string name="home_item_limit_hint">Use Left and Right to choose 5 to 50 items.</string>
     <string name="home_item_limits_reset">Reset item limits</string>
     <string name="home_item_limits_reset_description">Restore both rows to 50 items. Layout presets and layout reset keep these limits.</string>
