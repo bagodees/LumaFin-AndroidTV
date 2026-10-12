@@ -1,9 +1,12 @@
 package org.jellyfin.androidtv.ui.card
 
+import org.jellyfin.androidtv.ui.composable.rememberReducedMotion
 import android.content.Context
 import android.graphics.Rect
 import android.util.AttributeSet
 import android.view.KeyEvent
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
@@ -63,7 +66,12 @@ fun UserCard(
 		focused -> JellyfinTheme.colorScheme.buttonFocused to JellyfinTheme.colorScheme.onInputFocused
 		else -> JellyfinTheme.colorScheme.button to JellyfinTheme.colorScheme.onInput
 	}
-	val scale by animateFloatAsState(if (focused) 1.1f else 1f, label = "UserCardFocusScale")
+	val reducedMotion = rememberReducedMotion()
+	val scale by animateFloatAsState(
+		targetValue = if (focused && !reducedMotion) 1.1f else 1f,
+		animationSpec = if (reducedMotion) snap() else spring(),
+		label = "UserCardFocusScale",
+	)
 
 	Column(
 		modifier = modifier

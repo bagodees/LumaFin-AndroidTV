@@ -52,6 +52,16 @@ class UserPreferences(context: Context) : SharedPreferenceStore(
 		awaitClose { sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener) }
 	}.distinctUntilChanged()
 
+	/** Updates already-visible browsing effects when the setting changes. */
+	val reducedMotionChanges = callbackFlow {
+		val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+			if (key == reducedMotion.key || key == null) trySend(this@UserPreferences[reducedMotion])
+		}
+		sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
+		trySend(this@UserPreferences[reducedMotion])
+		awaitClose { sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener) }
+	}.distinctUntilChanged()
+
 	companion object {
 		/* Display */
 		/**
@@ -75,6 +85,7 @@ class UserPreferences(context: Context) : SharedPreferenceStore(
 		 */
 		var mediaQueuingEnabled = booleanPreference("pref_enable_tv_queuing", true)
 
+		val reducedMotion = booleanPreference("reduced_motion", false)
 		val hideUnwatchedEpisodeDescriptions = booleanPreference("hide_unwatched_episode_descriptions", false)
 
 		/**

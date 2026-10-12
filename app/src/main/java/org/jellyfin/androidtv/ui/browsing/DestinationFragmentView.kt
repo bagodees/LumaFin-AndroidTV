@@ -1,5 +1,7 @@
 package org.jellyfin.androidtv.ui.browsing
 
+import org.jellyfin.androidtv.preference.UserPreferences
+import org.koin.java.KoinJavaComponent
 import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Bundle
@@ -145,7 +147,9 @@ class DestinationFragmentView @JvmOverloads constructor(
 		transaction.apply {
 			// Set options
 			setReorderingAllowed(true)
-			setCustomAnimations(R.anim.fade_in, R.anim.fade_out, R.anim.fade_in, R.anim.fade_out)
+			if (!KoinJavaComponent.get<UserPreferences>(UserPreferences::class.java)[UserPreferences.reducedMotion]) {
+				setCustomAnimations(R.anim.fade_in, R.anim.fade_out, R.anim.fade_in, R.anim.fade_out)
+			}
 
 			// Detach current fragment
 			fragmentManager.findFragmentByTag(FRAGMENT_TAG_CONTENT)?.let(::detach)

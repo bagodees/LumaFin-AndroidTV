@@ -112,6 +112,17 @@ fun SettingsCustomizationScreen() {
 			)
 		}
 
+		item {
+			var reducedMotion by rememberPreference(userPreferences, UserPreferences.reducedMotion)
+			ListButton(
+				headingContent = { Text(stringResource(R.string.reduced_motion)) },
+				captionContent = { Text(stringResource(R.string.reduced_motion_description)) },
+				trailingContent = { Checkbox(checked = reducedMotion) },
+				onClick = { reducedMotion = !reducedMotion },
+				modifier = Modifier.focusKey("reduced_motion"),
+			)
+		}
+
 		item { ListSection(headingContent = { Text(stringResource(R.string.pref_browsing)) }) }
 
 		item {

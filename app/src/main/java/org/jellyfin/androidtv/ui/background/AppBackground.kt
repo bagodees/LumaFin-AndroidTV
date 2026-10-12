@@ -1,5 +1,6 @@
 package org.jellyfin.androidtv.ui.background
 
+import org.jellyfin.androidtv.ui.composable.rememberReducedMotion
 import android.graphics.drawable.ColorDrawable
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.snap
@@ -62,6 +63,7 @@ private fun AppThemeBackground() {
 
 @Composable
 fun AppBackground() {
+	val reducedMotion = rememberReducedMotion()
 	val backgroundService = koinInject<BackgroundService>()
 	val currentBackground by backgroundService.currentBackground.collectAsState()
 	val blurBackground by backgroundService.blurBackground.collectAsState()
@@ -71,7 +73,7 @@ fun AppBackground() {
 		AnimatedContent(
 			targetState = currentBackground,
 			transitionSpec = {
-				val duration = (BackgroundService.TRANSITION_DURATION.inWholeMilliseconds / 2).toInt()
+				val duration = if (reducedMotion) 0 else (BackgroundService.TRANSITION_DURATION.inWholeMilliseconds / 2).toInt()
 				fadeIn(tween(durationMillis = duration)) togetherWith fadeOut(snap(delayMillis = duration))
 			},
 			label = "BackgroundTransition",

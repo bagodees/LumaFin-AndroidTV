@@ -765,4 +765,6 @@
     <string name="hide_unwatched_episode_descriptions">Hide unwatched episode descriptions</string>
     <string name="hide_unwatched_episode_descriptions_description">Avoid plot spoilers in episode details and browsing previews. Descriptions appear after an episode is marked watched.</string>
     <string name="episode_description_hidden">Description hidden until this episode is marked watched.</string>
+    <string name="reduced_motion">Reduced Motion</string>
+    <string name="reduced_motion_description">Remove backdrop fades, screen transitions, and animated card highlights while keeping focus clearly visible.</string>
 </resources>

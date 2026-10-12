@@ -3,6 +3,9 @@ package org.jellyfin.androidtv.ui.presentation
 import android.view.KeyEvent
 import android.view.ViewGroup
 import android.widget.ImageView
+import org.jellyfin.androidtv.ui.composable.rememberReducedMotion
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -292,8 +295,10 @@ private fun CardViewHolderContent(
 	val usePreview = displayConfig.overrideShowInfo ?: showInfo
 	// The focused card is the visual anchor for a TV row. Gently dim the artwork on
 	// its neighbours so focus remains clear without relying on an oversized zoom.
+	val reducedMotion = rememberReducedMotion()
 	val cardAlpha by animateFloatAsState(
 		targetValue = if (focused) 1f else 0.7f,
+		animationSpec = if (reducedMotion) snap() else spring(),
 		label = "CardFocusAlpha",
 	)
 
