@@ -1,9 +1,7 @@
 package org.jellyfin.androidtv.ui.settings.screen.home
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
@@ -31,6 +29,7 @@ import org.jellyfin.androidtv.preference.UserSettingPreferences
 import org.jellyfin.androidtv.ui.base.Icon
 import org.jellyfin.androidtv.ui.base.Text
 import org.jellyfin.androidtv.ui.base.list.ListButton
+import org.jellyfin.androidtv.ui.base.list.ListControlDefaults
 import org.jellyfin.androidtv.ui.base.list.ListSection
 import org.jellyfin.androidtv.ui.navigation.focus.focusKey
 import org.jellyfin.androidtv.ui.settings.composable.SettingsColumn
@@ -195,10 +194,15 @@ private fun HomeSectionRow(
 	onKey: (Key) -> Boolean,
 	modifier: Modifier = Modifier,
 ) {
+	val rowColors = ListControlDefaults.colors()
+	val movingColor = Color(0xFF006B9A)
 	ListButton(
+		colors = if (grabbed) rowColors.copy(
+			containerColor = movingColor,
+			focusedContainerColor = movingColor,
+		) else rowColors,
 		modifier = modifier
 			.alpha(if (visible) 1f else 0.5f)
-			.then(if (grabbed) Modifier.background(Color(0x3300A4DC), RoundedCornerShape(8.dp)) else Modifier)
 			.onKeyEvent { event ->
 				if (event.type != KeyEventType.KeyDown) false else onKey(event.key)
 			},
