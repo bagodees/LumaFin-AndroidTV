@@ -39,6 +39,16 @@ This is not an officially supported Jellyfin project - it's built for personal u
 | --- | --- |
 | <img alt="LumaFin movie details screen" src="docs/screenshots/movie-details.png" /> | <img alt="LumaFin episode details screen" src="docs/screenshots/episode-details.png" /> |
 
+### Home customization
+
+<p align="center">
+  <img alt="LumaFin home customization panel with a visibility toggle and move handle on each section" src="docs/screenshots/home-customization.png" width="100%" />
+</p>
+
+<sub>Screenshots show Creative Commons films: Elephants Dream, Cosmos Laundromat, Spring and Sprite Fright
+© Blender Foundation ([studio.blender.org](https://studio.blender.org/films/)), CC BY; Pioneer One by Josh Bernhard and
+Bracey Smith, Creative Commons.</sub>
+
 ## What's different from upstream
 
 - **Landscape, thumbnail-first artwork** - content cards throughout the app use a Thumbnail → Backdrop → Primary
