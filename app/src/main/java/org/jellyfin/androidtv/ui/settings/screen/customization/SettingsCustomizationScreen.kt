@@ -89,6 +89,18 @@ fun SettingsCustomizationScreen() {
 			)
 		}
 
+		item {
+			var ratingBadgesEnabled by rememberPreference(userPreferences, UserPreferences.ratingBadgesEnabled)
+
+			ListButton(
+				headingContent = { Text(stringResource(R.string.pref_rating_badges)) },
+				captionContent = { Text(stringResource(R.string.pref_rating_badges_description)) },
+				trailingContent = { Checkbox(checked = ratingBadgesEnabled) },
+				onClick = { ratingBadgesEnabled = !ratingBadgesEnabled },
+				modifier = Modifier.focusKey("rating_badges_enabled")
+			)
+		}
+
 		item { ListSection(headingContent = { Text(stringResource(R.string.pref_browsing)) }) }
 
 		item {

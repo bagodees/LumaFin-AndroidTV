@@ -1,7 +1,11 @@
 package org.jellyfin.androidtv.preference
 
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.preference.PreferenceManager
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import org.jellyfin.androidtv.preference.UserPreferences.Companion.screensaverInAppEnabled
 import org.jellyfin.androidtv.preference.constant.AVCLevel
 import org.jellyfin.androidtv.preference.constant.AppTheme
@@ -38,6 +42,16 @@ import kotlin.time.Duration.Companion.minutes
 class UserPreferences(context: Context) : SharedPreferenceStore(
 	sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 ) {
+	/** Keeps visible cards in sync when the badge setting changes in the settings dialog. */
+	val ratingBadgeChanges = callbackFlow {
+		val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+			if (key == ratingBadgesEnabled.key || key == null) trySend(this@UserPreferences[ratingBadgesEnabled])
+		}
+		sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
+		trySend(this@UserPreferences[ratingBadgesEnabled])
+		awaitClose { sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener) }
+	}.distinctUntilChanged()
+
 	companion object {
 		/* Display */
 		/**
@@ -210,6 +224,9 @@ class UserPreferences(context: Context) : SharedPreferenceStore(
 		 * Enable series thumbnails in home screen rows
 		 */
 		var seriesThumbnailsEnabled = booleanPreference("pref_enable_series_thumbnails", true)
+
+		/** Show critic and community rating badges on movie and series cards. */
+		val ratingBadgesEnabled = booleanPreference("pref_rating_badges_enabled", true)
 
 		/**
 		 * Subtitles foreground color

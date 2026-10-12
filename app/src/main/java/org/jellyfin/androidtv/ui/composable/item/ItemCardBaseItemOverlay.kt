@@ -122,6 +122,11 @@ private fun RatingBadges(
 	modifier: Modifier = Modifier,
 ) {
 	if (item.type !in ratedItemTypes) return
+	val userPreferences = koinInject<UserPreferences>()
+	val ratingBadgesEnabled by userPreferences.ratingBadgeChanges.collectAsState(
+		initial = userPreferences[UserPreferences.ratingBadgesEnabled]
+	)
+	if (!ratingBadgesEnabled) return
 
 	val communityRating = item.communityRating
 	val criticRating = item.criticRating

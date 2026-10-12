@@ -366,6 +366,8 @@
     <string name="lbl_hide_unwatched_count">When the item is watched</string>
     <string name="lbl_hide_watched_checkmark">When there are episodes remaining</string>
     <string name="lbl_use_series_thumbnails">Prefer series thumbnails</string>
+    <string name="pref_rating_badges">Show rating badges</string>
+    <string name="pref_rating_badges_description">Show critic and community ratings on movie and series cards. Turn off for simpler artwork.</string>
     <string name="lbl_use_series_thumbnails_description">Use series thumbnails when displaying episodes</string>
     <string name="auto_sign_in">Automatic sign in</string>
     <string name="user_picker_disable_title">Disable</string>
