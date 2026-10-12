@@ -1,15 +1,2 @@
-# Build files
-/.github/workflows/ @nielsvanvelzen
-/.github/dependabot.yml @nielsvanvelzen
-/gradle/ @nielsvanvelzen
-/buildSrc/ @nielsvanvelzen
-settings.gradle.ts @nielsvanvelzen
-build.gradle.kts @nielsvanvelzen
-gradle.properties @nielsvanvelzen
-
-# Linting
-android-lint.xml @nielsvanvelzen
-detekt.yaml @nielsvanvelzen
-
-# Playback code
-/playback/ @nielsvanvelzen
+# LumaFin maintainer reviews all contributor changes.
+* @bagodees
