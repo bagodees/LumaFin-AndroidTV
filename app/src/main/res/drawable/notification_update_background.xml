@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Update notification banner: the purple to blue of the LumaFin logo, outlined when focused -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true">
+        <shape android:shape="rectangle">
+            <corners android:radius="12dp" />
+            <gradient
+                android:angle="0"
+                android:endColor="#FF3F5BE0"
+                android:startColor="#FF7B3FE4" />
+            <stroke
+                android:width="3dp"
+                android:color="@android:color/white" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="12dp" />
+            <gradient
+                android:angle="0"
+                android:endColor="#FF3F5BE0"
+                android:startColor="#FF7B3FE4" />
+        </shape>
+    </item>
+</selector>

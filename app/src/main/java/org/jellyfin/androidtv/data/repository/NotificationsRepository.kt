@@ -50,9 +50,10 @@ class NotificationsRepositoryImpl(
 	private fun addNotification(
 		message: String,
 		public: Boolean = false,
+		highlight: Boolean = false,
 		dismiss: () -> Unit = {}
 	): AppNotification {
-		val notification = AppNotification(message, dismiss, public)
+		val notification = AppNotification(message, dismiss, public, highlight)
 		notifications.value += notification
 		return notification
 	}
@@ -94,7 +95,7 @@ class NotificationsRepositoryImpl(
 			val dismissedVersion = systemPreferences[SystemPreferences.dismissedUpdateNotificationVersion]
 
 			if (latestVersion != dismissedVersion && AppUpdateChecker.isNewer(latestVersion, BuildConfig.VERSION_NAME)) {
-				addNotification(context.getString(R.string.app_notification_update_available, latestVersion)) {
+				addNotification(context.getString(R.string.app_notification_update_available, latestVersion), highlight = true) {
 					systemPreferences[SystemPreferences.dismissedUpdateNotificationVersion] = latestVersion
 				}
 			}

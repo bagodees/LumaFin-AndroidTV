@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import org.jellyfin.androidtv.data.model.AppNotification
 import org.jellyfin.androidtv.data.repository.NotificationsRepository
-import org.jellyfin.androidtv.ui.notification.AppNotificationPresenter
+import org.jellyfin.androidtv.ui.notification.AppNotificationPresenterSelector
 import org.jellyfin.androidtv.ui.presentation.CardPresenter
 import org.jellyfin.androidtv.ui.presentation.MutableObjectAdapter
 
@@ -19,7 +19,7 @@ class NotificationsHomeFragmentRow(
 	lifecycleScope: LifecycleCoroutineScope,
 	private val notificationsRepository: NotificationsRepository,
 ) : HomeFragmentRow, OnItemViewClickedListener {
-	private val announcementAdapter by lazy { MutableObjectAdapter<AppNotification>(AppNotificationPresenter()) }
+	private val announcementAdapter by lazy { MutableObjectAdapter<AppNotification>(AppNotificationPresenterSelector()) }
 	private val listRow by lazy { ListRow(null, announcementAdapter) }
 	private var rowsAdapter: MutableObjectAdapter<Row>? = null
 	private var rowAdded = false
