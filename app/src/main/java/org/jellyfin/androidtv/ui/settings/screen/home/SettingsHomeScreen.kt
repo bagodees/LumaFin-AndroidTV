@@ -48,6 +48,7 @@ fun SettingsHomeScreen() {
 
 	var visibleSections by remember { mutableStateOf(userSettingPreferences.activeHomesections) }
 	var grabbed by remember { mutableStateOf<HomeSectionType?>(null) }
+	var layoutBeforeReset by remember { mutableStateOf<List<HomeSectionType>?>(null) }
 	val listState = rememberLazyListState()
 	val scope = rememberCoroutineScope()
 	val hiddenSections = remember(visibleSections) {
@@ -55,6 +56,7 @@ fun SettingsHomeScreen() {
 	}
 
 	fun persist(newOrder: List<HomeSectionType>) {
+		layoutBeforeReset = null
 		visibleSections = newOrder
 		userSettingPreferences.activeHomesections = newOrder
 	}
@@ -136,6 +138,30 @@ fun SettingsHomeScreen() {
 					}
 				},
 				modifier = Modifier.focusKey("home_section_${type.name}")
+			)
+		}
+
+		item(key = "reset_home_layout") {
+			val canUndo = layoutBeforeReset != null
+			ListButton(
+				headingContent = {
+					Text(stringResource(if (canUndo) R.string.home_layout_undo_reset else R.string.home_layout_reset))
+				},
+				captionContent = {
+					Text(stringResource(if (canUndo) R.string.home_layout_undo_reset_description else R.string.home_layout_reset_description))
+				},
+				enabled = grabbed == null && (canUndo || visibleSections != UserSettingPreferences.defaultHomeSectionOrder),
+				onClick = {
+					val previous = layoutBeforeReset
+					if (previous != null) {
+						persist(previous)
+					} else {
+						val current = visibleSections.toList()
+						persist(UserSettingPreferences.defaultHomeSectionOrder)
+						layoutBeforeReset = current
+					}
+				},
+				modifier = Modifier.focusKey("reset_home_layout")
 			)
 		}
 

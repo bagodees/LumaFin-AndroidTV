@@ -47,7 +47,7 @@ class UserSettingPreferences(context: Context) : SharedPreferenceStore(
 		)
 
 		// Default order for a fresh install (no legacy slots configured either)
-		private val defaultHomeSectionOrder = listOf(
+		val defaultHomeSectionOrder = listOf(
 			HomeSectionType.RESUME,
 			HomeSectionType.NEXT_UP,
 			HomeSectionType.LATEST_MOVIES,
