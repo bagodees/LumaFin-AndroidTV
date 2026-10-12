@@ -6,7 +6,12 @@ have been accepted for the roadmap.
 
 Milestone statuses: **Deferred**, **Planned**, **In progress**, and **Complete**.
 
-## Future milestone: Google Play distribution
+## Future release: 0.2.0 (tentative)
+
+Release project: [LumaFin 0.2.0 — Future release](https://github.com/users/bagodees/projects/1).
+The version target is tentative; no release date is set. The project currently requires owner or collaborator access.
+
+### Google Play distribution
 
 Status: Deferred. Planned for a future release; implementation has not started.
 
