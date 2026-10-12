@@ -573,9 +573,16 @@ fun ItemRowAdapter.retrieveItems(
 				).content
 			}
 
-			totalItems = response.totalRecordCount
+			// Home rows with an explicit cap must not grow from extra server results
+			// or keep cards from an earlier, larger response when refreshed.
+			val items = if (query.enableTotalRecordCount == false && batchSize > 0) {
+				response.items.take(batchSize)
+			} else {
+				response.items
+			}
+			totalItems = if (query.enableTotalRecordCount == false) items.size else response.totalRecordCount
 			setItems(
-				items = response.items,
+				items = items,
 				transform = { item, _ ->
 					BaseItemDtoBaseRowItem(
 						item,

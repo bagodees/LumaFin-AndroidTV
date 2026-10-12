@@ -66,6 +66,8 @@ fun SettingsHomeScreen() {
 	var limitsExpanded by remember { mutableStateOf(false) }
 	var latestMoviesLimit by rememberPreference(userSettingPreferences, UserSettingPreferences.latestMoviesItemLimit)
 	var latestShowsLimit by rememberPreference(userSettingPreferences, UserSettingPreferences.latestShowsItemLimit)
+	var recentlyAddedMoviesLimit by rememberPreference(userSettingPreferences, UserSettingPreferences.recentlyAddedMoviesItemLimit)
+	var recentlyAddedShowsLimit by rememberPreference(userSettingPreferences, UserSettingPreferences.recentlyAddedShowsItemLimit)
 	var hideWatchedLatestMovies by rememberPreference(userSettingPreferences, UserSettingPreferences.hideWatchedLatestMovies)
 	val listState = rememberLazyListState()
 	val scope = rememberCoroutineScope()
@@ -227,6 +229,12 @@ fun SettingsHomeScreen() {
 			item(key = "latest_shows_limit") {
 				HomeItemLimitControl(R.string.home_section_latest_shows, latestShowsLimit, grabbed == null) { latestShowsLimit = it }
 			}
+			item(key = "recently_added_movies_limit") {
+				HomeItemLimitControl(R.string.home_section_recently_added_movies, recentlyAddedMoviesLimit, grabbed == null) { recentlyAddedMoviesLimit = it }
+			}
+			item(key = "recently_added_shows_limit") {
+				HomeItemLimitControl(R.string.home_section_recently_added_shows, recentlyAddedShowsLimit, grabbed == null) { recentlyAddedShowsLimit = it }
+			}
 			item(key = "reset_home_item_limits") {
 				ListButton(
 					headingContent = { Text(stringResource(R.string.home_item_limits_reset)) },
@@ -235,6 +243,8 @@ fun SettingsHomeScreen() {
 					onClick = {
 						latestMoviesLimit = UserSettingPreferences.latestMoviesItemLimit.defaultValue
 						latestShowsLimit = UserSettingPreferences.latestShowsItemLimit.defaultValue
+						recentlyAddedMoviesLimit = UserSettingPreferences.recentlyAddedMoviesItemLimit.defaultValue
+						recentlyAddedShowsLimit = UserSettingPreferences.recentlyAddedShowsItemLimit.defaultValue
 					},
 					modifier = Modifier.focusKey("reset_home_item_limits")
 				)

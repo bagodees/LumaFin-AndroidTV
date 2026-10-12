@@ -23,8 +23,8 @@ class HomeFragmentHelper(
 	private val context: Context,
 	private val userRepository: UserRepository,
 ) {
-	fun loadRecentlyAdded(userViews: Collection<BaseItemDto>): HomeFragmentRow {
-		return HomeFragmentLatestRow(userRepository, userViews)
+	fun loadRecentlyAdded(userViews: Collection<BaseItemDto>, moviesLimit: Int = 50, showsLimit: Int = 50): HomeFragmentRow {
+		return HomeFragmentLatestRow(userRepository, userViews, moviesLimit, showsLimit)
 	}
 
 	fun loadResume(title: String, includeMediaTypes: Collection<MediaType>): HomeFragmentRow {
@@ -135,8 +135,8 @@ class HomeFragmentHelper(
 		return HomeFragmentBrowseRowDefRow(BrowseRowDef(context.getString(R.string.home_section_favorites), query, ITEM_LIMIT_FAVORITES, false, true, arrayOf(ChangeTriggerType.LibraryUpdated, ChangeTriggerType.FavoriteUpdate)))
 	}
 
-	fun loadRecentlyAddedMovies(): HomeFragmentRow = loadRecentlyAddedByType(BaseItemKind.MOVIE, context.getString(R.string.home_section_recently_added_movies))
-	fun loadRecentlyAddedShows(): HomeFragmentRow = loadRecentlyAddedByType(BaseItemKind.SERIES, context.getString(R.string.home_section_recently_added_shows))
+	fun loadRecentlyAddedMovies(itemLimit: Int = ITEM_LIMIT_RECENTLY_ADDED): HomeFragmentRow = loadRecentlyAddedByType(BaseItemKind.MOVIE, context.getString(R.string.home_section_recently_added_movies), itemLimit)
+	fun loadRecentlyAddedShows(itemLimit: Int = ITEM_LIMIT_RECENTLY_ADDED): HomeFragmentRow = loadRecentlyAddedByType(BaseItemKind.SERIES, context.getString(R.string.home_section_recently_added_shows), itemLimit)
 	fun loadRecentlyAddedAlbums(): HomeFragmentRow = loadRecentlyAddedByType(BaseItemKind.MUSIC_ALBUM, context.getString(R.string.home_section_recently_added_albums))
 	fun loadRecentlyAddedArtists(): HomeFragmentRow = loadRecentlyAddedByType(BaseItemKind.MUSIC_ARTIST, context.getString(R.string.home_section_recently_added_artists))
 	fun loadRecentlyAddedMusicVideos(): HomeFragmentRow = loadRecentlyAddedByType(BaseItemKind.MUSIC_VIDEO, context.getString(R.string.home_section_recently_added_music_videos))
@@ -165,7 +165,7 @@ class HomeFragmentHelper(
 		return HomeFragmentBrowseRowDefRow(BrowseRowDef(title, query, ITEM_LIMIT_LATEST_BY_RELEASE, false, true, arrayOf(ChangeTriggerType.LibraryUpdated)))
 	}
 
-	private fun loadRecentlyAddedByType(itemType: BaseItemKind, title: String): HomeFragmentRow {
+	private fun loadRecentlyAddedByType(itemType: BaseItemKind, title: String, itemLimit: Int? = null): HomeFragmentRow {
 		val query = GetItemsRequest(
 			fields = ItemRepository.browseFields,
 			includeItemTypes = setOf(itemType),
@@ -173,10 +173,12 @@ class HomeFragmentHelper(
 			sortBy = setOf(ItemSortBy.DATE_CREATED),
 			sortOrder = setOf(SortOrder.DESCENDING),
 			imageTypeLimit = 1,
-			limit = ITEM_LIMIT_RECENTLY_ADDED,
+			startIndex = if (itemLimit != null) 0 else null,
+			limit = itemLimit?.coerceIn(5, 50) ?: ITEM_LIMIT_RECENTLY_ADDED,
+			enableTotalRecordCount = if (itemLimit != null) false else null,
 		)
 
-		return HomeFragmentBrowseRowDefRow(BrowseRowDef(title, query, ITEM_LIMIT_RECENTLY_ADDED, false, true, arrayOf(ChangeTriggerType.LibraryUpdated)))
+		return HomeFragmentBrowseRowDefRow(BrowseRowDef(title, query, if (itemLimit != null) 0 else ITEM_LIMIT_RECENTLY_ADDED, false, true, arrayOf(ChangeTriggerType.LibraryUpdated)))
 	}
 
 	fun loadOnNow(): HomeFragmentRow {

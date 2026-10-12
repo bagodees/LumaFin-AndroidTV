@@ -83,11 +83,15 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 	private var loadedHomeSections: List<HomeSectionType> = emptyList()
 	private var loadedLatestMoviesLimit = 50
 	private var loadedLatestShowsLimit = 50
+	private var loadedRecentlyAddedMoviesLimit = 50
+	private var loadedRecentlyAddedShowsLimit = 50
 	private var loadedHideWatchedLatestMovies = false
 
 	private fun homePreferencesChanged() = userSettingPreferences.activeHomesections != loadedHomeSections ||
 		userSettingPreferences[UserSettingPreferences.latestMoviesItemLimit] != loadedLatestMoviesLimit ||
 		userSettingPreferences[UserSettingPreferences.latestShowsItemLimit] != loadedLatestShowsLimit ||
+		userSettingPreferences[UserSettingPreferences.recentlyAddedMoviesItemLimit] != loadedRecentlyAddedMoviesLimit ||
+		userSettingPreferences[UserSettingPreferences.recentlyAddedShowsItemLimit] != loadedRecentlyAddedShowsLimit ||
 		userSettingPreferences[UserSettingPreferences.hideWatchedLatestMovies] != loadedHideWatchedLatestMovies
 
 	// Special rows
@@ -158,6 +162,8 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 			loadedHomeSections = homesections
 			loadedLatestMoviesLimit = userSettingPreferences[UserSettingPreferences.latestMoviesItemLimit]
 			loadedLatestShowsLimit = userSettingPreferences[UserSettingPreferences.latestShowsItemLimit]
+			loadedRecentlyAddedMoviesLimit = userSettingPreferences[UserSettingPreferences.recentlyAddedMoviesItemLimit]
+			loadedRecentlyAddedShowsLimit = userSettingPreferences[UserSettingPreferences.recentlyAddedShowsItemLimit]
 			loadedHideWatchedLatestMovies = userSettingPreferences[UserSettingPreferences.hideWatchedLatestMovies]
 
 			// Make sure the rows are empty
@@ -168,7 +174,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 
 			// Actually add the sections
 			for (section in homesections) when (section) {
-				HomeSectionType.LATEST_MEDIA -> rows.add(helper.loadRecentlyAdded(userViewsRepository.views.first()))
+				HomeSectionType.LATEST_MEDIA -> rows.add(helper.loadRecentlyAdded(userViewsRepository.views.first(), loadedRecentlyAddedMoviesLimit, loadedRecentlyAddedShowsLimit))
 				HomeSectionType.LIBRARY_TILES_SMALL -> rows.add(HomeFragmentViewsRow(small = false))
 				HomeSectionType.LIBRARY_BUTTONS -> rows.add(HomeFragmentViewsRow(small = true))
 				HomeSectionType.RESUME -> rows.add(helper.loadResumeVideo())
@@ -189,8 +195,8 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 				HomeSectionType.GENRES -> rows.add(HomeFragmentGenreRow(api))
 				HomeSectionType.CONTINUE_WATCHING_NEXT_UP -> rows.add(HomeFragmentContinueWatchingNextUpRow(api))
 				HomeSectionType.FAVORITES -> rows.add(helper.loadFavorites())
-				HomeSectionType.RECENTLY_ADDED_MOVIES -> rows.add(helper.loadRecentlyAddedMovies())
-				HomeSectionType.RECENTLY_ADDED_SHOWS -> rows.add(helper.loadRecentlyAddedShows())
+				HomeSectionType.RECENTLY_ADDED_MOVIES -> rows.add(helper.loadRecentlyAddedMovies(loadedRecentlyAddedMoviesLimit))
+				HomeSectionType.RECENTLY_ADDED_SHOWS -> rows.add(helper.loadRecentlyAddedShows(loadedRecentlyAddedShowsLimit))
 				HomeSectionType.RECENTLY_ADDED_ALBUMS -> rows.add(helper.loadRecentlyAddedAlbums())
 				HomeSectionType.RECENTLY_ADDED_ARTISTS -> rows.add(helper.loadRecentlyAddedArtists())
 				HomeSectionType.RECENTLY_ADDED_MUSIC_VIDEOS -> rows.add(helper.loadRecentlyAddedMusicVideos())

@@ -438,7 +438,7 @@
     <string name="home_hide_watched_latest_movies_description">Show unwatched movies in this row. Watched movies remain in your library and Watch Again.</string>
     <string name="home_item_limit_hint">Use Left and Right to choose 5 to 50 items.</string>
     <string name="home_item_limits_reset">Reset item limits</string>
-    <string name="home_item_limits_reset_description">Restore both rows to 50 items. Layout presets and layout reset keep these limits.</string>
+    <string name="home_item_limits_reset_description">Restore all four row limits to 50 items. Layout presets and layout reset keep these limits.</string>
     <string name="home_layout_presets_description">Show or hide preset choices. Applying one replaces your shown sections and order; you can still customize them afterward.</string>
     <string name="home_preset_movies">Movies first</string>
     <string name="home_preset_movies_description">Prioritize latest and recently added movies, collections and genres. Keep TV sections below.</string>

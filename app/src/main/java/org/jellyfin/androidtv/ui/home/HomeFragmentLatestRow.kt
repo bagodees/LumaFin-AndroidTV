@@ -16,6 +16,8 @@ import org.jellyfin.sdk.model.api.request.GetLatestMediaRequest
 class HomeFragmentLatestRow(
 	private val userRepository: UserRepository,
 	private val userViews: Collection<BaseItemDto>,
+	private val moviesLimit: Int = 50,
+	private val showsLimit: Int = 50,
 ) : HomeFragmentRow {
 	override suspend fun addToRowsAdapter(context: Context, cardPresenter: CardPresenter, rowsAdapter: MutableObjectAdapter<Row>) {
 		// Get configuration (to find excluded items)
@@ -32,7 +34,7 @@ class HomeFragmentLatestRow(
 					imageTypeLimit = 1,
 					parentId = item.id,
 					groupItems = true,
-					limit = ITEM_LIMIT,
+					limit = recentlyAddedLibraryLimit(item.collectionType, moviesLimit, showsLimit),
 				)
 
 				val title = context.getString(R.string.lbl_latest_in, item.name)
@@ -52,7 +54,11 @@ class HomeFragmentLatestRow(
 			CollectionType.BOOKS,
 		)
 
-		// Maximum amount of items loaded for a row
-		private const val ITEM_LIMIT = 50
 	}
+}
+
+internal fun recentlyAddedLibraryLimit(collectionType: CollectionType?, moviesLimit: Int, showsLimit: Int): Int = when (collectionType) {
+	CollectionType.MOVIES -> moviesLimit.coerceIn(5, 50)
+	CollectionType.TVSHOWS -> showsLimit.coerceIn(5, 50)
+	else -> 50
 }
