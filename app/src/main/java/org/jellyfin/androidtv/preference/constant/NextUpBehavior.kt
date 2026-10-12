@@ -23,3 +23,12 @@ enum class NextUpBehavior(
 }
 
 const val NEXTUP_TIMER_DISABLED: Int = 0
+
+const val NEXTUP_TIMER_IMMEDIATE: Int = -1
+
+/** Null means wait for user confirmation; zero means play immediately. */
+internal fun nextUpCountdownDuration(timeout: Int): Int? = when (timeout) {
+	NEXTUP_TIMER_DISABLED -> null
+	NEXTUP_TIMER_IMMEDIATE -> 0
+	else -> timeout.coerceIn(1_000, 30_000)
+}

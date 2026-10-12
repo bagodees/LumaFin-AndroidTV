@@ -283,7 +283,7 @@
     <string name="pref_theme_emerald">Classic emerald</string>
     <string name="pref_about_title">About</string>
     <string name="pref_external_player">Use external player</string>
-    <string name="pref_next_up_timeout_summary">How long to wait before playing the next item</string>
+    <string name="pref_next_up_timeout_summary">Use Left and Right to choose a countdown from 1 to 30 seconds.</string>
     <string name="pref_next_up_timeout_title">Next up timer duration</string>
     <string name="pref_next_up_timeout_disabled">∞</string>
     <string name="watch_now">Watch now</string>
@@ -747,4 +747,12 @@
     <string name="truehd">TrueHD</string>
     <string name="eac3_atmos">DD+ Atmos</string>
     <string name="truehd_atmos">TrueHD Atmos</string>
+    <string name="next_up_timer_immediate">Play immediately</string>
+    <string name="next_up_timer_immediate_description">Start the next queued episode without a countdown.</string>
+    <string name="next_up_timer_countdown">Use a countdown</string>
+    <string name="next_up_timer_countdown_description">Wait before starting the next queued episode. You can cancel or choose Watch now.</string>
+    <string name="next_up_timer_manual">Wait for Watch now</string>
+    <string name="next_up_timer_manual_description">Keep Next up open until you choose Watch now or Cancel.</string>
+    <string name="next_up_timer_reset">Reset countdown</string>
+    <string name="next_up_timer_reset_description">Restore the default 7-second countdown.</string>
 </resources>

@@ -18,8 +18,10 @@ import androidx.compose.ui.unit.dp
 import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.preference.UserPreferences
 import org.jellyfin.androidtv.preference.constant.NEXTUP_TIMER_DISABLED
+import org.jellyfin.androidtv.preference.constant.NEXTUP_TIMER_IMMEDIATE
 import org.jellyfin.androidtv.ui.base.Text
 import org.jellyfin.androidtv.ui.base.form.RangeControl
+import org.jellyfin.androidtv.ui.base.form.RadioButton
 import org.jellyfin.androidtv.ui.base.list.ListButton
 import org.jellyfin.androidtv.ui.base.list.ListControl
 import org.jellyfin.androidtv.ui.base.list.ListSection
@@ -36,6 +38,7 @@ import kotlin.math.roundToInt
 fun SettingsPlaybackNextUpScreen() {
 	val router = LocalRouter.current
 	val userPreferences = koinInject<UserPreferences>()
+	var nextUpTimeout by rememberPreference(userPreferences, UserPreferences.nextUpTimeout)
 
 	SettingsColumn {
 		item {
@@ -57,7 +60,33 @@ fun SettingsPlaybackNextUpScreen() {
 		}
 
 		item {
-			var nextUpTimeout by rememberPreference(userPreferences, UserPreferences.nextUpTimeout)
+			ListButton(
+				headingContent = { Text(stringResource(R.string.next_up_timer_immediate)) },
+				captionContent = { Text(stringResource(R.string.next_up_timer_immediate_description)) },
+				trailingContent = { RadioButton(checked = nextUpTimeout == NEXTUP_TIMER_IMMEDIATE) },
+				onClick = { nextUpTimeout = NEXTUP_TIMER_IMMEDIATE },
+				modifier = Modifier.focusKey("next_up_immediate"),
+			)
+		}
+		item {
+			ListButton(
+				headingContent = { Text(stringResource(R.string.next_up_timer_countdown)) },
+				captionContent = { Text(stringResource(R.string.next_up_timer_countdown_description)) },
+				trailingContent = { RadioButton(checked = nextUpTimeout > 0) },
+				onClick = { if (nextUpTimeout <= 0) nextUpTimeout = UserPreferences.nextUpTimeout.defaultValue },
+				modifier = Modifier.focusKey("next_up_countdown"),
+			)
+		}
+		item {
+			ListButton(
+				headingContent = { Text(stringResource(R.string.next_up_timer_manual)) },
+				captionContent = { Text(stringResource(R.string.next_up_timer_manual_description)) },
+				trailingContent = { RadioButton(checked = nextUpTimeout == NEXTUP_TIMER_DISABLED) },
+				onClick = { nextUpTimeout = NEXTUP_TIMER_DISABLED },
+				modifier = Modifier.focusKey("next_up_manual"),
+			)
+		}
+		if (nextUpTimeout > 0) item {
 			val interactionSource = remember { MutableInteractionSource() }
 
 			ListControl(
@@ -74,11 +103,11 @@ fun SettingsPlaybackNextUpScreen() {
 							.height(4.dp)
 							.weight(1f),
 						interactionSource = interactionSource,
-						// 0 - 30 seconds with 1 second increment
-						min = 0f,
+						// 1 - 30 seconds with 1 second increment
+						min = 1_000f,
 						max = 30_000f,
 						stepForward = 1_000f,
-						value = nextUpTimeout.toFloat(),
+						value = nextUpTimeout.coerceIn(1_000, 30_000).toFloat(),
 						onValueChange = { nextUpTimeout = it.roundToInt() }
 					)
 
@@ -88,11 +117,18 @@ fun SettingsPlaybackNextUpScreen() {
 						modifier = Modifier.sizeIn(minWidth = 32.dp),
 						contentAlignment = Alignment.CenterEnd
 					) {
-						if (nextUpTimeout == NEXTUP_TIMER_DISABLED) Text(stringResource(R.string.pref_next_up_timeout_disabled))
-						else Text("${nextUpTimeout / 1000}s")
+						Text("${nextUpTimeout / 1000}s")
 					}
 				}
 			}
+		}
+		item {
+			ListButton(
+				headingContent = { Text(stringResource(R.string.next_up_timer_reset)) },
+				captionContent = { Text(stringResource(R.string.next_up_timer_reset_description)) },
+				onClick = { nextUpTimeout = UserPreferences.nextUpTimeout.defaultValue },
+				modifier = Modifier.focusKey("next_up_timer_reset"),
+			)
 		}
 	}
 }

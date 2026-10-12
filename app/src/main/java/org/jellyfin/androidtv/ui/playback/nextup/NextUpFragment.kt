@@ -41,7 +41,7 @@ import kotlinx.coroutines.withContext
 import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.data.service.BackgroundService
 import org.jellyfin.androidtv.preference.UserPreferences
-import org.jellyfin.androidtv.preference.constant.NEXTUP_TIMER_DISABLED
+import org.jellyfin.androidtv.preference.constant.nextUpCountdownDuration
 import org.jellyfin.androidtv.ui.background.AppBackground
 import org.jellyfin.androidtv.ui.base.JellyfinTheme
 import org.jellyfin.androidtv.ui.base.LocalTextStyle
@@ -139,8 +139,8 @@ fun NextUpOverlay(
 	val userPreferences = koinInject<UserPreferences>()
 	val confirmTimer = remember { Animatable(0f) }
 	LaunchedEffect(item) {
-		val durationMillis = userPreferences[UserPreferences.nextUpTimeout]
-		if (durationMillis == NEXTUP_TIMER_DISABLED) {
+		val durationMillis = nextUpCountdownDuration(userPreferences[UserPreferences.nextUpTimeout])
+		if (durationMillis == null) {
 			// Make sure to cancel any running timer
 			confirmTimer.snapTo(0f)
 		} else {
