@@ -90,6 +90,11 @@ the `assembleDebug` Gradle task to generate an apk file:
 
 The task will create an APK file in the `/app/build/outputs/apk/debug` directory.
 
+## Roadmap
+
+See the [LumaFin roadmap](ROADMAP.md) for planned milestones and their status.
+Google Play distribution is planned for a future release and is currently deferred.
+
 ## Support LumaFin
 
 LumaFin is maintained in spare time. If it makes your Jellyfin setup better, you can support ongoing Android TV
