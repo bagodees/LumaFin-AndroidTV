@@ -29,13 +29,15 @@ fun SettingsPlaybackMediaSegmentScreen(
 		item {
 			ListSection(
 				overlineContent = { Text(stringResource(R.string.pref_playback_media_segments).uppercase()) },
-				headingContent = { Text(stringResource(segmentType.nameRes)) },
+				headingContent = { Text(stringResource(if (segmentType == MediaSegmentType.INTRO) R.string.intro_skipping else segmentType.nameRes)) },
+				captionContent = if (segmentType == MediaSegmentType.INTRO) ({ Text(stringResource(R.string.intro_skip_requires_segments)) }) else null,
 			)
 		}
 
 		items(MediaSegmentAction.entries) { entry ->
 			ListButton(
-				headingContent = { Text(stringResource(entry.nameRes)) },
+				headingContent = { Text(stringResource(if (segmentType == MediaSegmentType.INTRO) entry.introNameRes else entry.nameRes)) },
+				captionContent = if (segmentType == MediaSegmentType.INTRO) ({ Text(stringResource(entry.introDescriptionRes)) }) else null,
 				trailingContent = { RadioButton(checked = action == entry) },
 				onClick = {
 					mediaSegmentRepository.setDefaultSegmentTypeAction(segmentType, entry)

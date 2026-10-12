@@ -25,6 +25,9 @@ import org.jellyfin.androidtv.ui.base.list.ListSection
 import org.jellyfin.androidtv.ui.navigation.LocalRouter
 import org.jellyfin.androidtv.ui.navigation.focus.focusKey
 import org.jellyfin.androidtv.ui.settings.Routes
+import org.jellyfin.androidtv.ui.playback.segment.MediaSegmentRepository
+import org.jellyfin.androidtv.ui.settings.screen.playback.mediasegment.introNameRes
+import org.jellyfin.sdk.model.api.MediaSegmentType
 import org.jellyfin.androidtv.ui.settings.compat.rememberPreference
 import org.jellyfin.androidtv.ui.settings.composable.SettingsColumn
 import org.koin.compose.koinInject
@@ -35,6 +38,7 @@ fun SettingsPlaybackScreen() {
 	val router = LocalRouter.current
 	val externalAppRepository = koinInject<ExternalAppRepository>()
 	val userPreferences = koinInject<UserPreferences>()
+	val mediaSegmentRepository = koinInject<MediaSegmentRepository>()
 
 	SettingsColumn {
 		item {
@@ -122,6 +126,16 @@ fun SettingsPlaybackScreen() {
 				headingContent = { Text(stringResource(R.string.pref_customization_subtitles)) },
 				onClick = { router.push(Routes.CUSTOMIZATION_SUBTITLES) },
 				modifier = Modifier.focusKey(Routes.CUSTOMIZATION_SUBTITLES)
+			)
+		}
+
+		item {
+			val introAction = mediaSegmentRepository.getDefaultSegmentTypeAction(MediaSegmentType.INTRO)
+			ListButton(
+				headingContent = { Text(stringResource(R.string.intro_skipping)) },
+				captionContent = { Text(stringResource(introAction.introNameRes)) },
+				onClick = { router.push(Routes.PLAYBACK_MEDIA_SEGMENT, parameters = mapOf("segmentType" to MediaSegmentType.INTRO.toString())) },
+				modifier = Modifier.focusKey("intro_skipping"),
 			)
 		}
 

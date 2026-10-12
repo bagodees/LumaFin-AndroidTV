@@ -755,4 +755,11 @@
     <string name="next_up_timer_manual_description">Keep Next up open until you choose Watch now or Cancel.</string>
     <string name="next_up_timer_reset">Reset countdown</string>
     <string name="next_up_timer_reset_description">Restore the default 7-second countdown.</string>
+    <string name="intro_skipping">Intro skipping</string>
+    <string name="intro_skip_never">Never skip</string>
+    <string name="intro_skip_automatic">Skip automatically</string>
+    <string name="intro_skip_never_description">Play the intro normally without a Skip intro button.</string>
+    <string name="intro_skip_automatic_description">Skip the intro automatically when playback reaches it.</string>
+    <string name="intro_skip_ask_description">Show a Skip intro button so you decide whether to skip.</string>
+    <string name="intro_skip_requires_segments">Requires intro timestamps supplied by your Jellyfin server. Without them, the intro plays normally.</string>
 </resources>
