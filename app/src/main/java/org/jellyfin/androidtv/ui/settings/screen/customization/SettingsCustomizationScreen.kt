@@ -101,6 +101,17 @@ fun SettingsCustomizationScreen() {
 			)
 		}
 
+		item {
+			var hideDescriptions by rememberPreference(userPreferences, UserPreferences.hideUnwatchedEpisodeDescriptions)
+			ListButton(
+				headingContent = { Text(stringResource(R.string.hide_unwatched_episode_descriptions)) },
+				captionContent = { Text(stringResource(R.string.hide_unwatched_episode_descriptions_description)) },
+				trailingContent = { Checkbox(checked = hideDescriptions) },
+				onClick = { hideDescriptions = !hideDescriptions },
+				modifier = Modifier.focusKey("hide_unwatched_episode_descriptions"),
+			)
+		}
+
 		item { ListSection(headingContent = { Text(stringResource(R.string.pref_browsing)) }) }
 
 		item {

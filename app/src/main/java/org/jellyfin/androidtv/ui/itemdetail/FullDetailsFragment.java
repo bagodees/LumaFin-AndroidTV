@@ -67,6 +67,7 @@ import org.jellyfin.androidtv.ui.presentation.CustomListRowPresenter;
 import org.jellyfin.androidtv.ui.presentation.InfoCardPresenter;
 import org.jellyfin.androidtv.ui.presentation.MutableObjectAdapter;
 import org.jellyfin.androidtv.ui.presentation.MyDetailsOverviewRowPresenter;
+import org.jellyfin.androidtv.util.SpoilerProtectionKt;
 import org.jellyfin.androidtv.util.CoroutineUtils;
 import org.jellyfin.androidtv.util.DateTimeExtensionsKt;
 import org.jellyfin.androidtv.util.ImageHelper;
@@ -430,7 +431,7 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
                 primaryImageUrl = imageHelper.getValue().getPrimaryImageUrl(mBaseItem, false, null, posterHeight);
             }
 
-            mDetailsOverviewRow.setSummary(item.getOverview());
+            mDetailsOverviewRow.setSummary(SpoilerProtectionKt.descriptionForDisplay(requireContext(), item));
             switch (item.getType()) {
                 case PERSON:
                 case MUSIC_ARTIST:
@@ -676,7 +677,17 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
         }
     }
 
+    public void updateSpoilerSummary() {
+        if (mBaseItem == null || mDetailsOverviewRow == null) return;
+        String summary = SpoilerProtectionKt.descriptionForDisplay(requireContext(), mBaseItem);
+        mDetailsOverviewRow.setSummary(summary);
+        if (mDorPresenter != null && mDorPresenter.getViewHolder() != null) {
+            mDorPresenter.getViewHolder().setSummary(summary);
+        }
+    }
+
     private void updateInfo(BaseItemDto item) {
+        updateSpoilerSummary();
         if (buttonTypeList.contains(item.getType())) {
             mDetailsOverviewRow.clearActions();
             addButtons(BUTTON_SIZE);

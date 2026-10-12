@@ -75,6 +75,8 @@ class UserPreferences(context: Context) : SharedPreferenceStore(
 		 */
 		var mediaQueuingEnabled = booleanPreference("pref_enable_tv_queuing", true)
 
+		val hideUnwatchedEpisodeDescriptions = booleanPreference("hide_unwatched_episode_descriptions", false)
+
 		/**
 		 * Enable the next up screen or not
 		 */

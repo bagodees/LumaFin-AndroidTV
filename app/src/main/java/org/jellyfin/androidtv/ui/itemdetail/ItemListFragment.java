@@ -307,7 +307,7 @@ public class ItemListFragment extends Fragment implements View.OnKeyListener {
         InfoLayoutHelper.addInfoRow(requireContext(), item, mainInfoRow, false);
         addGenres(mGenreRow);
         addButtons(BUTTON_SIZE);
-        mSummary.setText(mBaseItem.getOverview());
+        mSummary.setText(org.jellyfin.androidtv.util.SpoilerProtectionKt.descriptionForDisplay(requireContext(), mBaseItem));
 
         Double aspect = imageHelper.getValue().getImageAspectRatio(item, false);
         String primaryImageUrl = imageHelper.getValue().getPrimaryImageUrl(item, null, ImageHelper.MAX_PRIMARY_IMAGE_HEIGHT);

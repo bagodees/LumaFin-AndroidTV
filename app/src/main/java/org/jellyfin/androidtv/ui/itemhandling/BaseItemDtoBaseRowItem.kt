@@ -9,6 +9,7 @@ import org.jellyfin.androidtv.util.apiclient.parentBackdropImages
 import org.jellyfin.androidtv.util.apiclient.parentImages
 import org.jellyfin.androidtv.util.apiclient.seriesPrimaryImage
 import org.jellyfin.androidtv.util.apiclient.seriesThumbImage
+import org.jellyfin.androidtv.util.descriptionForDisplay
 import org.jellyfin.androidtv.util.getTimeFormatter
 import org.jellyfin.androidtv.util.locale
 import org.jellyfin.androidtv.util.sdk.getFullName
@@ -76,7 +77,7 @@ open class BaseItemDtoBaseRowItem @JvmOverloads constructor(
 		else -> baseItem?.name
 	}
 
-	override fun getSummary(context: Context) = baseItem?.overview
+	override fun getSummary(context: Context) = baseItem?.let { descriptionForDisplay(context, it) }
 
 	override fun getSubText(context: Context) = when (baseItem?.type) {
 		BaseItemKind.TV_CHANNEL -> baseItem.number

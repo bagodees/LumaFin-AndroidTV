@@ -136,6 +136,7 @@ fun FullDetailsFragment.togglePlayed() {
 		)
 		mBaseItem = mBaseItem.copyWithUserData(userData)
 		mWatchedToggleButton.isActivated = userData.played
+		updateSpoilerSummary()
 
 		// Adjust resume
 		mResumeButton?.apply {
