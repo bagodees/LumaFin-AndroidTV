@@ -131,6 +131,12 @@ class DestinationFragmentView @JvmOverloads constructor(
 		entry: HistoryEntry,
 		transaction: FragmentTransaction,
 	) {
+		if (entry.name != org.jellyfin.androidtv.ui.playback.CustomPlaybackOverlayFragment::class.java &&
+			entry.name != org.jellyfin.androidtv.ui.playback.nextup.NextUpFragment::class.java &&
+			entry.name != org.jellyfin.androidtv.ui.playback.stillwatching.StillWatchingFragment::class.java) {
+			KoinJavaComponent.get<org.jellyfin.androidtv.ui.playback.PlaybackControllerContainer>(
+				org.jellyfin.androidtv.ui.playback.PlaybackControllerContainer::class.java).cancelSleepTimer()
+		}
 		var fragment = entry.fragment
 
 		// Create if there is no existing fragment

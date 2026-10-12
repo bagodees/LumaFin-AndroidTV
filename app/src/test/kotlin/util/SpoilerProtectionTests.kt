@@ -1,5 +1,7 @@
 package org.jellyfin.androidtv.util
 
+import io.mockk.mockk
+import io.mockk.every
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import org.jellyfin.sdk.model.api.BaseItemDto
@@ -10,7 +12,7 @@ import java.util.UUID
 class SpoilerProtectionTests : FunSpec({
 	fun item(type: BaseItemKind, played: Boolean?) = BaseItemDto(
 		id = UUID.randomUUID(), type = type,
-		userData = played?.let { UserItemDataDto(played = it) },
+		userData = played?.let { value -> mockk<UserItemDataDto> { every { this@mockk.played } returns value } },
 	)
 	test("disabled protection shows unwatched episode descriptions") {
 		shouldHideEpisodeDescription(item(BaseItemKind.EPISODE, false), false) shouldBe false

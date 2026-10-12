@@ -45,6 +45,7 @@ import org.jellyfin.androidtv.ui.playback.overlay.action.SelectQualityAction;
 import org.jellyfin.androidtv.ui.playback.overlay.action.SkipNextAction;
 import org.jellyfin.androidtv.ui.playback.overlay.action.SkipPreviousAction;
 import org.jellyfin.androidtv.ui.playback.overlay.action.ZoomAction;
+import org.jellyfin.androidtv.ui.playback.overlay.action.SleepTimerAction;
 import org.jellyfin.androidtv.util.DateTimeExtensionsKt;
 import org.koin.java.KoinJavaComponent;
 
@@ -64,6 +65,7 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
     private SelectQualityAction selectQualityAction;
     private PlaybackSpeedAction playbackSpeedAction;
     private ZoomAction zoomAction;
+    private SleepTimerAction sleepTimerAction;
     private ChapterAction chapterAction;
 
     // TV actions
@@ -130,6 +132,7 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
         selectAudioAction.dismissPopup();
         selectQualityAction.dismissPopup();
         zoomAction.dismissPopup();
+        sleepTimerAction.dismissPopup();
 
         super.onDetachedFromHost();
     }
@@ -222,6 +225,8 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
         closedCaptionsAction.setLabels(new String[]{context.getString(R.string.lbl_subtitle_track)});
         selectQualityAction = new SelectQualityAction(context, this, KoinJavaComponent.get(UserPreferences.class));
         selectQualityAction.setLabels(new String[]{context.getString(R.string.lbl_quality_profile)});
+        sleepTimerAction = new SleepTimerAction(context, this);
+        sleepTimerAction.setLabels(new String[]{context.getString(R.string.sleep_timer)});
         playbackSpeedAction = new PlaybackSpeedAction(context, this, playbackController);
         playbackSpeedAction.setLabels(new String[]{context.getString(R.string.lbl_playback_speed)});
         zoomAction = new ZoomAction(context, this);
@@ -308,6 +313,7 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
         }
 
         secondaryActionsAdapter.add(zoomAction);
+        secondaryActionsAdapter.add(sleepTimerAction);
 
         updateChapterTicks();
     }

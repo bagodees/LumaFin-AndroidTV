@@ -1307,6 +1307,7 @@ public class CustomPlaybackOverlayFragment extends Fragment implements LiveTvGui
     }
 
     public void closePlayer() {
+        playbackControllerContainer.getValue().cancelSleepTimer();
         if (navigating) return;
         navigating = true;
 

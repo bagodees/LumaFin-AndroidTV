@@ -1197,6 +1197,13 @@ public class PlaybackController implements PlaybackControllerNotifiable {
     }
 
     private void itemComplete() {
+        PlaybackControllerContainer timerContainer = org.koin.java.KoinJavaComponent.get(PlaybackControllerContainer.class);
+        if (getCurrentlyPlayingItem() != null && timerContainer.endsWithEpisode(getCurrentlyPlayingItem().getId())) {
+            interactionTracker.onEpisodeWatched();
+            timerContainer.cancelSleepTimer();
+            endPlayback(true);
+            return;
+        }
         interactionTracker.onEpisodeWatched();
         stop();
         resetPlayerErrors();
