@@ -41,11 +41,11 @@ class HomeFragmentHelper(
 	}
 
 	fun loadResumeVideo(): HomeFragmentRow {
-		return loadResume(context.getString(R.string.lbl_continue_watching), listOf(MediaType.VIDEO))
+		return loadResume(context.getString(R.string.home_section_resume), listOf(MediaType.VIDEO))
 	}
 
 	fun loadResumeAudio(): HomeFragmentRow {
-		return loadResume(context.getString(R.string.continue_listening), listOf(MediaType.AUDIO))
+		return loadResume(context.getString(R.string.home_section_resume_audio), listOf(MediaType.AUDIO))
 	}
 
 	fun loadLatestLiveTvRecordings(): HomeFragmentRow {
@@ -66,7 +66,7 @@ class HomeFragmentHelper(
 			fields = ItemRepository.browseFields
 		)
 
-		return HomeFragmentBrowseRowDefRow(BrowseRowDef(context.getString(R.string.lbl_next_up), query, arrayOf(ChangeTriggerType.TvPlayback)))
+		return HomeFragmentBrowseRowDefRow(BrowseRowDef(context.getString(R.string.home_section_next_up), query, arrayOf(ChangeTriggerType.TvPlayback)))
 	}
 
 	fun loadLatestMovies(itemLimit: Int = ITEM_LIMIT_LATEST_BY_RELEASE, hideWatched: Boolean = false): HomeFragmentRow {
