@@ -25,6 +25,7 @@ class UserSettingPreferences(context: Context) : SharedPreferenceStore(
 		val recentlyAddedMoviesItemLimit = intPreference("home_recently_added_movies_limit", 50)
 		val recentlyAddedShowsItemLimit = intPreference("home_recently_added_shows_limit", 50)
 		val hideWatchedLatestMovies = booleanPreference("home_latest_movies_hide_watched", false)
+		val hideWatchedRecentlyAddedMovies = booleanPreference("home_recently_added_movies_hide_watched", false)
 
 		// Ordered, comma separated list of enabled HomeSectionType#serializedName values.
 		// Types not present in the list are hidden. Replaces the old fixed homesection0..27

@@ -86,13 +86,15 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 	private var loadedRecentlyAddedMoviesLimit = 50
 	private var loadedRecentlyAddedShowsLimit = 50
 	private var loadedHideWatchedLatestMovies = false
+	private var loadedHideWatchedRecentlyAddedMovies = false
 
 	private fun homePreferencesChanged() = userSettingPreferences.activeHomesections != loadedHomeSections ||
 		userSettingPreferences[UserSettingPreferences.latestMoviesItemLimit] != loadedLatestMoviesLimit ||
 		userSettingPreferences[UserSettingPreferences.latestShowsItemLimit] != loadedLatestShowsLimit ||
 		userSettingPreferences[UserSettingPreferences.recentlyAddedMoviesItemLimit] != loadedRecentlyAddedMoviesLimit ||
 		userSettingPreferences[UserSettingPreferences.recentlyAddedShowsItemLimit] != loadedRecentlyAddedShowsLimit ||
-		userSettingPreferences[UserSettingPreferences.hideWatchedLatestMovies] != loadedHideWatchedLatestMovies
+		userSettingPreferences[UserSettingPreferences.hideWatchedLatestMovies] != loadedHideWatchedLatestMovies ||
+		userSettingPreferences[UserSettingPreferences.hideWatchedRecentlyAddedMovies] != loadedHideWatchedRecentlyAddedMovies
 
 	// Special rows
 	private val notificationsRow by lazy { NotificationsHomeFragmentRow(lifecycleScope, notificationsRepository) }
@@ -165,6 +167,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 			loadedRecentlyAddedMoviesLimit = userSettingPreferences[UserSettingPreferences.recentlyAddedMoviesItemLimit]
 			loadedRecentlyAddedShowsLimit = userSettingPreferences[UserSettingPreferences.recentlyAddedShowsItemLimit]
 			loadedHideWatchedLatestMovies = userSettingPreferences[UserSettingPreferences.hideWatchedLatestMovies]
+			loadedHideWatchedRecentlyAddedMovies = userSettingPreferences[UserSettingPreferences.hideWatchedRecentlyAddedMovies]
 
 			// Make sure the rows are empty
 			val rows = mutableListOf<HomeFragmentRow>()
@@ -174,7 +177,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 
 			// Actually add the sections
 			for (section in homesections) when (section) {
-				HomeSectionType.LATEST_MEDIA -> rows.add(helper.loadRecentlyAdded(userViewsRepository.views.first(), loadedRecentlyAddedMoviesLimit, loadedRecentlyAddedShowsLimit))
+				HomeSectionType.LATEST_MEDIA -> rows.add(helper.loadRecentlyAdded(userViewsRepository.views.first(), loadedRecentlyAddedMoviesLimit, loadedRecentlyAddedShowsLimit, loadedHideWatchedRecentlyAddedMovies))
 				HomeSectionType.LIBRARY_TILES_SMALL -> rows.add(HomeFragmentViewsRow(small = false))
 				HomeSectionType.LIBRARY_BUTTONS -> rows.add(HomeFragmentViewsRow(small = true))
 				HomeSectionType.RESUME -> rows.add(helper.loadResumeVideo())
@@ -195,7 +198,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 				HomeSectionType.GENRES -> rows.add(HomeFragmentGenreRow(api))
 				HomeSectionType.CONTINUE_WATCHING_NEXT_UP -> rows.add(HomeFragmentContinueWatchingNextUpRow(api))
 				HomeSectionType.FAVORITES -> rows.add(helper.loadFavorites())
-				HomeSectionType.RECENTLY_ADDED_MOVIES -> rows.add(helper.loadRecentlyAddedMovies(loadedRecentlyAddedMoviesLimit))
+				HomeSectionType.RECENTLY_ADDED_MOVIES -> rows.add(helper.loadRecentlyAddedMovies(loadedRecentlyAddedMoviesLimit, loadedHideWatchedRecentlyAddedMovies))
 				HomeSectionType.RECENTLY_ADDED_SHOWS -> rows.add(helper.loadRecentlyAddedShows(loadedRecentlyAddedShowsLimit))
 				HomeSectionType.RECENTLY_ADDED_ALBUMS -> rows.add(helper.loadRecentlyAddedAlbums())
 				HomeSectionType.RECENTLY_ADDED_ARTISTS -> rows.add(helper.loadRecentlyAddedArtists())

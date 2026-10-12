@@ -11,6 +11,12 @@ import org.jellyfin.androidtv.ui.presentation.CardPresenter
 import org.jellyfin.androidtv.ui.presentation.MutableObjectAdapter
 import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.CollectionType
+import org.jellyfin.sdk.model.api.BaseItemKind
+import org.jellyfin.sdk.model.api.ItemFilter
+import org.jellyfin.sdk.model.api.ItemSortBy
+import org.jellyfin.sdk.model.api.SortOrder
+import org.jellyfin.sdk.model.api.request.GetItemsRequest
+import java.util.UUID
 import org.jellyfin.sdk.model.api.request.GetLatestMediaRequest
 
 class HomeFragmentLatestRow(
@@ -18,6 +24,7 @@ class HomeFragmentLatestRow(
 	private val userViews: Collection<BaseItemDto>,
 	private val moviesLimit: Int = 50,
 	private val showsLimit: Int = 50,
+	private val hideWatchedMovies: Boolean = false,
 ) : HomeFragmentRow {
 	override suspend fun addToRowsAdapter(context: Context, cardPresenter: CardPresenter, rowsAdapter: MutableObjectAdapter<Row>) {
 		// Get configuration (to find excluded items)
@@ -28,7 +35,16 @@ class HomeFragmentLatestRow(
 		val rows = userViews
 			.filterNot { item -> item.collectionType in EXCLUDED_COLLECTION_TYPES || item.id in latestItemsExcludes }
 			.map { item ->
-				// Create query and add it to a new row
+				val title = context.getString(R.string.lbl_latest_in, item.name)
+				val triggers = arrayOf(ChangeTriggerType.LibraryUpdated, ChangeTriggerType.MoviePlayback)
+				// Items/Latest inherits the server HidePlayedInLatest preference when
+				// isPlayed is omitted. Use the regular movie query so our off state
+				// includes both watched and unwatched movies without changing the server.
+				if (item.collectionType == CollectionType.MOVIES) {
+					return@map HomeFragmentBrowseRowDefRow(BrowseRowDef(title,
+						recentlyAddedMovieLibraryRequest(item.id, moviesLimit, hideWatchedMovies), 0, false, true, triggers))
+				}
+				// Keep grouping and server behavior for non-movie libraries.
 				val request = GetLatestMediaRequest(
 					fields = ItemRepository.browseFields,
 					imageTypeLimit = 1,
@@ -37,8 +53,7 @@ class HomeFragmentLatestRow(
 					limit = recentlyAddedLibraryLimit(item.collectionType, moviesLimit, showsLimit),
 				)
 
-				val title = context.getString(R.string.lbl_latest_in, item.name)
-				HomeFragmentBrowseRowDefRow(BrowseRowDef(title, request, arrayOf(ChangeTriggerType.LibraryUpdated)))
+				HomeFragmentBrowseRowDefRow(BrowseRowDef(title, request, triggers))
 			}
 
 		// Add rows to adapter
@@ -62,3 +77,17 @@ internal fun recentlyAddedLibraryLimit(collectionType: CollectionType?, moviesLi
 	CollectionType.TVSHOWS -> showsLimit.coerceIn(5, 50)
 	else -> 50
 }
+
+internal fun recentlyAddedMovieLibraryRequest(parentId: UUID, limit: Int, hideWatched: Boolean): GetItemsRequest = GetItemsRequest(
+	parentId = parentId,
+	fields = ItemRepository.browseFields,
+	includeItemTypes = setOf(BaseItemKind.MOVIE),
+	recursive = true,
+	filters = if (hideWatched) setOf(ItemFilter.IS_UNPLAYED) else emptySet(),
+	sortBy = setOf(ItemSortBy.DATE_CREATED),
+	sortOrder = setOf(SortOrder.DESCENDING),
+	imageTypeLimit = 1,
+	startIndex = 0,
+	limit = limit.coerceIn(5, 50),
+	enableTotalRecordCount = false,
+)

@@ -23,8 +23,8 @@ class HomeFragmentHelper(
 	private val context: Context,
 	private val userRepository: UserRepository,
 ) {
-	fun loadRecentlyAdded(userViews: Collection<BaseItemDto>, moviesLimit: Int = 50, showsLimit: Int = 50): HomeFragmentRow {
-		return HomeFragmentLatestRow(userRepository, userViews, moviesLimit, showsLimit)
+	fun loadRecentlyAdded(userViews: Collection<BaseItemDto>, moviesLimit: Int = 50, showsLimit: Int = 50, hideWatchedMovies: Boolean = false): HomeFragmentRow {
+		return HomeFragmentLatestRow(userRepository, userViews, moviesLimit, showsLimit, hideWatchedMovies)
 	}
 
 	fun loadResume(title: String, includeMediaTypes: Collection<MediaType>): HomeFragmentRow {
@@ -135,7 +135,7 @@ class HomeFragmentHelper(
 		return HomeFragmentBrowseRowDefRow(BrowseRowDef(context.getString(R.string.home_section_favorites), query, ITEM_LIMIT_FAVORITES, false, true, arrayOf(ChangeTriggerType.LibraryUpdated, ChangeTriggerType.FavoriteUpdate)))
 	}
 
-	fun loadRecentlyAddedMovies(itemLimit: Int = ITEM_LIMIT_RECENTLY_ADDED): HomeFragmentRow = loadRecentlyAddedByType(BaseItemKind.MOVIE, context.getString(R.string.home_section_recently_added_movies), itemLimit)
+	fun loadRecentlyAddedMovies(itemLimit: Int = ITEM_LIMIT_RECENTLY_ADDED, hideWatched: Boolean = false): HomeFragmentRow = loadRecentlyAddedByType(BaseItemKind.MOVIE, context.getString(R.string.home_section_recently_added_movies), itemLimit, hideWatched)
 	fun loadRecentlyAddedShows(itemLimit: Int = ITEM_LIMIT_RECENTLY_ADDED): HomeFragmentRow = loadRecentlyAddedByType(BaseItemKind.SERIES, context.getString(R.string.home_section_recently_added_shows), itemLimit)
 	fun loadRecentlyAddedAlbums(): HomeFragmentRow = loadRecentlyAddedByType(BaseItemKind.MUSIC_ALBUM, context.getString(R.string.home_section_recently_added_albums))
 	fun loadRecentlyAddedArtists(): HomeFragmentRow = loadRecentlyAddedByType(BaseItemKind.MUSIC_ARTIST, context.getString(R.string.home_section_recently_added_artists))
@@ -165,10 +165,11 @@ class HomeFragmentHelper(
 		return HomeFragmentBrowseRowDefRow(BrowseRowDef(title, query, ITEM_LIMIT_LATEST_BY_RELEASE, false, true, arrayOf(ChangeTriggerType.LibraryUpdated)))
 	}
 
-	private fun loadRecentlyAddedByType(itemType: BaseItemKind, title: String, itemLimit: Int? = null): HomeFragmentRow {
+	private fun loadRecentlyAddedByType(itemType: BaseItemKind, title: String, itemLimit: Int? = null, hideWatched: Boolean = false): HomeFragmentRow {
 		val query = GetItemsRequest(
 			fields = ItemRepository.browseFields,
 			includeItemTypes = setOf(itemType),
+			filters = if (hideWatched) setOf(ItemFilter.IS_UNPLAYED) else emptySet(),
 			recursive = true,
 			sortBy = setOf(ItemSortBy.DATE_CREATED),
 			sortOrder = setOf(SortOrder.DESCENDING),
@@ -178,7 +179,7 @@ class HomeFragmentHelper(
 			enableTotalRecordCount = if (itemLimit != null) false else null,
 		)
 
-		return HomeFragmentBrowseRowDefRow(BrowseRowDef(title, query, if (itemLimit != null) 0 else ITEM_LIMIT_RECENTLY_ADDED, false, true, arrayOf(ChangeTriggerType.LibraryUpdated)))
+		return HomeFragmentBrowseRowDefRow(BrowseRowDef(title, query, if (itemLimit != null) 0 else ITEM_LIMIT_RECENTLY_ADDED, false, true, arrayOf(ChangeTriggerType.LibraryUpdated, ChangeTriggerType.MoviePlayback)))
 	}
 
 	fun loadOnNow(): HomeFragmentRow {

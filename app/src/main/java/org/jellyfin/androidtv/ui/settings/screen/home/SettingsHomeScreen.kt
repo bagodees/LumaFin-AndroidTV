@@ -69,6 +69,7 @@ fun SettingsHomeScreen() {
 	var recentlyAddedMoviesLimit by rememberPreference(userSettingPreferences, UserSettingPreferences.recentlyAddedMoviesItemLimit)
 	var recentlyAddedShowsLimit by rememberPreference(userSettingPreferences, UserSettingPreferences.recentlyAddedShowsItemLimit)
 	var hideWatchedLatestMovies by rememberPreference(userSettingPreferences, UserSettingPreferences.hideWatchedLatestMovies)
+	var hideWatchedRecentlyAddedMovies by rememberPreference(userSettingPreferences, UserSettingPreferences.hideWatchedRecentlyAddedMovies)
 	val listState = rememberLazyListState()
 	val scope = rememberCoroutineScope()
 	val hiddenSections = remember(visibleSections) {
@@ -221,6 +222,16 @@ fun SettingsHomeScreen() {
 					enabled = grabbed == null,
 					onClick = { hideWatchedLatestMovies = !hideWatchedLatestMovies },
 					modifier = Modifier.focusKey("hide_watched_latest_movies")
+				)
+			}
+			item(key = "hide_watched_recently_added_movies") {
+				ListButton(
+					headingContent = { Text(stringResource(R.string.home_hide_watched_recently_added_movies)) },
+					captionContent = { Text(stringResource(R.string.home_hide_watched_recently_added_movies_description)) },
+					trailingContent = { Checkbox(checked = hideWatchedRecentlyAddedMovies) },
+					enabled = grabbed == null,
+					onClick = { hideWatchedRecentlyAddedMovies = !hideWatchedRecentlyAddedMovies },
+					modifier = Modifier.focusKey("hide_watched_recently_added_movies")
 				)
 			}
 			item(key = "latest_movies_limit") {
