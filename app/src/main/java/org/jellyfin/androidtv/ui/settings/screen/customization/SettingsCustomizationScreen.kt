@@ -1,5 +1,9 @@
 package org.jellyfin.androidtv.ui.settings.screen.customization
 
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import org.jellyfin.androidtv.preference.constant.MediaCardSize
+import org.jellyfin.androidtv.ui.base.form.RadioButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -24,6 +28,8 @@ import org.koin.compose.koinInject
 fun SettingsCustomizationScreen() {
 	val router = LocalRouter.current
 	val userPreferences = koinInject<UserPreferences>()
+	var cardSize by rememberPreference(userPreferences, UserPreferences.mediaCardSize)
+	var cardSizesExpanded by remember { mutableStateOf(false) }
 
 	SettingsColumn {
 		item {
@@ -121,6 +127,26 @@ fun SettingsCustomizationScreen() {
 				onClick = { reducedMotion = !reducedMotion },
 				modifier = Modifier.focusKey("reduced_motion"),
 			)
+		}
+
+		item(key = "media_card_size") {
+			ListButton(
+				headingContent = { Text(stringResource(R.string.media_card_size)) },
+				captionContent = { Text(stringResource(cardSize.nameRes)) },
+				onClick = { cardSizesExpanded = !cardSizesExpanded },
+				modifier = Modifier.focusKey("media_card_size"),
+			)
+		}
+		if (cardSizesExpanded) {
+			items(MediaCardSize.entries.size, key = { "media_card_size_$it" }) { index ->
+				val option = MediaCardSize.entries[index]
+				ListButton(
+					headingContent = { Text(stringResource(option.nameRes)) },
+					trailingContent = { RadioButton(checked = cardSize == option) },
+					onClick = { cardSize = option },
+					modifier = Modifier.focusKey("media_card_size_${option.name}"),
+				)
+			}
 		}
 
 		item { ListSection(headingContent = { Text(stringResource(R.string.pref_browsing)) }) }

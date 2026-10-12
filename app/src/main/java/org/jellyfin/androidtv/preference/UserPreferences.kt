@@ -1,5 +1,6 @@
 package org.jellyfin.androidtv.preference
 
+import org.jellyfin.androidtv.preference.constant.MediaCardSize
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.preference.PreferenceManager
@@ -62,6 +63,15 @@ class UserPreferences(context: Context) : SharedPreferenceStore(
 		awaitClose { sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener) }
 	}.distinctUntilChanged()
 
+	val mediaCardSizeChanges = callbackFlow {
+		val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+			if (key == mediaCardSize.key || key == null) trySend(this@UserPreferences[mediaCardSize])
+		}
+		sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
+		trySend(this@UserPreferences[mediaCardSize])
+		awaitClose { sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener) }
+	}.distinctUntilChanged()
+
 	companion object {
 		/* Display */
 		/**
@@ -85,6 +95,7 @@ class UserPreferences(context: Context) : SharedPreferenceStore(
 		 */
 		var mediaQueuingEnabled = booleanPreference("pref_enable_tv_queuing", true)
 
+		val mediaCardSize = enumPreference("media_card_size", MediaCardSize.DEFAULT)
 		val reducedMotion = booleanPreference("reduced_motion", false)
 		val hideUnwatchedEpisodeDescriptions = booleanPreference("hide_unwatched_episode_descriptions", false)
 

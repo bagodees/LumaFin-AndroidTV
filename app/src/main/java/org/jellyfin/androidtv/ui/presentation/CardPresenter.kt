@@ -1,5 +1,6 @@
 package org.jellyfin.androidtv.ui.presentation
 
+import org.jellyfin.androidtv.preference.UserPreferences
 import android.view.KeyEvent
 import android.view.ViewGroup
 import android.widget.ImageView
@@ -286,11 +287,18 @@ private fun CardViewHolderContent(
 	val aspectRatio = displayConfig.aspectRatio.takeIf { it >= 0.1f }
 		?: image?.aspectRatio?.takeIf { it >= 0.1f } ?: 1f
 
-	val size = when (item.staticHeight) {
+	val preferences = koinInject<UserPreferences>()
+	val cardSize by preferences.mediaCardSizeChanges.collectAsState(initial = preferences[UserPreferences.mediaCardSize])
+	val mediaTypes = setOf(BaseItemKind.MOVIE, BaseItemKind.SERIES, BaseItemKind.SEASON, BaseItemKind.EPISODE,
+		BaseItemKind.AUDIO, BaseItemKind.MUSIC_ALBUM, BaseItemKind.MUSIC_VIDEO, BaseItemKind.BOOK, BaseItemKind.AUDIO_BOOK)
+	val scale = if (item.baseItem?.type in mediaTypes) cardSize.scale else 1f
+	val baseSize = when (item.staticHeight) {
 		true -> DpSize(staticHeight.dp * aspectRatio, staticHeight.dp)
 		false if (aspectRatio > 1f) -> DpSize(130.dp * aspectRatio, 130.dp)
 		else -> DpSize(150.dp * aspectRatio, 150.dp)
 	}
+
+	val size = DpSize(baseSize.width * scale, baseSize.height * scale)
 
 	val usePreview = displayConfig.overrideShowInfo ?: showInfo
 	// The focused card is the visual anchor for a TV row. Gently dim the artwork on

@@ -767,4 +767,8 @@
     <string name="episode_description_hidden">Description hidden until this episode is marked watched.</string>
     <string name="reduced_motion">Reduced Motion</string>
     <string name="reduced_motion_description">Remove backdrop fades, screen transitions, and animated card highlights while keeping focus clearly visible.</string>
+    <string name="media_card_size">Media Card Size</string>
+    <string name="media_card_size_small">Small</string>
+    <string name="media_card_size_default">Default</string>
+    <string name="media_card_size_large">Large</string>
 </resources>
