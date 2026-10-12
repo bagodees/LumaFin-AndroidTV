@@ -1,8 +1,12 @@
 package org.jellyfin.androidtv.data.repository
 
 import android.content.Context
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import org.jellyfin.androidtv.BuildConfig
 import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.auth.model.Server
@@ -23,8 +27,10 @@ interface NotificationsRepository {
 class NotificationsRepositoryImpl(
 	private val context: Context,
 	private val systemPreferences: SystemPreferences,
+	private val appUpdateChecker: AppUpdateChecker,
 ) : NotificationsRepository {
 	override val notifications = MutableStateFlow(emptyList<AppNotification>())
+	private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
 	init {
 		addDefaultNotifications()
@@ -38,6 +44,7 @@ class NotificationsRepositoryImpl(
 	override fun addDefaultNotifications() {
 		addUiModeNotification()
 		addBetaNotification()
+		addUpdateAvailableNotification()
 	}
 
 	private fun addNotification(
@@ -74,6 +81,22 @@ class NotificationsRepositoryImpl(
 			addNotification(context.getString(R.string.app_notification_beta, currentVersion)) {
 				systemPreferences[SystemPreferences.dismissedBetaNotificationVersion] =
 					currentVersion
+			}
+		}
+	}
+
+	private fun addUpdateAvailableNotification() {
+		// Development builds have no real version to compare against
+		if (BuildConfig.DEVELOPMENT) return
+
+		scope.launch {
+			val latestVersion = appUpdateChecker.getLatestVersion() ?: return@launch
+			val dismissedVersion = systemPreferences[SystemPreferences.dismissedUpdateNotificationVersion]
+
+			if (latestVersion != dismissedVersion && AppUpdateChecker.isNewer(latestVersion, BuildConfig.VERSION_NAME)) {
+				addNotification(context.getString(R.string.app_notification_update_available, latestVersion)) {
+					systemPreferences[SystemPreferences.dismissedUpdateNotificationVersion] = latestVersion
+				}
 			}
 		}
 	}
