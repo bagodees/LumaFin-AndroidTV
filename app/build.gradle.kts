@@ -102,6 +102,20 @@ android {
 
 base.archivesName.set("LumaFin-AndroidTV-v${project.getVersionName()}")
 
+// Without a version, a release would report itself as 0.0.0-dev and the update notice
+// couldn't tell which release is installed, so refuse to package one.
+tasks.matching { it.name == "packageRelease" || it.name == "packageReleaseBundle" }.configureEach {
+	val versionName = project.getVersionName()
+	doFirst {
+		if (versionName.startsWith("0.0.0-dev")) {
+			throw GradleException(
+				"Release builds need a real version. Pass -Pjellyfin.version=X.Y.Z " +
+					"(or set the JELLYFIN_VERSION environment variable)."
+			)
+		}
+	}
+}
+
 tasks.register("versionTxt") {
 	val path = layout.buildDirectory.asFile.get().resolve("version.txt")
 
