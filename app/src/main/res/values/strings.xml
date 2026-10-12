@@ -594,6 +594,10 @@
     <string name="segment_type_recap">Recaps</string>
     <string name="segment_type_unknown">Unknown segments</string>
     <string name="skip_forward_length">Skip forward length</string>
+    <string name="skip_back_length">Skip back length</string>
+    <string name="skip_length_description">Use Left and Right to choose a skip length from 5 to 30 seconds.</string>
+    <string name="reset_skip_lengths">Reset skip lengths</string>
+    <string name="reset_skip_lengths_description">Restore skip back to 10 seconds and skip forward to 30 seconds.</string>
     <string name="preference_enable_trickplay">Enable trickplay in video player</string>
     <string name="pref_subtitles_background_opacity">Subtitle background opacity</string>
     <string name="pref_troubleshooting">Troubleshooting</string>

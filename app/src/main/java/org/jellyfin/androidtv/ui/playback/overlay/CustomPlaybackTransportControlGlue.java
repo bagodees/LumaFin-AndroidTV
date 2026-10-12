@@ -16,6 +16,7 @@ import androidx.leanback.media.PlaybackTransportControlGlue;
 import androidx.leanback.widget.AbstractDetailsDescriptionPresenter;
 import androidx.leanback.widget.Action;
 import androidx.leanback.widget.ArrayObjectAdapter;
+import androidx.leanback.widget.DirectionalSeek;
 import androidx.leanback.widget.PlaybackControlsRow;
 import androidx.leanback.widget.PlaybackRowPresenter;
 import androidx.leanback.widget.PlaybackTransportRowPresenter;
@@ -145,6 +146,11 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
             @Override
             protected RowPresenter.ViewHolder createRowViewHolder(ViewGroup parent) {
                 RowPresenter.ViewHolder vh = super.createRowViewHolder(parent);
+
+                UserSettingPreferences seekPreferences = KoinJavaComponent.get(UserSettingPreferences.class);
+                DirectionalSeek.install((PlaybackTransportRowPresenter.ViewHolder) vh,
+                        () -> seekPreferences.get(UserSettingPreferences.Companion.getSkipBackLength()).longValue(),
+                        () -> seekPreferences.get(UserSettingPreferences.Companion.getSkipForwardLength()).longValue());
 
                 View root = vh.view;
                 mEndsText = root.findViewById(R.id.ends_at);

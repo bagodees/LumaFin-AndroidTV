@@ -50,6 +50,8 @@ fun SettingsPlaybackAdvancedScreen() {
 	val router = LocalRouter.current
 	val userPreferences = koinInject<UserPreferences>()
 	val userSettingPreferences = koinInject<UserSettingPreferences>()
+	var skipBackLength by rememberPreference(userSettingPreferences, UserSettingPreferences.skipBackLength)
+	var skipForwardLength by rememberPreference(userSettingPreferences, UserSettingPreferences.skipForwardLength)
 
 	SettingsColumn {
 		item {
@@ -74,11 +76,41 @@ fun SettingsPlaybackAdvancedScreen() {
 		}
 
 		item {
-			var skipForwardLength by rememberPreference(userSettingPreferences, UserSettingPreferences.skipForwardLength)
+			val interactionSource = remember { MutableInteractionSource() }
+
+			ListControl(
+				headingContent = { Text(stringResource(R.string.skip_back_length)) },
+				captionContent = { Text(stringResource(R.string.skip_length_description)) },
+				interactionSource = interactionSource,
+				modifier = Modifier.focusKey("skip_back_length")
+			) {
+				Row(verticalAlignment = Alignment.CenterVertically) {
+					RangeControl(
+						modifier = Modifier.height(4.dp).weight(1f),
+						interactionSource = interactionSource,
+						min = 5_000f,
+						max = 30_000f,
+						stepForward = 5_000f,
+						value = skipBackLength.toFloat(),
+						onValueChange = { skipBackLength = it.roundToInt() }
+					)
+					Spacer(Modifier.width(Tokens.Space.spaceSm))
+					Box(
+						modifier = Modifier.sizeIn(minWidth = 32.dp),
+						contentAlignment = Alignment.CenterEnd
+					) {
+						Text("${skipBackLength / 1000}s")
+					}
+				}
+			}
+		}
+
+		item {
 			val interactionSource = remember { MutableInteractionSource() }
 
 			ListControl(
 				headingContent = { Text(stringResource(R.string.skip_forward_length)) },
+				captionContent = { Text(stringResource(R.string.skip_length_description)) },
 				interactionSource = interactionSource,
 				modifier = Modifier.focusKey("skip_forward_length")
 			) {
@@ -108,6 +140,18 @@ fun SettingsPlaybackAdvancedScreen() {
 					}
 				}
 			}
+		}
+
+		item {
+			ListButton(
+				headingContent = { Text(stringResource(R.string.reset_skip_lengths)) },
+				captionContent = { Text(stringResource(R.string.reset_skip_lengths_description)) },
+				onClick = {
+					skipBackLength = UserSettingPreferences.skipBackLength.defaultValue
+					skipForwardLength = UserSettingPreferences.skipForwardLength.defaultValue
+				},
+				modifier = Modifier.focusKey("reset_skip_lengths")
+			)
 		}
 
 		item {

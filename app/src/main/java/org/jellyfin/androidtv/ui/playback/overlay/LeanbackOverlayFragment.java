@@ -103,7 +103,9 @@ public class LeanbackOverlayFragment extends PlaybackSupportFragment {
         playerGlue.setSeekEnabled(playerAdapter.canSeek());
 
         long skipForwardLength = userSettingPreferences.getValue().get(UserSettingPreferences.Companion.getSkipForwardLength()).longValue();
-        playerGlue.setSeekProvider(playerAdapter.canSeek() ? new CustomSeekProvider(playerAdapter, imageLoader.getValue(), api.getValue(), requireContext(), skipForwardLength) : null);
+        long skipBackLength = userSettingPreferences.getValue().get(UserSettingPreferences.Companion.getSkipBackLength()).longValue();
+        long previewInterval = androidx.leanback.widget.DirectionalSeek.previewInterval(skipBackLength, skipForwardLength);
+        playerGlue.setSeekProvider(playerAdapter.canSeek() ? new CustomSeekProvider(playerAdapter, imageLoader.getValue(), api.getValue(), requireContext(), previewInterval) : null);
         recordingStateChanged();
         playerAdapter.updateDuration();
     }
