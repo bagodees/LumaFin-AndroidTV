@@ -649,8 +649,8 @@
     <string name="pref_playback_inactivity_prompt">Inactivity prompt</string>
     <string name="pref_prerolls_enabled">Enable cinema mode</string>
     <string name="pref_prerolls_enabled_description">Play custom intros before movies</string>
-    <string name="pref_media_queueing">Queue all episodes</string>
-    <string name="pref_media_queueing_description">Add subsequent episodes to the queue when playing TV series</string>
+    <string name="pref_media_queueing">Autoplay next episode</string>
+    <string name="pref_media_queueing_description">Continue to the next episode when starting an individual episode. Turn off to stop after that episode. Applies when you start playback; Play all and playlists still play their queued items.</string>
     <string name="pref_subtitles_weight">Text weight</string>
     <string name="font_weight_100">Thin</string>
     <string name="font_weight_200">Extra light</string>

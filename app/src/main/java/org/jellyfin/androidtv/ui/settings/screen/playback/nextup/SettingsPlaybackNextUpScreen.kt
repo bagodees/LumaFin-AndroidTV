@@ -19,7 +19,6 @@ import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.preference.UserPreferences
 import org.jellyfin.androidtv.preference.constant.NEXTUP_TIMER_DISABLED
 import org.jellyfin.androidtv.ui.base.Text
-import org.jellyfin.androidtv.ui.base.form.Checkbox
 import org.jellyfin.androidtv.ui.base.form.RangeControl
 import org.jellyfin.androidtv.ui.base.list.ListButton
 import org.jellyfin.androidtv.ui.base.list.ListControl
@@ -43,18 +42,6 @@ fun SettingsPlaybackNextUpScreen() {
 			ListSection(
 				overlineContent = { Text(stringResource(R.string.pref_playback).uppercase()) },
 				headingContent = { Text(stringResource(R.string.pref_playback_next_up)) },
-			)
-		}
-
-		item {
-			var mediaQueuingEnabled by rememberPreference(userPreferences, UserPreferences.mediaQueuingEnabled)
-
-			ListButton(
-				headingContent = { Text(stringResource(R.string.pref_media_queueing)) },
-				trailingContent = { Checkbox(checked = mediaQueuingEnabled) },
-				captionContent = { Text(stringResource(R.string.pref_media_queueing_description)) },
-				onClick = { mediaQueuingEnabled = !mediaQueuingEnabled },
-				modifier = Modifier.focusKey("media_queuing_enabled")
 			)
 		}
 

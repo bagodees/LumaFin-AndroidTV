@@ -18,6 +18,7 @@ import org.jellyfin.androidtv.data.repository.ExternalAppRepository
 import org.jellyfin.androidtv.preference.UserPreferences
 import org.jellyfin.androidtv.ui.base.Icon
 import org.jellyfin.androidtv.ui.base.LocalShapes
+import org.jellyfin.androidtv.ui.base.form.Checkbox
 import org.jellyfin.androidtv.ui.base.Text
 import org.jellyfin.androidtv.ui.base.list.ListButton
 import org.jellyfin.androidtv.ui.base.list.ListSection
@@ -71,6 +72,18 @@ fun SettingsPlaybackScreen() {
 				headingContent = { Text(stringResource(R.string.photo_player)) },
 				onClick = { router.push(Routes.PLAYBACK_PHOTO_PLAYER) },
 				modifier = Modifier.focusKey(Routes.PLAYBACK_PHOTO_PLAYER)
+			)
+		}
+
+		item {
+			var mediaQueuingEnabled by rememberPreference(userPreferences, UserPreferences.mediaQueuingEnabled)
+
+			ListButton(
+				headingContent = { Text(stringResource(R.string.pref_media_queueing)) },
+				trailingContent = { Checkbox(checked = mediaQueuingEnabled) },
+				captionContent = { Text(stringResource(R.string.pref_media_queueing_description)) },
+				onClick = { mediaQueuingEnabled = !mediaQueuingEnabled },
+				modifier = Modifier.focusKey("media_queuing_enabled")
 			)
 		}
 
