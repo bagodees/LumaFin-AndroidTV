@@ -6,10 +6,12 @@ have been accepted for the roadmap.
 
 Milestone statuses: **Deferred**, **Planned**, **In progress**, and **Complete**.
 
-## Future release: 0.2.0 (tentative)
+## LumaFin v1 roadmap
 
-Release project: [LumaFin 0.2.0 — Future release](https://github.com/users/bagodees/projects/1).
-The version target is tentative; no release date is set. The project currently requires owner or collaborator access.
+Internal project: [LumaFin v1 Roadmap](https://github.com/users/bagodees/projects/1).
+No release date is set. The private project requires owner or collaborator access and tracks
+approved features on the path toward v1. Features may ship in earlier releases; inclusion
+does not commit every item to v1.0. Detailed feature planning stays in the private project.
 
 ### Google Play distribution
 
