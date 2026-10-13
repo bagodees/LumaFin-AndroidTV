@@ -129,6 +129,10 @@ public class ItemRowAdapter extends MutableObjectAdapter<Object> {
         return queryType;
     }
 
+    public GetItemsRequest getItemsRequest() { return mQuery; }
+    public GetArtistsRequest getArtistsRequest() { return mArtistsQuery; }
+    public GetAlbumArtistsRequest getAlbumArtistsRequest() { return mAlbumArtistsQuery; }
+
     public void setRow(ListRow row) {
         mRow = row;
     }
@@ -415,36 +419,24 @@ public class ItemRowAdapter extends MutableObjectAdapter<Object> {
     public @Nullable String getStartLetter() {
         switch (queryType) {
             case Artists:
-                return mArtistsQuery != null ? mArtistsQuery.getNameStartsWith() : null;
+                return mArtistsQuery == null ? null : ":".equals(mArtistsQuery.getNameLessThan()) ? "#" : mArtistsQuery.getNameStartsWith();
             case AlbumArtists:
-                return mAlbumArtistsQuery != null ? mAlbumArtistsQuery.getNameStartsWith() : null;
+                return mAlbumArtistsQuery == null ? null : ":".equals(mAlbumArtistsQuery.getNameLessThan()) ? "#" : mAlbumArtistsQuery.getNameStartsWith();
             default:
-                return mQuery != null ? mQuery.getNameStartsWith() : null;
+                return mQuery == null ? null : ":".equals(mQuery.getNameLessThan()) ? "#" : mQuery.getNameStartsWith();
         }
     }
 
     public void setStartLetter(String value) {
         switch (queryType) {
             case Artists:
-                if (value != null && value.equals("#")) {
-                    mArtistsQuery = ItemRowAdapterHelperKt.setArtistsStartLetter(mArtistsQuery, null);
-                } else {
-                    mArtistsQuery = ItemRowAdapterHelperKt.setArtistsStartLetter(mArtistsQuery, value);
-                }
+                mArtistsQuery = ItemRowAdapterHelperKt.setArtistsStartLetter(mArtistsQuery, value);
                 break;
             case AlbumArtists:
-                if (value != null && value.equals("#")) {
-                    mAlbumArtistsQuery = ItemRowAdapterHelperKt.setAlbumArtistsStartLetter(mAlbumArtistsQuery, null);
-                } else {
-                    mAlbumArtistsQuery = ItemRowAdapterHelperKt.setAlbumArtistsStartLetter(mAlbumArtistsQuery, value);
-                }
+                mAlbumArtistsQuery = ItemRowAdapterHelperKt.setAlbumArtistsStartLetter(mAlbumArtistsQuery, value);
                 break;
             default:
-                if (value != null && value.equals("#")) {
-                    mQuery = ItemRowAdapterHelperKt.setItemsStartLetter(mQuery, null);
-                } else {
-                    mQuery = ItemRowAdapterHelperKt.setItemsStartLetter(mQuery, value);
-                }
+                mQuery = ItemRowAdapterHelperKt.setItemsStartLetter(mQuery, value);
                 break;
         }
     }

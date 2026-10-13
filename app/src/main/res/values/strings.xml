@@ -875,4 +875,10 @@
     <string name="video_version_number">Version %1$d</string>
     <string name="video_version_details_unknown">Technical details unavailable</string>
     <string name="video_version_unavailable">This version could not be loaded. Please try again.</string>
+    <string name="alpha_all">All</string>
+    <string name="alpha_other">Other Letter</string>
+    <string name="alpha_enter_letter">Enter a Letter</string>
+    <string name="alpha_letter_hint">Enter a letter from any alphabet</string>
+    <string name="alpha_invalid_letter">Enter one letter or number.</string>
+    <string name="alpha_load_failed">Could not load available letters. Close the picker and try again.</string>
 </resources>

@@ -680,21 +680,27 @@ fun setAlbumArtistsStartLetter(
 	request: GetAlbumArtistsRequest,
 	startLetter: String?,
 ) = request.copy(
-	nameStartsWith = startLetter,
+	nameStartsWith = startLetter?.takeUnless { it == "#" },
+	nameStartsWithOrGreater = if (startLetter == "#") "0" else null,
+	nameLessThan = if (startLetter == "#") ":" else null,
 )
 
 fun setArtistsStartLetter(
 	request: GetArtistsRequest,
 	startLetter: String?,
 ) = request.copy(
-	nameStartsWith = startLetter,
+	nameStartsWith = startLetter?.takeUnless { it == "#" },
+	nameStartsWithOrGreater = if (startLetter == "#") "0" else null,
+	nameLessThan = if (startLetter == "#") ":" else null,
 )
 
 fun setItemsStartLetter(
 	request: GetItemsRequest,
 	startLetter: String?,
 ) = request.copy(
-	nameStartsWith = startLetter,
+	nameStartsWith = startLetter?.takeUnless { it == "#" },
+	nameStartsWithOrGreater = if (startLetter == "#") "0" else null,
+	nameLessThan = if (startLetter == "#") ":" else null,
 )
 
 @JvmOverloads

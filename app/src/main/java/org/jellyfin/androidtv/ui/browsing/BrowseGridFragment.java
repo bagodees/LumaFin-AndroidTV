@@ -1,5 +1,7 @@
 package org.jellyfin.androidtv.ui.browsing;
 
+import android.app.AlertDialog;
+
 import static org.koin.java.KoinJavaComponent.inject;
 
 import android.os.Bundle;
@@ -845,23 +847,29 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
     }
 
     class JumplistPopup {
-        private final int WIDTH = Utils.convertDpToPixel(requireContext(), 900);
+        private final int WIDTH = Math.min(Utils.convertDpToPixel(requireContext(), 900),
+                getResources().getDisplayMetrics().widthPixels - Utils.convertDpToPixel(requireContext(), 54));
         private final int HEIGHT = Utils.convertDpToPixel(requireContext(), 55);
 
         private final PopupWindow popupWindow;
         private final AlphaPickerView alphaPicker;
+        private kotlinx.coroutines.Job letterLoad;
 
         JumplistPopup() {
             PopupEmptyBinding layout = PopupEmptyBinding.inflate(getLayoutInflater(), binding.rowsFragment, false);
+            layout.emptyPopup.setPadding(0, layout.emptyPopup.getPaddingTop(), 0, layout.emptyPopup.getPaddingBottom());
             popupWindow = new PopupWindow(layout.emptyPopup, WIDTH, HEIGHT, true);
             popupWindow.setOutsideTouchable(true);
             popupWindow.setAnimationStyle(R.style.WindowAnimation_SlideTop);
 
             alphaPicker = new AlphaPickerView(requireContext(), null);
             alphaPicker.setOnAlphaSelected(letter -> {
-                mAdapter.setStartLetter(letter.toString());
-                loadGrid();
                 dismiss();
+                if (letter == '…') {
+                    showOtherLetter();
+                } else {
+                    selectLetter(letter == '*' ? null : letter.toString());
+                }
                 return null;
             });
 
@@ -869,10 +877,51 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
         }
 
         public void show() {
-            popupWindow.showAtLocation(binding.rowsFragment, Gravity.TOP, binding.rowsFragment.getLeft(), binding.rowsFragment.getTop());
-            if (mAdapter.getStartLetter() != null && !mAdapter.getStartLetter().isEmpty()) {
-                alphaPicker.focus(mAdapter.getStartLetter().charAt(0));
-            }
+            alphaPicker.showLoading();
+            popupWindow.setWidth(alphaPicker.contentWidth(WIDTH));
+            popupWindow.showAtLocation(binding.rowsFragment, Gravity.TOP | Gravity.CENTER_HORIZONTAL, 0, binding.rowsFragment.getTop());
+            alphaPicker.focus('*');
+            popupWindow.setOnDismissListener(() -> {
+                if (letterLoad != null) letterLoad.cancel(null);
+            });
+            letterLoad = BrowseGridFragmentHelperKt.loadAvailableLetters(BrowseGridFragment.this, mAdapter,
+                    "#" + getString(R.string.byletter_letters), available -> {
+                        if (!popupWindow.isShowing()) return null;
+                        alphaPicker.setAvailableLetters(available == null ? "" : available);
+                        popupWindow.update(alphaPicker.contentWidth(WIDTH), HEIGHT);
+                        if (available == null) Utils.showToast(requireContext(), R.string.alpha_load_failed);
+                        String selected = mAdapter.getStartLetter();
+                        alphaPicker.focus(selected == null || selected.isEmpty() ? '*' : selected.charAt(0));
+                        return null;
+                    });
+        }
+
+        private void selectLetter(String letter) {
+            mSelectedPosition = 0;
+            mAdapter.setStartLetter(letter);
+            loadGrid();
+        }
+
+        private void showOtherLetter() {
+            android.widget.EditText input = new android.widget.EditText(requireContext());
+            input.setHint(R.string.alpha_letter_hint);
+            input.setSingleLine(true);
+            AlertDialog dialog = new AlertDialog.Builder(requireContext())
+                    .setTitle(R.string.alpha_enter_letter)
+                    .setView(input)
+                    .setPositiveButton(android.R.string.ok, null)
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .create();
+            dialog.setOnShowListener(ignored -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(button -> {
+                String letter = org.jellyfin.androidtv.util.AlphabetInput.normalize(input.getText().toString());
+                if (letter == null) {
+                    input.setError(getString(R.string.alpha_invalid_letter));
+                } else {
+                    selectLetter(letter);
+                    dialog.dismiss();
+                }
+            }));
+            dialog.show();
         }
 
         public void dismiss() {
