@@ -140,6 +140,10 @@ public class KeyProcessor {
                     case BaseItem:
                         BaseItemDto item = rowItem.getBaseItem();
                         switch (item.getType()) {
+                            case USER_VIEW:
+                            case COLLECTION_FOLDER:
+                                HomeShortcutMenuKt.showHomeShortcutPopup(activity, item);
+                                break;
                             case MOVIE:
                             case EPISODE:
                             case TV_CHANNEL:
@@ -207,8 +211,9 @@ public class KeyProcessor {
             if (KeyProcessorHelperKt.canRemoveFromContinueWatching(item)) {
                 menu.getMenu().add(0, MENU_REMOVE_CONTINUE_WATCHING, order++, R.string.remove_continue_watching);
             }
+            boolean isLibrary = item.getType() == BaseItemKind.USER_VIEW || item.getType() == BaseItemKind.COLLECTION_FOLDER;
             boolean isFolder = item.isFolder() != null && item.isFolder();
-            if (BaseItemExtensionsKt.canPlay(item)) {
+            if (!isLibrary && BaseItemExtensionsKt.canPlay(item)) {
                 if (isFolder
                         && item.getType() != BaseItemKind.MUSIC_ALBUM
                         && item.getType() != BaseItemKind.PLAYLIST
@@ -237,7 +242,7 @@ public class KeyProcessor {
                 if (item.getType() != BaseItemKind.PLAYLIST) {
                     menu.getMenu().add(0, MENU_INSTANT_MIX, order++, R.string.lbl_instant_mix);
                 }
-            } else {
+            } else if (!isLibrary) {
                 if (userData != null && userData.getPlayed()) {
                     menu.getMenu().add(0, MENU_UNMARK_PLAYED, order++, activity.getString(R.string.lbl_mark_unplayed));
                 } else {
@@ -245,7 +250,7 @@ public class KeyProcessor {
                 }
             }
 
-            if (userData != null) {
+            if (!isLibrary && userData != null) {
                 if (userData.isFavorite()) {
                     menu.getMenu().add(0, MENU_UNMARK_FAVORITE, order++, activity.getString(R.string.lbl_remove_favorite));
                 } else {
@@ -254,6 +259,7 @@ public class KeyProcessor {
             }
         }
 
+        HomeShortcutMenuKt.addHomeShortcutMenu(menu, activity, item);
         menu.setOnMenuItemClickListener(new KeyProcessorItemMenuClickListener(activity, rowItem));
         menu.show();
         return menu;

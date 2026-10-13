@@ -847,4 +847,21 @@
     <string name="library_reset_browsing">Reset Sorting and Filters</string>
     <string name="library_sort_ascending">Ascending</string>
     <string name="library_sort_descending">Descending</string>
+    <string name="home_shortcuts">Home Shortcuts</string>
+    <string name="home_shortcut_pin">Pin to Home</string>
+    <string name="home_shortcut_unpin">Unpin from Home</string>
+    <string name="home_shortcut_pinned">Added to Home Shortcuts</string>
+    <string name="home_shortcut_unpinned">Removed from Home Shortcuts</string>
+    <string name="home_shortcut_unavailable">Unavailable</string>
+    <string name="home_shortcut_unavailable_hint">This shortcut could not be loaded. Long-press to retry or unpin it.</string>
+    <string name="home_shortcut_retry">Retry</string>
+    <string name="home_shortcut_move_earlier">Move Earlier</string>
+    <string name="home_shortcut_move_later">Move Later</string>
+    <string name="home_shortcut_manage">Select to move or unpin</string>
+    <string name="home_shortcuts_settings_description">Reorder or remove pinned libraries, collections and shows.</string>
+    <string name="home_shortcuts_hint">Long-press a library, collection or show and choose Pin to Home. Select a shortcut here to move or unpin it. Unpinning only changes Home; Libraries remains available at the top.</string>
+    <string name="home_shortcuts_empty">No Pinned Shortcuts</string>
+    <string name="home_libraries_empty">No libraries are available for this account.</string>
+    <string name="home_libraries_failed">Libraries could not be loaded. Check the server connection and try again.</string>
+    <string name="home_libraries_loading">Loading Libraries…</string>
 </resources>

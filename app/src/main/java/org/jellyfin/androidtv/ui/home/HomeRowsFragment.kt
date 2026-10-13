@@ -14,6 +14,11 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.Job
+import android.widget.PopupMenu
+import org.jellyfin.androidtv.util.addHomeShortcutMenu
+import org.jellyfin.androidtv.preference.HomeShortcut
+import org.jellyfin.androidtv.preference.HomeShortcutPreferences
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filterNotNull
@@ -71,6 +76,9 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 	private val userRepository by inject<UserRepository>()
 	private val userSettingPreferences by inject<UserSettingPreferences>()
 	private val recommendationPreferences by inject<RecommendationPreferences>()
+	private val shortcutPreferences by inject<HomeShortcutPreferences>()
+	private var homeLoadJob: Job? = null
+	private var loadedShortcuts: List<HomeShortcut> = emptyList()
 	private val userViewsRepository by inject<UserViewsRepository>()
 	private val dataRefreshService by inject<DataRefreshService>()
 	private val customMessageRepository by inject<CustomMessageRepository>()
@@ -94,7 +102,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 	private var loadedHideWatchedLatestMovies = false
 	private var loadedHideWatchedRecentlyAddedMovies = false
 
-	private fun homePreferencesChanged() = recommendationPreferences.hiddenRows != loadedHiddenRecommendations || userSettingPreferences.activeHomesections != loadedHomeSections ||
+	private fun homePreferencesChanged() = shortcutPreferences.shortcuts != loadedShortcuts || recommendationPreferences.hiddenRows != loadedHiddenRecommendations || userSettingPreferences.activeHomesections != loadedHomeSections ||
 		userSettingPreferences[UserSettingPreferences.latestMoviesItemLimit] != loadedLatestMoviesLimit ||
 		userSettingPreferences[UserSettingPreferences.latestShowsItemLimit] != loadedLatestShowsLimit ||
 		userSettingPreferences[UserSettingPreferences.recentlyAddedMoviesItemLimit] != loadedRecentlyAddedMoviesLimit ||
@@ -127,6 +135,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 			.onEach { message ->
 				when (message) {
 					CustomMessage.RefreshCurrentItem -> refreshCurrentItem()
+					CustomMessage.HomeShortcutsChanged -> loadHomeRows()
 					else -> Unit
 				}
 			}.launchIn(lifecycleScope)
@@ -173,10 +182,15 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 	}
 
 	private fun loadHomeRows() {
-		lifecycleScope.launch(Dispatchers.IO) {
+		homeLoadJob?.cancel()
+		homeLoadJob = lifecycleScope.launch(Dispatchers.IO) {
 			val currentUser = withTimeout(30.seconds) {
 				userRepository.currentUser.filterNotNull().first()
 			}
+
+			val shortcutScope = shortcutPreferences.scope
+			loadedShortcuts = shortcutPreferences.shortcuts
+			val shortcuts = if (loadedShortcuts.isEmpty()) emptyList() else loadHomeShortcuts(api, loadedShortcuts, userViewsRepository.views.first())
 
 			// Start out with default sections
 			val homesections = userSettingPreferences.activeHomesections
@@ -190,7 +204,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 			loadedHideWatchedRecentlyAddedMovies = userSettingPreferences[UserSettingPreferences.hideWatchedRecentlyAddedMovies]
 
 			// Make sure the rows are empty
-			val rows = mutableListOf<HomeFragmentRow>()
+			val rows = mutableListOf<HomeFragmentRow>(HomeFragmentShortcutsRow(shortcuts))
 
 			// Check for coroutine cancellation
 			if (!isActive) return@launch
@@ -235,6 +249,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 
 			// Add sections to layout
 			withContext(Dispatchers.Main) {
+				if (shortcutScope != shortcutPreferences.scope) return@withContext
 				@Suppress("UNCHECKED_CAST")
 				val rowsAdapter = adapter as MutableObjectAdapter<Row>
 				val cardPresenter = CardPresenter()
@@ -267,6 +282,13 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 		val row = currentRow
 		val header = row?.headerItem as? RecommendationHeaderItem
 		val item = currentItem
+		if (keyCode == KeyEvent.KEYCODE_MENU && item is HomeShortcutRowItem && !item.available) {
+			val menu = PopupMenu(requireContext(), v ?: requireView())
+			item.baseItem?.let { addHomeShortcutMenu(menu, requireActivity(), it) }
+			menu.menu.add(R.string.home_shortcut_retry).setOnMenuItemClickListener { loadHomeRows(); true }
+			menu.show()
+			return true
+		}
 		if (keyCode == KeyEvent.KEYCODE_MENU && header != null && item?.baseItem != null) {
 			val menu = keyProcessor.createItemMenu(item, item.baseItem?.userData, requireActivity())
 			menu.menu.add(0, 1001, 0, R.string.recommendation_why).setOnMenuItemClickListener {
@@ -300,7 +322,9 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 
 		//React to deletion
 		if (currentRow != null && currentItem != null && currentItem?.baseItem != null && currentItem!!.baseItem!!.id == dataRefreshService.lastDeletedItemId) {
-			(currentRow!!.adapter as ItemRowAdapter).remove(currentItem)
+			@Suppress("UNCHECKED_CAST")
+			val rowItems = currentRow!!.adapter as? MutableObjectAdapter<Any>
+			rowItems?.remove(currentItem!!)
 			currentItem = null
 			dataRefreshService.lastDeletedItemId = null
 		}
@@ -388,6 +412,10 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 				return
 			}
 
+			if (item is HomeShortcutRowItem && !item.available) {
+				android.widget.Toast.makeText(requireContext(), R.string.home_shortcut_unavailable_hint, android.widget.Toast.LENGTH_LONG).show()
+				return
+			}
 			if (item !is BaseRowItem) return
 			if (row !is ListRow) return
 			@Suppress("UNCHECKED_CAST")

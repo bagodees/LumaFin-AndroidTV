@@ -207,6 +207,16 @@ fun SettingsHomeScreen() {
 			}
 		}
 
+		item(key = "home_shortcuts") {
+			ListButton(
+				headingContent = { Text(stringResource(R.string.home_shortcuts)) },
+				captionContent = { Text(stringResource(R.string.home_shortcuts_settings_description)) },
+				enabled = grabbed == null,
+				onClick = { router.push(Routes.HOME_SHORTCUTS) },
+				modifier = Modifier.focusKey("home_shortcuts"),
+			)
+		}
+
 		item(key = "hidden_recommendations") {
 			ListButton(
 				headingContent = { Text(stringResource(R.string.recommendation_settings)) },

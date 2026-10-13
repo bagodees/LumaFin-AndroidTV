@@ -1,5 +1,6 @@
 package org.jellyfin.androidtv.di
 
+import org.jellyfin.androidtv.preference.HomeShortcutPreferences
 import org.jellyfin.androidtv.preference.RecommendationPreferences
 import org.jellyfin.androidtv.preference.LiveTvPreferences
 import org.jellyfin.androidtv.preference.PreferencesRepository
@@ -15,6 +16,7 @@ val preferenceModule = module {
 	single { LiveTvPreferences(get()) }
 	single { UserSettingPreferences(get()) }
 	single { RecommendationPreferences(get(), get(), get()) }
+	single { HomeShortcutPreferences(get<android.content.Context>(), get(), get()) }
 	single { UserPreferences(get()) }
 	single { SystemPreferences(get()) }
 	single { TelemetryPreferences(get()) }
