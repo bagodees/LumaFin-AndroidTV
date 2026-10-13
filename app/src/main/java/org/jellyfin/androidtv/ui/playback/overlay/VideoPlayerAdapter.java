@@ -105,7 +105,7 @@ public class VideoPlayerAdapter extends PlayerAdapter {
     }
 
     public boolean hasMultiAudio() {
-        return StreamHelper.getAudioStreams(playbackController.getCurrentMediaSource()).size() > 1;
+        return StreamHelper.getAudioStreams(playbackController.getCurrentMediaSource()).size() > 0;
     }
 
     boolean hasNextItem() {

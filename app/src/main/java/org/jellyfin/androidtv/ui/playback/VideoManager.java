@@ -88,11 +88,20 @@ public class VideoManager {
     private long lastExoPlayerPosition = -1;
     private boolean nightModeEnabled;
     private volatile long subtitleDelayMs;
+    private volatile long audioDelayMs;
     private java.util.UUID subtitleTimingItem;
 
     public void setSubtitleTimingItem(java.util.UUID itemId) {
-        if (!java.util.Objects.equals(itemId, subtitleTimingItem)) subtitleDelayMs = 0;
+        if (!java.util.Objects.equals(itemId, subtitleTimingItem)) { subtitleDelayMs = 0; audioDelayMs = 0; }
         subtitleTimingItem = itemId;
+    }
+
+    public long getAudioDelayMs() { return audioDelayMs; }
+    public void setAudioDelayMs(long delayMs) { audioDelayMs = Math.max(-2000, Math.min(2000, delayMs)); }
+    public boolean isAudioTimingAvailable() {
+        return mExoPlayer != null && !(mExoPlayer.getTrackSelector() instanceof DefaultTrackSelector
+                && ((DefaultTrackSelector) mExoPlayer.getTrackSelector()).getParameters().tunnelingEnabled)
+                && mExoPlayer.getCurrentTracks().getGroups().stream().anyMatch(group -> group.getType() == C.TRACK_TYPE_VIDEO && group.isSelected());
     }
 
     public long getSubtitleDelayMs() { return subtitleDelayMs; }
@@ -269,7 +278,9 @@ public class VideoManager {
             androidx.media3.exoplayer.Renderer[] renderers = subtitleFactory.createRenderers(handler, videoListener, audioListener, textOutput, metadataOutput);
             for (int i = 0; i < renderers.length; i++) {
                 if (renderers[i].getTrackType() == C.TRACK_TYPE_TEXT || renderers[i] instanceof io.github.peerless2012.ass.media.render.AssRenderer)
-                    renderers[i] = new SubtitleTimingRenderer(renderers[i], () -> subtitleDelayMs);
+                    renderers[i] = new SubtitleTimingRenderer(renderers[i], () -> subtitleDelayMs - audioDelayMs);
+                if (renderers[i].getTrackType() == C.TRACK_TYPE_VIDEO)
+                    renderers[i] = new AudioTimingRenderer(renderers[i], () -> audioDelayMs);
             }
             return renderers;
         });

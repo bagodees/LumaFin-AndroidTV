@@ -902,4 +902,9 @@
     <string name="watch_later_added">Saved to Watch Later on this device</string>
     <string name="watch_later_removed">Removed from Watch Later</string>
     <string name="watch_later_unavailable_hint">This title could not be loaded. Long-press to retry or remove it from Watch Later.</string>
+    <string name="audio_timing">Audio Timing</string>
+    <string name="audio_timing_value">Audio Timing: %1$s s</string>
+    <string name="audio_earlier">Audio Earlier</string>
+    <string name="audio_later">Audio Later</string>
+    <string name="audio_timing_description">Adjust dialogue to match the picture. Each press changes timing by 0.1 seconds, up to 2 seconds in either direction. Positive values make audio later; negative values make it earlier. Reset restores normal timing. Applies to this title on this device.</string>
 </resources>

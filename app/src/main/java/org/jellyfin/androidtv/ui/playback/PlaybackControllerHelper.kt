@@ -227,3 +227,9 @@ private fun PlaybackController.addAskToSkipAction(mediaSegment: MediaSegmentDto)
 		.setDeleteAfterDelivery(false)
 		.send()
 }
+
+fun PlaybackController.audioTimingAvailable(): Boolean = mVideoManager?.isAudioTimingAvailable == true
+fun PlaybackController.audioDelayMs(): Long = mVideoManager?.audioDelayMs ?: 0L
+fun PlaybackController.adjustAudioTiming(deltaMs: Long, reset: Boolean = false) {
+    mVideoManager?.let { manager -> manager.audioDelayMs = if (reset) 0 else manager.audioDelayMs + deltaMs }
+}
