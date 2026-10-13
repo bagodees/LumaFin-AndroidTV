@@ -269,6 +269,11 @@
     <string name="lbl_news">News</string>
     <string name="lbl_new_only">New only</string>
     <string name="lbl_subtitle_delay">Subtitle delay</string>
+    <string name="remove_continue_watching">Remove from Continue Watching</string>
+    <string name="remove_continue_watching_confirmation">Remove "%1$s"?\n\nThis clears its saved resume point and marks it unwatched for your Jellyfin user on this server, including on other devices. Your watched count for this item is also reset.\n\nThe media file and other users’ progress are unchanged. Watching it again can add it back to Continue Watching.</string>
+    <string name="remove_continue_watching_confirm">Remove and Clear Progress</string>
+    <string name="remove_continue_watching_success">Removed from Continue Watching</string>
+    <string name="remove_continue_watching_failed">Could not clear progress. Please try again.</string>
     <string name="subtitle_timing">Subtitle Timing</string>
     <string name="subtitle_timing_value">Subtitle Timing: %1$s seconds</string>
     <string name="subtitle_timing_description">Move subtitles earlier or later in 0.1-second steps. Positive values show subtitles later. Applies to this playback only. Press Back to return. Timing cannot be adjusted when subtitles are burned into the video.</string>
