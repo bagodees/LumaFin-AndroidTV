@@ -83,6 +83,7 @@ public class PlaybackController implements PlaybackControllerNotifiable {
     private Boolean spinnerOff = false;
 
     protected VideoOptions mCurrentOptions;
+    private final PlaybackTrackStartup trackStartup = new PlaybackTrackStartup();
     private int mDefaultAudioIndex = -1;
     protected boolean burningSubs = false;
 
@@ -526,7 +527,7 @@ public class PlaybackController implements PlaybackControllerNotifiable {
             internalOptions.setSubtitleStreamIndex(mCurrentOptions.getSubtitleStreamIndex());
             internalOptions.setAudioStreamIndex(mCurrentOptions.getAudioStreamIndex());
         }
-        PlaybackTrackSelection.Selection chosenTracks = PlaybackTrackSelection.INSTANCE.get(item.getId());
+        PlaybackTrackSelection.Selection chosenTracks = trackStartup.get(item.getId());
         if (chosenTracks != null) {
             if (chosenTracks.getAudioIndex() != null) internalOptions.setAudioStreamIndex(chosenTracks.getAudioIndex());
             if (chosenTracks.getSubtitleIndex() != null) internalOptions.setSubtitleStreamIndex(chosenTracks.getSubtitleIndex());
@@ -672,10 +673,10 @@ public class PlaybackController implements PlaybackControllerNotifiable {
         setDefaultAudioIndex(response);
 
         // Tracks picked on the details screen take priority over saved-language and server defaults
-        PlaybackTrackSelection.Selection chosenTracks = PlaybackTrackSelection.INSTANCE.consume(item.getId());
+        PlaybackTrackSelection.Selection chosenTracks = trackStartup.get(item.getId());
         if (chosenTracks != null) {
             if (chosenTracks.getSubtitleIndex() != null) {
-                mCurrentOptions.setSubtitleStreamIndex(chosenTracks.getSubtitleIndex() == PlaybackTrackSelection.SUBTITLES_OFF ? null : chosenTracks.getSubtitleIndex());
+                mCurrentOptions.setSubtitleStreamIndex(chosenTracks.getSubtitleIndex());
             }
             if (chosenTracks.getAudioIndex() != null) {
                 mCurrentOptions.setAudioStreamIndex(chosenTracks.getAudioIndex());
@@ -1247,6 +1248,7 @@ public class PlaybackController implements PlaybackControllerNotifiable {
 
     @Override
     public void onPrepared() {
+        trackStartup.prepared();
         if (mPlaybackState == PlaybackState.BUFFERING) {
             if (mFragment != null) {
                 mFragment.setFadingEnabled(true);
