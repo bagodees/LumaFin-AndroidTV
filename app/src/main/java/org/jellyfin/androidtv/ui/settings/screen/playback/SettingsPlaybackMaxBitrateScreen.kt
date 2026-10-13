@@ -34,6 +34,19 @@ fun SettingsPlaybackMaxBitrateScreen() {
 			ListSection(
 				overlineContent = { Text(stringResource(R.string.pref_playback_advanced).uppercase()) },
 				headingContent = { Text(stringResource(R.string.pref_max_bitrate_title)) },
+				captionContent = { Text(stringResource(R.string.quality_custom_description)) },
+			)
+		}
+
+		item {
+			ListButton(
+				headingContent = { Text(stringResource(R.string.streaming_quality_reset)) },
+				captionContent = { Text(stringResource(R.string.streaming_quality_reset_description, options.first { it.first == UserPreferences.maxBitrate.defaultValue }.second)) },
+				onClick = {
+					maxBitrate = UserPreferences.maxBitrate.defaultValue
+					userPreferences[UserPreferences.streamingQuality] = org.jellyfin.androidtv.preference.constant.StreamingQuality.CUSTOM
+				},
+				modifier = Modifier.focusKey("streaming_quality_reset"),
 			)
 		}
 
@@ -43,6 +56,7 @@ fun SettingsPlaybackMaxBitrateScreen() {
 				trailingContent = { RadioButton(checked = maxBitrate == value) },
 				onClick = {
 					maxBitrate = value
+					userPreferences[UserPreferences.streamingQuality] = org.jellyfin.androidtv.preference.constant.StreamingQuality.CUSTOM
 					router.back()
 				},
 				modifier = Modifier

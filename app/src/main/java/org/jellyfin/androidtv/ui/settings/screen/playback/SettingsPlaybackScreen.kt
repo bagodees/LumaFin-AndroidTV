@@ -97,6 +97,17 @@ fun SettingsPlaybackScreen() {
 		}
 
 		item {
+			val quality by rememberPreference(userPreferences, UserPreferences.streamingQuality)
+			ListButton(
+				leadingContent = { Icon(painterResource(R.drawable.ic_select_quality), contentDescription = null) },
+				headingContent = { Text(stringResource(R.string.pref_streaming_quality)) },
+				captionContent = { Text(stringResource(quality.nameRes)) },
+				onClick = { router.push(Routes.PLAYBACK_QUALITY) },
+				modifier = Modifier.focusKey(Routes.PLAYBACK_QUALITY),
+			)
+		}
+
+		item {
 			ListButton(
 				leadingContent = { Icon(painterResource(R.drawable.ic_subtitles), contentDescription = null) },
 				headingContent = { Text(stringResource(R.string.pref_customization_subtitles)) },

@@ -5,21 +5,17 @@ import android.view.Gravity
 import android.view.View
 import android.widget.PopupMenu
 import org.jellyfin.androidtv.R
-import org.jellyfin.androidtv.constant.getQualityProfiles
+import org.jellyfin.androidtv.preference.constant.StreamingQuality
 import org.jellyfin.androidtv.preference.UserPreferences
 import org.jellyfin.androidtv.ui.playback.PlaybackController
-import org.jellyfin.androidtv.ui.playback.VideoQualityController
 import org.jellyfin.androidtv.ui.playback.overlay.CustomPlaybackTransportControlGlue
 import org.jellyfin.androidtv.ui.playback.overlay.VideoPlayerAdapter
 
 class SelectQualityAction(
 	context: Context,
 	customPlaybackTransportControlGlue: CustomPlaybackTransportControlGlue,
-	userPreferences: UserPreferences
+	private val userPreferences: UserPreferences
 ) : CustomAction(context, customPlaybackTransportControlGlue) {
-	private val previousQualitySelection = userPreferences[UserPreferences.maxBitrate]
-	private val qualityController = VideoQualityController(previousQualitySelection, userPreferences)
-	private val qualityProfiles = getQualityProfiles(context)
 	private var popup: PopupMenu? = null
 
 	init {
@@ -34,13 +30,14 @@ class SelectQualityAction(
 	) {
 		videoPlayerAdapter.leanbackOverlayFragment.setFading(false)
 		dismissPopup()
+		val qualityProfiles = StreamingQuality.entries.filter { it != StreamingQuality.CUSTOM || userPreferences[UserPreferences.streamingQuality] == it }
 		popup = PopupMenu(context, view, Gravity.END).apply {
-			qualityProfiles.values.forEachIndexed { i, selected ->
-				menu.add(0, i, i, selected)
+			qualityProfiles.forEachIndexed { i, selected ->
+				menu.add(0, i, i, context.getString(selected.nameRes))
 			}
 
 			menu.setGroupCheckable(0, true, true)
-			val currentQualityIndex = qualityProfiles.keys.indexOf(qualityController.currentQuality)
+			val currentQualityIndex = qualityProfiles.indexOf(userPreferences[UserPreferences.streamingQuality])
 			if (currentQualityIndex != -1) {
 				menu.getItem(currentQualityIndex)?.let { item ->
 					item.isChecked = true
@@ -52,7 +49,7 @@ class SelectQualityAction(
 				popup = null
 			}
 			setOnMenuItemClickListener { menuItem ->
-				qualityController.currentQuality = qualityProfiles.keys.elementAt(menuItem.itemId)
+				userPreferences[UserPreferences.streamingQuality] = qualityProfiles[menuItem.itemId]
 				playbackController.refreshStream()
 				dismiss()
 				true

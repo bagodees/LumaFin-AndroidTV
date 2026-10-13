@@ -1,5 +1,6 @@
 package org.jellyfin.androidtv.preference
 
+import org.jellyfin.androidtv.preference.constant.StreamingQuality
 import org.jellyfin.androidtv.preference.constant.MediaCardSize
 import android.content.Context
 import android.content.SharedPreferences
@@ -43,6 +44,12 @@ import kotlin.time.Duration.Companion.minutes
 class UserPreferences(context: Context) : SharedPreferenceStore(
 	sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 ) {
+	init {
+		if (!sharedPreferences.contains(streamingQuality.key) && sharedPreferences.contains(maxBitrate.key)) {
+			this[streamingQuality] = StreamingQuality.CUSTOM
+		}
+	}
+
 	/** Keeps visible cards in sync when the badge setting changes in the settings dialog. */
 	val ratingBadgeChanges = callbackFlow {
 		val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
@@ -98,6 +105,7 @@ class UserPreferences(context: Context) : SharedPreferenceStore(
 		 * Maximum bitrate in megabit for playback.
 		 */
 		var maxBitrate = stringPreference("pref_max_bitrate", "100")
+		val streamingQuality = enumPreference("streaming_quality", StreamingQuality.ORIGINAL)
 
 		/**
 		 * Auto-play next item

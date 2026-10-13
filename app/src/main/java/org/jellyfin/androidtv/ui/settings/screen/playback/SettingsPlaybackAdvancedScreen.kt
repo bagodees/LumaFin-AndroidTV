@@ -18,8 +18,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.constant.getQualityProfiles
+import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.preference.UserPreferences
 import org.jellyfin.androidtv.preference.UserSettingPreferences
 import org.jellyfin.androidtv.ui.base.Text
@@ -168,14 +168,12 @@ fun SettingsPlaybackAdvancedScreen() {
 		item { ListSection(headingContent = { Text(stringResource(R.string.pref_video)) }) }
 
 		item {
-			var maxBitrate by rememberPreference(userPreferences, UserPreferences.maxBitrate)
-			val options = getQualityProfiles(context)
-
+			val bitrate by rememberPreference(userPreferences, UserPreferences.maxBitrate)
 			ListButton(
 				headingContent = { Text(stringResource(R.string.pref_max_bitrate_title)) },
-				captionContent = { Text(options[maxBitrate].orEmpty()) },
+				captionContent = { Text(getQualityProfiles(context)[bitrate].orEmpty()) },
 				onClick = { router.push(Routes.PLAYBACK_MAX_BITRATE) },
-				modifier = Modifier.focusKey(Routes.PLAYBACK_MAX_BITRATE)
+				modifier = Modifier.focusKey(Routes.PLAYBACK_MAX_BITRATE),
 			)
 		}
 

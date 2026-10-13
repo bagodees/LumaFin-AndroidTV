@@ -69,6 +69,7 @@ private val hlsFmp4AudioCodecs = arrayOf(
 )
 
 private fun UserPreferences.getMaxBitrate(): Int {
+	this[UserPreferences.streamingQuality].bitrate?.let { return it }
 	var maxBitrate = this[UserPreferences.maxBitrate].toFloatOrNull()
 
 	// The value "0" was used in an older release, make sure we prevent that from being used to avoid video not playing
@@ -108,7 +109,7 @@ fun createDeviceProfile(
 	userHEVCLevel = userPreferences[UserPreferences.userHEVCLevel].level,
 	forceEnabledHdr = userPreferences.getHdrRangeTypesFor(HdrOverrideMode.ENABLE),
 	forceDisabledHdr = userPreferences.getHdrRangeTypesFor(HdrOverrideMode.DISABLE),
-)
+).withStreamingQuality(userPreferences[UserPreferences.streamingQuality])
 
 fun createDeviceProfile(
 	mediaTest: MediaCodecCapabilitiesTest,
