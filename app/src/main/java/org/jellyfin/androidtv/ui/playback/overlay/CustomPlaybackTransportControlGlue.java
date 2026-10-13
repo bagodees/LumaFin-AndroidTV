@@ -66,6 +66,7 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
     private PlaybackSpeedAction playbackSpeedAction;
     private ZoomAction zoomAction;
     private SleepTimerAction sleepTimerAction;
+    private org.jellyfin.androidtv.ui.playback.overlay.action.PlaybackInformationAction playbackInformationAction;
     private ChapterAction chapterAction;
 
     // TV actions
@@ -133,6 +134,7 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
         selectQualityAction.dismissPopup();
         zoomAction.dismissPopup();
         sleepTimerAction.dismissPopup();
+        playbackInformationAction.dismissDialog();
 
         super.onDetachedFromHost();
     }
@@ -227,6 +229,8 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
         selectQualityAction.setLabels(new String[]{context.getString(R.string.lbl_quality_profile)});
         sleepTimerAction = new SleepTimerAction(context, this);
         sleepTimerAction.setLabels(new String[]{context.getString(R.string.sleep_timer)});
+        playbackInformationAction = new org.jellyfin.androidtv.ui.playback.overlay.action.PlaybackInformationAction(context, this);
+        playbackInformationAction.setLabels(new String[]{context.getString(R.string.playback_information)});
         playbackSpeedAction = new PlaybackSpeedAction(context, this, playbackController);
         playbackSpeedAction.setLabels(new String[]{context.getString(R.string.lbl_playback_speed)});
         zoomAction = new ZoomAction(context, this);
@@ -314,6 +318,7 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
 
         secondaryActionsAdapter.add(zoomAction);
         secondaryActionsAdapter.add(sleepTimerAction);
+        secondaryActionsAdapter.add(playbackInformationAction);
 
         updateChapterTicks();
     }

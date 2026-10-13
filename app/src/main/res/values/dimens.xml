@@ -2,6 +2,17 @@
     <dimen name="overscan_horizontal">27dp</dimen>
     <dimen name="overscan_vertical">48dp</dimen>
 
+    <!-- Compact playback controls leave room for the end time on the button row. -->
+    <dimen name="lb_control_button_diameter">72dp</dimen>
+    <dimen name="lb_control_button_height">56dp</dimen>
+    <dimen name="lb_control_button_secondary_diameter">44dp</dimen>
+    <dimen name="lb_control_button_secondary_height">44dp</dimen>
+    <dimen name="lb_control_icon_width">26dp</dimen>
+    <dimen name="lb_control_icon_height">26dp</dimen>
+    <dimen name="lb_playback_controls_child_margin_default">40dp</dimen>
+    <dimen name="lb_playback_controls_child_margin_bigger">52dp</dimen>
+    <dimen name="lb_playback_controls_child_margin_biggest">72dp</dimen>
+
     <fraction name="card_scale_default">100%</fraction>
     <!-- Keep focus clear without making the selected card dominate its row. -->
     <fraction name="card_scale_focus">108%</fraction>
