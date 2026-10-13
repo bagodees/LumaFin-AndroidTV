@@ -1,6 +1,9 @@
 package org.jellyfin.androidtv.ui.presentation
 
 import org.jellyfin.androidtv.preference.UserPreferences
+import android.view.View
+import androidx.compose.ui.platform.findViewTreeCompositionContext
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import android.view.KeyEvent
 import android.view.ViewGroup
 import android.widget.ImageView
@@ -27,7 +30,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.findViewTreeCompositionContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -73,7 +75,17 @@ class CardPresenter(
 
 	override fun onCreateViewHolder(parent: ViewGroup): ViewHolder {
 		val view = ComposeView(parent.context).apply {
+			setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
 			setParentCompositionContext(parent.findViewTreeCompositionContext())
+			addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
+				override fun onViewAttachedToWindow(view: View) {
+					val owner = view.parent as? View ?: return
+					setParentCompositionContext(owner.findViewTreeCompositionContext())
+					setViewTreeLifecycleOwner(owner.findViewTreeLifecycleOwner())
+					setViewTreeSavedStateRegistryOwner(owner.findViewTreeSavedStateRegistryOwner())
+				}
+				override fun onViewDetachedFromWindow(view: View) = Unit
+			})
 			setViewTreeLifecycleOwner(parent.findViewTreeLifecycleOwner())
 			setViewTreeSavedStateRegistryOwner(parent.findViewTreeSavedStateRegistryOwner())
 			isFocusable = true

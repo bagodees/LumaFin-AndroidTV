@@ -13,13 +13,9 @@ import org.jellyfin.androidtv.ui.presentation.MutableObjectAdapter
 class HomeFragmentViewsRow(
 	val small: Boolean,
 ) : HomeFragmentRow {
-	private companion object {
-		val smallCardPresenter = CardPresenter(true, 75)
-		val largeCardPresenter = CardPresenter(true, 126)
-	}
-
 	override suspend fun addToRowsAdapter(context: Context, cardPresenter: CardPresenter, rowsAdapter: MutableObjectAdapter<Row>) {
-		val presenter = if (small) smallCardPresenter else largeCardPresenter
+		// Fresh presenters keep recycled Compose cards tied to this Home view lifecycle.
+		val presenter = CardPresenter(true, if (small) 75 else 126)
 		val rowAdapter = ItemRowAdapter(context, GetUserViewsRequest, presenter, rowsAdapter)
 
 		val header = HeaderItem(context.getString(R.string.home_section_library))
