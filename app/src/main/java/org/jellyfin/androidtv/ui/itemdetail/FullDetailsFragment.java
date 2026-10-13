@@ -683,6 +683,10 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
         mDetailsOverviewRow.setSummary(summary);
         if (mDorPresenter != null && mDorPresenter.getViewHolder() != null) {
             mDorPresenter.getViewHolder().setSummary(summary);
+            if (mBaseItem.getType() == BaseItemKind.EPISODE) {
+                mDorPresenter.getViewHolder().setEpisodeArtwork(mBaseItem, mDetailsOverviewRow);
+                backgroundService.getValue().setBackground(mBaseItem);
+            }
         }
     }
 

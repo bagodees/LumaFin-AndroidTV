@@ -1,5 +1,6 @@
 package org.jellyfin.androidtv.data.service
 
+import org.jellyfin.androidtv.util.hideEpisodeArtwork
 import android.content.Context
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
@@ -59,7 +60,17 @@ class BackgroundService(
 	/**
 	 * Use all available backdrops from [baseItem] as background.
 	 */
+	private var lastBackgroundItem: BaseItemDto? = null
+	init {
+		scope.launch {
+			userPreferences.episodeArtworkChanges.collect {
+				lastBackgroundItem?.let { item -> setBackground(item) }
+			}
+		}
+	}
+
 	fun setBackground(baseItem: BaseItemDto?) {
+		lastBackgroundItem = baseItem
 		val backdropBehavior = userPreferences[UserPreferences.backdropBehavior]
 
 		// Check if item is set and backgrounds are enabled
@@ -70,7 +81,10 @@ class BackgroundService(
 		_blurBackground.value = backdropBehavior == BackdropBehavior.BACKDROP_WITH_BLUR
 
 		// Get all backdrop urls
-		val backdropUrls = (baseItem.itemBackdropImages + baseItem.parentBackdropImages)
+		val backdropImages = if (hideEpisodeArtwork(baseItem))
+			baseItem.parentBackdropImages.filter { it.item == baseItem.seriesId }
+		else baseItem.itemBackdropImages + baseItem.parentBackdropImages
+		val backdropUrls = backdropImages
 			.map { it.getUrl(api) }
 			.toSet()
 
@@ -81,6 +95,7 @@ class BackgroundService(
 	 * Use splashscreen from [server] as background.
 	 */
 	fun setBackground(server: Server) {
+		lastBackgroundItem = null
 		// Check if item is set and backgrounds are enabled
 		if (userPreferences[UserPreferences.backdropBehavior] == BackdropBehavior.DISABLED)
 			return clearBackgrounds()

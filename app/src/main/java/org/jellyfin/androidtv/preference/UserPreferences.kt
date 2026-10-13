@@ -72,6 +72,15 @@ class UserPreferences(context: Context) : SharedPreferenceStore(
 		awaitClose { sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener) }
 	}.distinctUntilChanged()
 
+	val episodeArtworkChanges = callbackFlow {
+		val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+			if (key == hideUnwatchedEpisodeArtwork.key || key == null) trySend(this@UserPreferences[hideUnwatchedEpisodeArtwork])
+		}
+		sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
+		trySend(this@UserPreferences[hideUnwatchedEpisodeArtwork])
+		awaitClose { sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener) }
+	}.distinctUntilChanged()
+
 	companion object {
 		/* Display */
 		/**
@@ -97,6 +106,7 @@ class UserPreferences(context: Context) : SharedPreferenceStore(
 
 		val mediaCardSize = enumPreference("media_card_size", MediaCardSize.DEFAULT)
 		val reducedMotion = booleanPreference("reduced_motion", false)
+		val hideUnwatchedEpisodeArtwork = booleanPreference("hide_unwatched_episode_artwork", false)
 		val hideUnwatchedEpisodeDescriptions = booleanPreference("hide_unwatched_episode_descriptions", false)
 
 		/**

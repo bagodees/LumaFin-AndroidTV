@@ -776,4 +776,6 @@
     <string name="sleep_timer_minutes">%1$d Minutes</string>
     <string name="sleep_timer_remaining">%1$d Minutes Remaining</string>
     <string name="sleep_timer_episode_end">End of Episode</string>
+    <string name="hide_unwatched_episode_artwork">Hide Unwatched Episode Artwork</string>
+    <string name="hide_unwatched_episode_artwork_description">Use series artwork for unwatched episodes to avoid visual spoilers, with a neutral icon when unavailable. Episode artwork appears after an episode is marked watched.</string>
 </resources>

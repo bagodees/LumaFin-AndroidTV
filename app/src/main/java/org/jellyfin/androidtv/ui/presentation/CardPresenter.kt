@@ -280,14 +280,15 @@ private fun CardViewHolderContent(
 
 	val title = remember(item, context) { item?.getCardName(context) }
 	val subtitle = remember(item, context) { item?.getSubText(context) }
-	val displayConfig = remember(item, imageType, uniformAspect) { item?.getDisplayConfig(imageType, uniformAspect) }
+	val preferences = koinInject<UserPreferences>()
+	val hideArtwork by preferences.episodeArtworkChanges.collectAsState(initial = preferences[UserPreferences.hideUnwatchedEpisodeArtwork])
+	val displayConfig = remember(item, imageType, uniformAspect, hideArtwork) { item?.getDisplayConfig(imageType, uniformAspect) }
 	if (item == null || displayConfig == null) return
 
 	val image = displayConfig.image
 	val aspectRatio = displayConfig.aspectRatio.takeIf { it >= 0.1f }
 		?: image?.aspectRatio?.takeIf { it >= 0.1f } ?: 1f
 
-	val preferences = koinInject<UserPreferences>()
 	val cardSize by preferences.mediaCardSizeChanges.collectAsState(initial = preferences[UserPreferences.mediaCardSize])
 	val mediaTypes = setOf(BaseItemKind.MOVIE, BaseItemKind.SERIES, BaseItemKind.SEASON, BaseItemKind.EPISODE,
 		BaseItemKind.AUDIO, BaseItemKind.MUSIC_ALBUM, BaseItemKind.MUSIC_VIDEO, BaseItemKind.BOOK, BaseItemKind.AUDIO_BOOK)

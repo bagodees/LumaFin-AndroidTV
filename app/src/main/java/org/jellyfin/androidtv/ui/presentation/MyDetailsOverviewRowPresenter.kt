@@ -1,5 +1,11 @@
 package org.jellyfin.androidtv.ui.presentation
 
+import androidx.core.content.ContextCompat
+import org.jellyfin.androidtv.util.safeSeriesArtwork
+import org.jellyfin.androidtv.util.apiclient.getUrl
+import org.jellyfin.sdk.api.client.ApiClient
+import org.jellyfin.androidtv.util.hideEpisodeArtwork
+import org.jellyfin.sdk.model.api.BaseItemDto
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
@@ -71,13 +77,13 @@ class MyDetailsOverviewRowPresenter(
 			binding.infoValue3.text = row.infoItem3?.value
 
 			binding.fdThumb.isVisible = hasThumbnail
-			if (hasThumbnail) binding.fdThumb.load(row.thumbnailImage, null, null, 1.0, 0)
+			if (hasThumbnail) setEpisodeArtwork(item, row)
 			binding.guideMainStart.setGuidelineBegin(
 				(view.resources.displayMetrics.density * if (hasThumbnail) 300 else 170).toInt()
 			)
 			binding.fdThumb.clipToOutline = true
 
-			binding.mainImage.load(row.imageDrawable, null, null, 1.0, 0)
+			if (!hasThumbnail) binding.mainImage.load(row.imageDrawable, null, null, 1.0, 0)
 
 			bindTrackChips(row, hasThumbnail)
 
@@ -95,6 +101,15 @@ class MyDetailsOverviewRowPresenter(
 
 				binding.fdButtonRow.addView(button)
 			}
+		}
+
+		fun setEpisodeArtwork(item: BaseItemDto, row: MyDetailsOverviewRow) {
+			val hidden = hideEpisodeArtwork(item)
+			val safeImage = if (hidden) safeSeriesArtwork(item) else null
+			val safeUrl = safeImage?.getUrl(GlobalContext.get().get<ApiClient>())
+			binding.fdThumb.load(if (hidden) safeUrl else row.thumbnailImage, null,
+				if (hidden) ContextCompat.getDrawable(view.context, R.drawable.ic_tv) else null, 1.0, 0)
+			binding.mainImage.load(if (hidden) null else row.imageDrawable, null, null, 1.0, 0)
 		}
 
 		private fun bindTrackChips(row: MyDetailsOverviewRow, enabled: Boolean) {

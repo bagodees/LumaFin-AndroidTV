@@ -28,4 +28,28 @@ class SpoilerProtectionTests : FunSpec({
 		shouldHideEpisodeDescription(item(BaseItemKind.MOVIE, false), true) shouldBe false
 		shouldHideEpisodeDescription(item(BaseItemKind.SERIES, false), true) shouldBe false
 	}
+	test("artwork protection covers unwatched and unknown episodes only") {
+		shouldHideEpisodeArtwork(item(BaseItemKind.EPISODE, false), true) shouldBe true
+		shouldHideEpisodeArtwork(item(BaseItemKind.EPISODE, null), true) shouldBe true
+		shouldHideEpisodeArtwork(item(BaseItemKind.EPISODE, true), true) shouldBe false
+		shouldHideEpisodeArtwork(item(BaseItemKind.EPISODE, false), false) shouldBe false
+		shouldHideEpisodeArtwork(item(BaseItemKind.MOVIE, false), true) shouldBe false
+		shouldHideEpisodeArtwork(item(BaseItemKind.SERIES, false), true) shouldBe false
+	}
+	test("protected artwork prefers series thumbnail over poster") {
+		val series = UUID.randomUUID()
+		val episode = BaseItemDto(id = UUID.randomUUID(), type = BaseItemKind.EPISODE,
+			seriesId = series, seriesThumbImageTag = "thumb", seriesPrimaryImageTag = "poster")
+		safeSeriesArtwork(episode)?.item shouldBe series
+		safeSeriesArtwork(episode)?.type shouldBe org.jellyfin.sdk.model.api.ImageType.THUMB
+	}
+	test("protected artwork falls back to series poster and never episode artwork") {
+		val series = UUID.randomUUID()
+		val episode = BaseItemDto(id = UUID.randomUUID(), type = BaseItemKind.EPISODE,
+			seriesId = series, seriesPrimaryImageTag = "poster")
+		safeSeriesArtwork(episode)?.item shouldBe series
+		safeSeriesArtwork(episode)?.type shouldBe org.jellyfin.sdk.model.api.ImageType.PRIMARY
+		safeSeriesArtwork(BaseItemDto(id = UUID.randomUUID(), type = BaseItemKind.EPISODE,
+			imageTags = mapOf(org.jellyfin.sdk.model.api.ImageType.PRIMARY to "episode"))) shouldBe null
+	}
 })

@@ -1,5 +1,7 @@
 package org.jellyfin.androidtv.ui.itemhandling
 
+import org.jellyfin.androidtv.util.safeSeriesArtwork
+import org.jellyfin.androidtv.util.hideEpisodeArtwork
 import android.content.Context
 import org.jellyfin.androidtv.util.apiclient.JellyfinImage
 import org.jellyfin.androidtv.util.apiclient.albumPrimaryImage
@@ -105,6 +107,7 @@ open class BaseItemDtoBaseRowItem @JvmOverloads constructor(
 	}
 
 	override fun getImage(imageType: BaseRowImageType): JellyfinImage? {
+		if (baseItem?.let(::hideEpisodeArtwork) == true) return baseItem?.let(::safeSeriesArtwork)
 		val primaryImage = when {
 			preferSeriesPoster && baseItem?.type == BaseItemKind.EPISODE -> baseItem.parentImages[ImageType.PRIMARY]
 				?: baseItem.seriesPrimaryImage

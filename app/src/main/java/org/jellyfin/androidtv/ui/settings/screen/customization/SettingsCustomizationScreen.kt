@@ -129,6 +129,17 @@ fun SettingsCustomizationScreen() {
 			)
 		}
 
+		item {
+			var hideArtwork by rememberPreference(userPreferences, UserPreferences.hideUnwatchedEpisodeArtwork)
+			ListButton(
+				headingContent = { Text(stringResource(R.string.hide_unwatched_episode_artwork)) },
+				captionContent = { Text(stringResource(R.string.hide_unwatched_episode_artwork_description)) },
+				trailingContent = { Checkbox(checked = hideArtwork) },
+				onClick = { hideArtwork = !hideArtwork },
+				modifier = Modifier.focusKey("hide_unwatched_episode_artwork"),
+			)
+		}
+
 		item(key = "media_card_size") {
 			ListButton(
 				headingContent = { Text(stringResource(R.string.media_card_size)) },
