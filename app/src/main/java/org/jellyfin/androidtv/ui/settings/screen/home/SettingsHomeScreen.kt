@@ -29,6 +29,8 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
+import org.jellyfin.androidtv.ui.navigation.LocalRouter
+import org.jellyfin.androidtv.ui.settings.Routes
 import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.constant.HomeSectionType
 import org.jellyfin.androidtv.constant.HomeLayoutPreset
@@ -57,6 +59,7 @@ import kotlin.math.roundToInt
 @Composable
 fun SettingsHomeScreen() {
 	val userSettingPreferences = koinInject<UserSettingPreferences>()
+	val router = LocalRouter.current
 
 	var visibleSections by remember { mutableStateOf(userSettingPreferences.activeHomesections) }
 	var grabbed by remember { mutableStateOf<HomeSectionType?>(null) }
@@ -202,6 +205,16 @@ fun SettingsHomeScreen() {
 					modifier = Modifier.focusKey("undo_home_preset")
 				)
 			}
+		}
+
+		item(key = "hidden_recommendations") {
+			ListButton(
+				headingContent = { Text(stringResource(R.string.recommendation_settings)) },
+				captionContent = { Text(stringResource(R.string.recommendation_settings_description)) },
+				enabled = grabbed == null,
+				onClick = { router.push(Routes.HOME_RECOMMENDATIONS) },
+				modifier = Modifier.focusKey("hidden_recommendations"),
+			)
 		}
 
 		item(key = "home_item_limits") {

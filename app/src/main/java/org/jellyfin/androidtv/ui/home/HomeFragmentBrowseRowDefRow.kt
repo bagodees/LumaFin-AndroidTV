@@ -15,12 +15,13 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
 class HomeFragmentBrowseRowDefRow(
-	private val browseRowDef: BrowseRowDef
+	private val browseRowDef: BrowseRowDef,
+	private val recommendationHeader: RecommendationHeaderItem? = null,
 ) : HomeFragmentRow, KoinComponent {
 	private val userPreferences by inject<UserPreferences>()
 
 	override suspend fun addToRowsAdapter(context: Context, cardPresenter: CardPresenter, rowsAdapter: MutableObjectAdapter<Row>) {
-		val header = HeaderItem(browseRowDef.headerText)
+		val header = recommendationHeader ?: HeaderItem(browseRowDef.headerText)
 		val preferParentThumb = userPreferences[UserPreferences.seriesThumbnailsEnabled]
 
 		// Some of these members are probably never used and could be removed

@@ -21,6 +21,7 @@ import org.jellyfin.androidtv.ui.settings.screen.customization.subtitle.Settings
 import org.jellyfin.androidtv.ui.settings.screen.customization.subtitle.SettingsSubtitlesBackgroundColorScreen
 import org.jellyfin.androidtv.ui.settings.screen.customization.subtitle.SettingsSubtitlesScreen
 import org.jellyfin.androidtv.ui.settings.screen.customization.subtitle.SettingsSubtitlesTextColorScreen
+import org.jellyfin.androidtv.ui.settings.screen.home.SettingsHomeRecommendationsScreen
 import org.jellyfin.androidtv.ui.settings.screen.home.SettingsHomeScreen
 import org.jellyfin.androidtv.ui.settings.screen.library.SettingsLibrariesDisplayGridScreen
 import org.jellyfin.androidtv.ui.settings.screen.library.SettingsLibrariesDisplayImageSizeScreen
@@ -63,6 +64,7 @@ import org.jellyfin.sdk.model.api.MediaSegmentType
 import org.jellyfin.sdk.model.serializer.toUUIDOrNull
 
 object Routes {
+	const val HOME_RECOMMENDATIONS = "/home/recommendations"
 	const val MAIN = "/"
 	const val AUTHENTICATION = "/authentication"
 	const val AUTHENTICATION_FROM_LOGIN = "/authentication+login"
@@ -123,6 +125,7 @@ object Routes {
 }
 
 val routes = mapOf<String, RouteComposable>(
+	Routes.HOME_RECOMMENDATIONS to { SettingsHomeRecommendationsScreen() },
 	Routes.MAIN to {
 		SettingsMainScreen()
 	},

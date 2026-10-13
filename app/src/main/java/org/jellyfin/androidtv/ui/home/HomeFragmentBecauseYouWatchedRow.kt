@@ -23,6 +23,7 @@ import org.jellyfin.sdk.model.api.request.GetSimilarItemsRequest
  */
 class HomeFragmentBecauseYouWatchedRow(
 	private val api: ApiClient,
+	private val hiddenRows: Map<String, String>,
 ) : HomeFragmentRow {
 	override suspend fun addToRowsAdapter(context: Context, cardPresenter: CardPresenter, rowsAdapter: MutableObjectAdapter<Row>) {
 		val seeds = withContext(Dispatchers.IO) {
@@ -32,12 +33,13 @@ class HomeFragmentBecauseYouWatchedRow(
 					sortBy = setOf(ItemSortBy.DATE_PLAYED),
 					sortOrder = setOf(SortOrder.DESCENDING),
 					recursive = true,
-					limit = SEED_COUNT,
+					isPlayed = true,
+					limit = SEED_COUNT + hiddenRows.size,
 				).content.items
 			}.getOrDefault(emptyList())
 		}
 
-		for (seed in seeds) {
+		for (seed in seeds.filterNot { it.id.toString() in hiddenRows }.take(SEED_COUNT)) {
 			val similarQuery = GetSimilarItemsRequest(
 				itemId = seed.id,
 				fields = ItemRepository.itemFields,
@@ -45,7 +47,7 @@ class HomeFragmentBecauseYouWatchedRow(
 			)
 
 			val title = context.getString(R.string.because_you_watched, seed.name)
-			val row = HomeFragmentBrowseRowDefRow(BrowseRowDef(title, similarQuery, QueryType.SimilarMovies))
+			val row = HomeFragmentBrowseRowDefRow(BrowseRowDef(title, similarQuery, QueryType.SimilarMovies), RecommendationHeaderItem(seed.id.toString(), seed.name.orEmpty(), title))
 			row.addToRowsAdapter(context, cardPresenter, rowsAdapter)
 		}
 	}

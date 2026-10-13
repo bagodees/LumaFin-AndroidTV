@@ -25,6 +25,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import org.jellyfin.androidtv.auth.repository.UserRepository
+import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.constant.CustomMessage
 import org.jellyfin.androidtv.constant.HomeSectionType
 import org.jellyfin.androidtv.constant.LiveTvOption
@@ -34,6 +35,8 @@ import org.jellyfin.androidtv.data.repository.CustomMessageRepository
 import org.jellyfin.androidtv.data.repository.NotificationsRepository
 import org.jellyfin.androidtv.data.repository.UserViewsRepository
 import org.jellyfin.androidtv.data.service.BackgroundService
+import org.jellyfin.androidtv.preference.RecommendationPreferences
+import androidx.appcompat.app.AlertDialog
 import org.jellyfin.androidtv.preference.UserSettingPreferences
 import org.jellyfin.androidtv.ui.GridButton
 import org.jellyfin.androidtv.ui.browsing.CompositeClickedListener
@@ -67,6 +70,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 	private val notificationsRepository by inject<NotificationsRepository>()
 	private val userRepository by inject<UserRepository>()
 	private val userSettingPreferences by inject<UserSettingPreferences>()
+	private val recommendationPreferences by inject<RecommendationPreferences>()
 	private val userViewsRepository by inject<UserViewsRepository>()
 	private val dataRefreshService by inject<DataRefreshService>()
 	private val customMessageRepository by inject<CustomMessageRepository>()
@@ -86,10 +90,11 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 	private var loadedLatestShowsLimit = 50
 	private var loadedRecentlyAddedMoviesLimit = 50
 	private var loadedRecentlyAddedShowsLimit = 50
+	private var loadedHiddenRecommendations: Map<String, String> = emptyMap()
 	private var loadedHideWatchedLatestMovies = false
 	private var loadedHideWatchedRecentlyAddedMovies = false
 
-	private fun homePreferencesChanged() = userSettingPreferences.activeHomesections != loadedHomeSections ||
+	private fun homePreferencesChanged() = recommendationPreferences.hiddenRows != loadedHiddenRecommendations || userSettingPreferences.activeHomesections != loadedHomeSections ||
 		userSettingPreferences[UserSettingPreferences.latestMoviesItemLimit] != loadedLatestMoviesLimit ||
 		userSettingPreferences[UserSettingPreferences.latestShowsItemLimit] != loadedLatestShowsLimit ||
 		userSettingPreferences[UserSettingPreferences.recentlyAddedMoviesItemLimit] != loadedRecentlyAddedMoviesLimit ||
@@ -176,6 +181,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 			// Start out with default sections
 			val homesections = userSettingPreferences.activeHomesections
 			loadedHomeSections = homesections
+			loadedHiddenRecommendations = recommendationPreferences.hiddenRows
 			loadedLatestMoviesLimit = userSettingPreferences[UserSettingPreferences.latestMoviesItemLimit]
 			loadedLatestShowsLimit = userSettingPreferences[UserSettingPreferences.latestShowsItemLimit]
 			loadedRecentlyAddedMoviesLimit = userSettingPreferences[UserSettingPreferences.recentlyAddedMoviesItemLimit]
@@ -206,7 +212,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 
 				HomeSectionType.LATEST_MOVIES -> rows.add(helper.loadLatestMovies(loadedLatestMoviesLimit, loadedHideWatchedLatestMovies))
 				HomeSectionType.LATEST_SHOWS -> rows.add(helper.loadLatestShows(loadedLatestShowsLimit))
-				HomeSectionType.BECAUSE_YOU_WATCHED -> rows.add(HomeFragmentBecauseYouWatchedRow(api))
+				HomeSectionType.BECAUSE_YOU_WATCHED -> rows.add(HomeFragmentBecauseYouWatchedRow(api, loadedHiddenRecommendations))
 				HomeSectionType.COLLECTIONS -> rows.add(HomeFragmentCollectionsRow(api, userViewsRepository.views.first()))
 				HomeSectionType.WATCH_AGAIN -> rows.add(helper.loadWatchAgain())
 				HomeSectionType.GENRES -> rows.add(HomeFragmentGenreRow(api))
@@ -258,6 +264,34 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 
 	override fun onKey(v: View?, keyCode: Int, event: KeyEvent?): Boolean {
 		if (event?.action != KeyEvent.ACTION_UP) return false
+		val row = currentRow
+		val header = row?.headerItem as? RecommendationHeaderItem
+		val item = currentItem
+		if (keyCode == KeyEvent.KEYCODE_MENU && header != null && item?.baseItem != null) {
+			val menu = keyProcessor.createItemMenu(item, item.baseItem?.userData, requireActivity())
+			menu.menu.add(0, 1001, 0, R.string.recommendation_why).setOnMenuItemClickListener {
+				AlertDialog.Builder(requireContext())
+					.setTitle(getString(R.string.because_you_watched, header.seedName))
+					.setMessage(getString(R.string.recommendation_explanation, header.seedName))
+					.setPositiveButton(android.R.string.ok, null)
+					.show()
+				true
+			}
+			menu.menu.add(0, 1002, 0, R.string.recommendation_hide).setOnMenuItemClickListener {
+				recommendationPreferences.hide(header.seedId, header.seedName)
+				loadedHiddenRecommendations = recommendationPreferences.hiddenRows
+				@Suppress("UNCHECKED_CAST")
+				val rows = adapter as MutableObjectAdapter<Row>
+				val index = rows.indexOf(row)
+				rows.remove(row)
+				currentItem = null
+				currentRow = null
+				if (rows.size() > 0) setSelectedPosition(index.coerceIn(0, rows.size() - 1))
+				android.widget.Toast.makeText(requireContext(), R.string.recommendation_hidden, android.widget.Toast.LENGTH_LONG).show()
+				true
+			}
+			return true
+		}
 		return keyProcessor.handleKey(keyCode, currentItem, activity)
 	}
 

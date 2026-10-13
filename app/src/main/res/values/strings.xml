@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="recommendation_why">Why This Row?</string>
+    <string name="recommendation_hide">Hide This Recommendation Row</string>
+    <string name="recommendation_explanation">You watched %1$s. Jellyfin suggests similar movies using information in your library. Hiding this row leaves your watch history unchanged and applies only to your account on this TV. Restore it in Settings → Customization → Home → Hidden Recommendations.</string>
+    <string name="recommendation_hidden">Row hidden. Restore it in Home settings → Hidden Recommendations.</string>
+    <string name="recommendation_settings">Hidden Recommendations</string>
+    <string name="recommendation_settings_description">Restore individual Because You Watched rows.</string>
+    <string name="recommendation_restore_hint">Long-press a movie in a Because You Watched row to hide that row or learn why it appears. Select a hidden row below to allow it on Home again. Rows appear when their source movie is among your recently watched movies and similar titles are available.</string>
+    <string name="recommendation_none_hidden">No Hidden Recommendations</string>
+    <string name="recommendation_restore">Select to restore this row.</string>
     <string name="app_name_release" translatable="false" tools:ignore="UnusedResources">LumaFin</string>
     <string name="app_name_debug" translatable="false" tools:ignore="UnusedResources">LumaFin Debug</string>
     <string name="video_error_unknown_error">Failed to load video</string>
