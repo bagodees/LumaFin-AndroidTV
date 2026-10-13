@@ -1217,15 +1217,16 @@ public class PlaybackController implements PlaybackControllerNotifiable {
         }
 
         Timber.i("Moving to next queue item. Index: %s", (mCurrentIndex + 1));
-        boolean stillWatchingEnabled = userPreferences.getValue().get(UserPreferences.Companion.getStillWatchingBehavior()) != StillWatchingBehavior.DISABLED;
+        boolean showStillWatching = curItem.getType() == BaseItemKind.EPISODE
+                && nextItem.getType() == BaseItemKind.EPISODE && interactionTracker.getShowStillWatching();
         boolean nextUpEnabled = userPreferences.getValue().get(UserPreferences.Companion.getNextUpBehavior()) != NextUpBehavior.DISABLED;
-        if ((stillWatchingEnabled || nextUpEnabled) && curItem.getType() != BaseItemKind.TRAILER) {
+        if ((showStillWatching || nextUpEnabled) && curItem.getType() != BaseItemKind.TRAILER) {
             mCurrentIndex++;
             videoQueueManager.getValue().setCurrentMediaPosition(mCurrentIndex);
             spinnerOff = false;
 
             if (mFragment != null) {
-                if (stillWatchingEnabled && interactionTracker.getShowStillWatching()) {
+                if (showStillWatching) {
                     // Show "Still Watching" fragment
                     mFragment.showStillWatching(nextItem.getId());
                 } else if (nextUpEnabled) {

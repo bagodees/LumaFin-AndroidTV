@@ -21,14 +21,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusRestorer
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -60,7 +58,7 @@ import org.koin.compose.koinInject
 import java.util.UUID
 import kotlin.time.Duration.Companion.seconds
 
-val TIMEOUT_IN_MS = 10.seconds.inWholeMilliseconds.toInt()
+val TIMEOUT_IN_MS = 30.seconds.inWholeMilliseconds.toInt()
 
 @Composable
 fun StillWatchingScreen(
@@ -214,20 +212,11 @@ fun StillWatchingOverlay(
 					.focusGroup()
 					.focusRestorer(focusRequester)
 			) {
-				val coroutineScope = rememberCoroutineScope()
 				ProgressButton(
 					progress = endWatchingTimer.value,
 					onClick = onCancel,
 					modifier = Modifier
-						.focusRequester(focusRequester)
-						.onFocusChanged { state ->
-							// Cancel timer if focus is moved away from the button
-							if (!state.isFocused) {
-								coroutineScope.launch {
-									endWatchingTimer.snapTo(0f)
-								}
-							}
-						},
+						.focusRequester(focusRequester),
 				) {
 					Text(stringResource(R.string.lbl_exit))
 				}

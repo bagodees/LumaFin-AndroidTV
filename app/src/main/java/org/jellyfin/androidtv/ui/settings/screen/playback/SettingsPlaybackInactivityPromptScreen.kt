@@ -10,6 +10,7 @@ import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.preference.UserPreferences
 import org.jellyfin.androidtv.preference.constant.StillWatchingBehavior
 import org.jellyfin.androidtv.ui.base.Text
+import org.jellyfin.androidtv.ui.base.JellyfinTheme
 import org.jellyfin.androidtv.ui.base.form.RadioButton
 import org.jellyfin.androidtv.ui.base.list.ListButton
 import org.jellyfin.androidtv.ui.base.list.ListSection
@@ -33,7 +34,13 @@ fun SettingsPlaybackInactivityPromptScreen() {
 			)
 		}
 
-		items(StillWatchingBehavior.entries) { entry ->
+		item {
+			Text(
+				stringResource(R.string.still_watching_settings_description),
+				color = JellyfinTheme.colorScheme.listHeader,
+			)
+		}
+		items(listOf(StillWatchingBehavior.DISABLED, StillWatchingBehavior.SHORT, StillWatchingBehavior.DEFAULT, StillWatchingBehavior.LONG)) { entry ->
 			ListButton(
 				headingContent = { Text(stringResource(entry.nameRes)) },
 				trailingContent = { RadioButton(checked = stillWatchingBehavior == entry) },

@@ -18,7 +18,6 @@ import org.jellyfin.androidtv.data.repository.ExternalAppRepository
 import org.jellyfin.androidtv.preference.UserPreferences
 import org.jellyfin.androidtv.ui.base.Icon
 import org.jellyfin.androidtv.ui.base.LocalShapes
-import org.jellyfin.androidtv.ui.base.form.Checkbox
 import org.jellyfin.androidtv.ui.base.Text
 import org.jellyfin.androidtv.ui.base.list.ListButton
 import org.jellyfin.androidtv.ui.base.list.ListSection
@@ -80,34 +79,11 @@ fun SettingsPlaybackScreen() {
 		}
 
 		item {
-			var mediaQueuingEnabled by rememberPreference(userPreferences, UserPreferences.mediaQueuingEnabled)
-
-			ListButton(
-				headingContent = { Text(stringResource(R.string.pref_media_queueing)) },
-				trailingContent = { Checkbox(checked = mediaQueuingEnabled) },
-				captionContent = { Text(stringResource(R.string.pref_media_queueing_description)) },
-				onClick = { mediaQueuingEnabled = !mediaQueuingEnabled },
-				modifier = Modifier.focusKey("media_queuing_enabled")
-			)
-		}
-
-		item {
 			ListButton(
 				leadingContent = { Icon(painterResource(R.drawable.ic_next_up), contentDescription = null) },
-				headingContent = { Text(stringResource(R.string.pref_playback_next_up)) },
-				onClick = { router.push(Routes.PLAYBACK_NEXT_UP) },
-				modifier = Modifier.focusKey(Routes.PLAYBACK_NEXT_UP)
-			)
-		}
-
-		item {
-			var stillWatchingBehavior by rememberPreference(userPreferences, UserPreferences.stillWatchingBehavior)
-			ListButton(
-				leadingContent = { Icon(painterResource(R.drawable.ic_zzz), contentDescription = null) },
-				headingContent = { Text(stringResource(R.string.pref_playback_inactivity_prompt)) },
-				captionContent = { Text(stringResource(stillWatchingBehavior.nameRes)) },
-				onClick = { router.push(Routes.PLAYBACK_INACTIVITY_PROMPT) },
-				modifier = Modifier.focusKey(Routes.PLAYBACK_INACTIVITY_PROMPT)
+				headingContent = { Text(stringResource(R.string.pref_playback_autoplay)) },
+				onClick = { router.push(Routes.PLAYBACK_AUTOPLAY) },
+				modifier = Modifier.focusKey(Routes.PLAYBACK_AUTOPLAY)
 			)
 		}
 

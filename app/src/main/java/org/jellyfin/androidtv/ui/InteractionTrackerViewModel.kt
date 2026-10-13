@@ -29,9 +29,7 @@ class InteractionTrackerViewModel(
 	// Still Watching
 
 	private var isWatchingEpisodes = false
-	private var episodeCount = 0
-	private var watchTime = 0L
-	private var episodeWasInterrupted: Boolean = false
+	private val binge = EpisodeBingeState()
 
 	// Preferences
 
@@ -60,18 +58,12 @@ class InteractionTrackerViewModel(
 	fun getShowStillWatching(): Boolean {
 		if (!stillWatchingBehavior.enabled) return false
 
-		if (stillWatchingBehavior.episodeCount > 0 && episodeCount >= stillWatchingBehavior.episodeCount) return true
-		if (stillWatchingBehavior.minDuration > Duration.ZERO && watchTime.milliseconds >= stillWatchingBehavior.minDuration) return true
-
-		return false
+		return binge.shouldAsk(stillWatchingBehavior.episodeCount)
 	}
 
 	fun notifyStartSession(item: BaseItemDto, items: List<BaseItemDto>) {
-		// No need to track when only watching 1 episode
-		if (item.type == BaseItemKind.EPISODE && items.size > 1) {
-			resetSession()
-			episodeWasInterrupted = false
-		}
+		resetSession()
+		isWatchingEpisodes = item.type == BaseItemKind.EPISODE
 	}
 
 	fun notifyStillWatching() {
@@ -79,24 +71,19 @@ class InteractionTrackerViewModel(
 	}
 
 	fun onEpisodeWatched() {
-		if (!episodeWasInterrupted) episodeCount++
-		watchTime += playbackControllerContainer.playbackController?.duration ?: 0
-		episodeWasInterrupted = false
+		if (isWatchingEpisodes) binge.completeEpisode()
 	}
 
 	fun notifyStart(item: BaseItemDto) {
-		if (item.type == BaseItemKind.EPISODE) isWatchingEpisodes = true
+		isWatchingEpisodes = item.type == BaseItemKind.EPISODE
+		if (!isWatchingEpisodes) resetSession()
 	}
 
 	fun notifyInteraction(canCancel: Boolean, userInitiated: Boolean) {
 		// Cancel pending screensaver timer (if any)
 		timer?.cancel()
 
-		// If watching episodes, reset episode count and watch time
-		if (isWatchingEpisodes && userInitiated) {
-			resetSession()
-			episodeWasInterrupted = true
-		}
+		// Seeking or changing volume does not restart the consecutive-episode limit.
 
 		// Hide screensaver when interacted with allowed cancellation or when disabled
 		if (_screensaverVisible.value && (canCancel || !inAppEnabled || activityPaused)) {
@@ -154,7 +141,6 @@ class InteractionTrackerViewModel(
 	}
 
 	private fun resetSession() {
-		watchTime = 0L
-		episodeCount = 0
+		binge.reset()
 	}
 }

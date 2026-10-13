@@ -2,62 +2,54 @@ package org.jellyfin.androidtv.preference.constant
 
 import org.jellyfin.androidtv.R
 import org.jellyfin.preference.PreferenceEnum
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.hours
 
 enum class StillWatchingBehavior(
 	override val nameRes: Int,
 	val enabled: Boolean,
 	val episodeCount: Int,
-	val minDuration: Duration,
 ) : PreferenceEnum {
 	/**
-	 * Shorter than default. Show screen at 2 episodes or 60 minutes of uninterrupted watch time.
+	 * Shorter than default. Show screen at 2 completed episodes.
 	 */
 	SHORT(
-		nameRes = R.string.lbl_still_watching_short,
+		nameRes = R.string.still_watching_after_two,
 		enabled = true,
 		episodeCount = 2,
-		minDuration = 1.hours,
 	),
 
 	/**
-	 * Default behavior for still watching. Show screen at 3 episodes or 90 minutes of uninterrupted watch time.
+	 * Default behavior for still watching. Show screen at 3 completed episodes.
 	 */
 	DEFAULT(
-		nameRes = R.string.lbl_still_watching_default,
+		nameRes = R.string.still_watching_after_three,
 		enabled = true,
 		episodeCount = 3,
-		minDuration = 1.5.hours,
 	),
 
 	/**
-	 * Longer than default. Show screen at 5 episodes or 150 minutes of uninterrupted watch time.
+	 * Longer than default. Show screen at 5 completed episodes.
 	 */
 	LONG(
-		nameRes = R.string.lbl_still_watching_long,
+		nameRes = R.string.still_watching_after_five,
 		enabled = true,
 		episodeCount = 5,
-		minDuration = 2.5.hours,
 	),
 
 	/**
-	 * Much longer than default. Show screen at 8 episodes or 240 minutes of uninterrupted watch time.
+	 * Much longer than default. Show screen at 8 completed episodes (retained for existing saved preferences).
 	 */
 	VERY_LONG(
 		nameRes = R.string.lbl_still_watching_very_long,
 		enabled = true,
 		episodeCount = 8,
-		minDuration = 4.hours,
 	),
 
 	/**
 	 * Disables still watching screen.
 	 */
 	DISABLED(
-		nameRes = R.string.state_disabled,
+		nameRes = R.string.still_watching_off,
 		enabled = false,
 		episodeCount = 0,
-		minDuration = Duration.ZERO,
 	)
 }
