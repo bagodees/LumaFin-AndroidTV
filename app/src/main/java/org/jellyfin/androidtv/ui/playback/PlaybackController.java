@@ -692,6 +692,7 @@ public class PlaybackController implements PlaybackControllerNotifiable {
         }
 
         // set playback speed to user selection, or 1 if we're watching live-tv
+        if (mVideoManager != null) mVideoManager.setSubtitleTimingItem(getCurrentlyPlayingItem().getId());
         if (mVideoManager != null)
             mVideoManager.setPlaybackSpeed(isLiveTv() ? 1.0f : mRequestedPlaybackSpeed);
 

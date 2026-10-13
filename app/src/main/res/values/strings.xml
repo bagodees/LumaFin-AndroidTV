@@ -269,6 +269,12 @@
     <string name="lbl_news">News</string>
     <string name="lbl_new_only">New only</string>
     <string name="lbl_subtitle_delay">Subtitle delay</string>
+    <string name="subtitle_timing">Subtitle Timing</string>
+    <string name="subtitle_timing_value">Subtitle Timing: %1$s seconds</string>
+    <string name="subtitle_timing_description">Move subtitles earlier or later in 0.1-second steps. Positive values show subtitles later. Applies to this playback only. Press Back to return. Timing cannot be adjusted when subtitles are burned into the video.</string>
+    <string name="subtitle_earlier">Earlier</string>
+    <string name="subtitle_later">Later</string>
+    <string name="subtitle_timing_reset">Reset to Zero</string>
     <string name="lbl_new_episodes">New episodes</string>
     <string name="lbl_premieres">Premieres</string>
     <string name="lbl_repeat_episodes">Repeat episodes</string>

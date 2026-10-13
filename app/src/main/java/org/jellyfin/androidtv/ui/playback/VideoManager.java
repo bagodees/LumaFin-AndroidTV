@@ -87,6 +87,22 @@ public class VideoManager {
     private long mMetaDuration = -1;
     private long lastExoPlayerPosition = -1;
     private boolean nightModeEnabled;
+    private volatile long subtitleDelayMs;
+    private java.util.UUID subtitleTimingItem;
+
+    public void setSubtitleTimingItem(java.util.UUID itemId) {
+        if (!java.util.Objects.equals(itemId, subtitleTimingItem)) subtitleDelayMs = 0;
+        subtitleTimingItem = itemId;
+    }
+
+    public long getSubtitleDelayMs() { return subtitleDelayMs; }
+
+    public void setSubtitleDelayMs(long delayMs) {
+        subtitleDelayMs = Math.max(-30000, Math.min(30000, delayMs));
+        // Reload cues discarded at the previous timing position, including when moving earlier.
+        if (mExoPlayer != null && mExoPlayer.isCurrentMediaItemSeekable())
+            mExoPlayer.seekTo(mExoPlayer.getCurrentPosition());
+    }
 
     public boolean isContracted = false;
 
@@ -243,11 +259,20 @@ public class VideoManager {
             DefaultMediaSourceFactory mediaSourceFactory = new DefaultMediaSourceFactory(dataSourceFactory, assExtractorsFactory);
             mediaSourceFactory.setSubtitleParserFactory(assSubtitleParserFactory);
             exoPlayerBuilder.setMediaSourceFactory(mediaSourceFactory);
-            exoPlayerBuilder.setRenderersFactory(new AssRenderersFactory(assHandler, defaultRendererFactory));
         } else {
-            exoPlayerBuilder.setRenderersFactory(defaultRendererFactory);
             exoPlayerBuilder.setMediaSourceFactory(new DefaultMediaSourceFactory(dataSourceFactory, extractorsFactory));
         }
+
+        androidx.media3.exoplayer.RenderersFactory subtitleFactory = assHandler != null
+                ? new AssRenderersFactory(assHandler, defaultRendererFactory) : defaultRendererFactory;
+        exoPlayerBuilder.setRenderersFactory((handler, videoListener, audioListener, textOutput, metadataOutput) -> {
+            androidx.media3.exoplayer.Renderer[] renderers = subtitleFactory.createRenderers(handler, videoListener, audioListener, textOutput, metadataOutput);
+            for (int i = 0; i < renderers.length; i++) {
+                if (renderers[i].getTrackType() == C.TRACK_TYPE_TEXT || renderers[i] instanceof io.github.peerless2012.ass.media.render.AssRenderer)
+                    renderers[i] = new SubtitleTimingRenderer(renderers[i], () -> subtitleDelayMs);
+            }
+            return renderers;
+        });
 
         BufferLength bufferLength = userPreferences.get(UserPreferences.Companion.getBufferLength());
         DefaultLoadControl loadControl;

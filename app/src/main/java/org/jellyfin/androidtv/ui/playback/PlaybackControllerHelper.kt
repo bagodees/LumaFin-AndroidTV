@@ -22,6 +22,16 @@ import org.koin.android.ext.android.inject
 import timber.log.Timber
 import java.util.UUID
 
+fun PlaybackController.subtitleTimingAvailable(): Boolean = currentStreamInfo != null && subtitleStreamIndex >= 0 && !burningSubs &&
+	!shouldBurnInSubtitles(currentStreamInfo.playMethod)
+
+fun PlaybackController.subtitleDelayMs(): Long = mVideoManager?.subtitleDelayMs ?: 0
+
+fun PlaybackController.adjustSubtitleTiming(changeMs: Long, reset: Boolean = false) {
+	if (!subtitleTimingAvailable()) return
+	mVideoManager?.setSubtitleDelayMs(if (reset) 0 else subtitleDelayMs() + changeMs)
+}
+
 fun PlaybackController.getLiveTvChannel(
 	id: UUID,
 	callback: (channel: BaseItemDto) -> Unit,
