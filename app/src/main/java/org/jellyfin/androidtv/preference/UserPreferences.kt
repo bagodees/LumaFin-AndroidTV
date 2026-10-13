@@ -283,6 +283,7 @@ class UserPreferences(context: Context) : SharedPreferenceStore(
 		/**
 		 * Subtitles foreground color
 		 */
+		val subtitleBrightness = intPreference("subtitle_brightness", 100)
 		var subtitlesTextColor = longPreference("subtitles_text_color", 0xFFFFFFFF)
 
 		/**

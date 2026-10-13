@@ -157,6 +157,7 @@ public class VideoManager {
         mExoPlayerView.getSubtitleView().setFixedTextSize(TypedValue.COMPLEX_UNIT_DIP, userPreferences.get(UserPreferences.Companion.getSubtitlesTextSize()));
         mExoPlayerView.getSubtitleView().setBottomPaddingFraction(userPreferences.get(UserPreferences.Companion.getSubtitlesOffsetPosition()));
         mExoPlayerView.getSubtitleView().setStyle(subtitleStyle);
+        mExoPlayerView.getSubtitleView().setAlpha(Math.max(25, Math.min(100, userPreferences.get(UserPreferences.Companion.getSubtitleBrightness()))) / 100f);
 
         if (assHandler != null) {
             assHandler.init(mExoPlayer);

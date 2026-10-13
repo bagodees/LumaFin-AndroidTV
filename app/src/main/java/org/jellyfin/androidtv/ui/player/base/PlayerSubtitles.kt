@@ -1,6 +1,9 @@
 package org.jellyfin.androidtv.ui.player.base
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import org.jellyfin.androidtv.preference.UserPreferences
+import org.jellyfin.androidtv.ui.settings.compat.rememberPreference
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
 import org.jellyfin.playback.core.PlaybackManager
@@ -11,10 +14,16 @@ import org.koin.compose.koinInject
 fun PlayerSubtitles(
 	modifier: Modifier = Modifier,
 	playbackManager: PlaybackManager = koinInject(),
-) = AndroidView(
+) {
+    val userPreferences = koinInject<UserPreferences>()
+    val subtitleBrightness by rememberPreference(userPreferences, UserPreferences.subtitleBrightness)
+    AndroidView(
 	factory = { context -> PlayerSubtitleView(context) },
 	modifier = modifier,
 	update = { view ->
 		view.playbackManager = playbackManager
+		view.alpha = subtitleBrightness.coerceIn(25, 100) / 100f
 	}
 )
+
+}

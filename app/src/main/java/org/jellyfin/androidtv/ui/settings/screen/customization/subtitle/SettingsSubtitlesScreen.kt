@@ -1,6 +1,9 @@
 package org.jellyfin.androidtv.ui.settings.screen.customization.subtitle
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -40,6 +43,7 @@ fun SettingsSubtitlesScreen() {
 	val router = LocalRouter.current
 	val userPreferences = koinInject<UserPreferences>()
 
+	var subtitleBrightness by rememberPreference(userPreferences, UserPreferences.subtitleBrightness)
 	var subtitlesBackgroundColor by rememberPreference(userPreferences, UserPreferences.subtitlesBackgroundColor)
 	var subtitlesTextWeight by rememberPreference(userPreferences, UserPreferences.subtitlesTextWeight)
 	var subtitlesTextColor by rememberPreference(userPreferences, UserPreferences.subtitlesTextColor)
@@ -47,24 +51,51 @@ fun SettingsSubtitlesScreen() {
 	var subtitlesTextSize by rememberPreference(userPreferences, UserPreferences.subtitlesTextSize)
 	var subtitlesOffsetPosition by rememberPreference(userPreferences, UserPreferences.subtitlesOffsetPosition)
 
-	SettingsColumn {
-		item {
-			ListSection(
-				overlineContent = { Text(stringResource(R.string.pref_customization).uppercase()) },
-				headingContent = { Text(stringResource(R.string.pref_subtitles)) },
-			)
-		}
 
-		item {
-			SubtitleStylePreview(
-				userPreferences = userPreferences,
-				subtitlesBackgroundColor = subtitlesBackgroundColor,
-				subtitlesTextWeight = subtitlesTextWeight,
-				subtitlesTextColor = subtitlesTextColor,
-				subtitleTextStrokeColor = subtitleTextStrokeColor,
-				subtitlesTextSize = subtitlesTextSize,
-			)
-		}
+    Column(Modifier.fillMaxSize().padding(top = 12.dp)) {
+        ListSection(
+            overlineContent = { Text(stringResource(R.string.pref_playback).uppercase()) },
+            headingContent = { Text(stringResource(R.string.pref_subtitles)) },
+        )
+        SubtitleStylePreview(
+            userPreferences = userPreferences,
+            subtitlesBackgroundColor = subtitlesBackgroundColor,
+            subtitlesTextWeight = subtitlesTextWeight,
+            subtitlesTextColor = subtitlesTextColor,
+            subtitleTextStrokeColor = subtitleTextStrokeColor,
+            subtitlesTextSize = subtitlesTextSize,
+            subtitleBrightness = subtitleBrightness,
+        )
+        SettingsColumn(modifier = Modifier.weight(1f)) {
+
+        item {
+            val interactionSource = remember { MutableInteractionSource() }
+            ListControl(
+                headingContent = { Text(stringResource(R.string.subtitle_brightness)) },
+                captionContent = { Text(stringResource(R.string.subtitle_brightness_description)) },
+                interactionSource = interactionSource,
+                modifier = Modifier.focusKey("subtitle_brightness"),
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    RangeControl(
+                        modifier = Modifier.height(4.dp).weight(1f),
+                        interactionSource = interactionSource,
+                        min = 25f, max = 100f, stepForward = 5f,
+                        value = subtitleBrightness.coerceIn(25, 100).toFloat(),
+                        onValueChange = { subtitleBrightness = it.roundToInt() },
+                    )
+                    Spacer(Modifier.width(Tokens.Space.spaceSm))
+                    Text("${subtitleBrightness.coerceIn(25, 100)}%")
+                }
+            }
+        }
+        item {
+            ListButton(
+                headingContent = { Text(stringResource(R.string.subtitle_brightness_reset)) },
+                onClick = { subtitleBrightness = 100 },
+                modifier = Modifier.focusKey("subtitle_brightness_reset"),
+            )
+        }
 
 		item {
 			val interactionSource = remember { MutableInteractionSource() }
@@ -205,4 +236,5 @@ fun SettingsSubtitlesScreen() {
 			}
 		}
 	}
+    }
 }

@@ -907,4 +907,7 @@
     <string name="audio_earlier">Audio Earlier</string>
     <string name="audio_later">Audio Later</string>
     <string name="audio_timing_description">Adjust dialogue to match the picture. Each press changes timing by 0.1 seconds, up to 2 seconds in either direction. Positive values make audio later; negative values make it earlier. Reset restores normal timing. Applies to this title on this device.</string>
+    <string name="subtitle_brightness">Subtitle Brightness</string>
+    <string name="subtitle_brightness_description">Dim subtitles drawn by LumaFin without changing the video. Does not affect subtitles burned into the video or external players. Applies when playback starts.</string>
+    <string name="subtitle_brightness_reset">Reset Brightness to Default</string>
 </resources>

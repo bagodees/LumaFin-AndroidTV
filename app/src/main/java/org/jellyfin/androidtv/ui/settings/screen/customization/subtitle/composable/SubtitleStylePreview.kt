@@ -34,12 +34,14 @@ fun SubtitleStylePreview(
 	subtitlesTextColor: Long = userPreferences[UserPreferences.subtitlesTextColor],
 	subtitleTextStrokeColor: Long = userPreferences[UserPreferences.subtitleTextStrokeColor],
 	subtitlesTextSize: Float = userPreferences[UserPreferences.subtitlesTextSize],
+	subtitleBrightness: Int = userPreferences[UserPreferences.subtitleBrightness],
 ) {
 	val context = LocalContext.current
 	SubtitleStylePreview(
 		text = stringResource(R.string.subtitle_preview_text),
 		textColor = subtitlesTextColor.toInt(),
 		textSize = subtitlesTextSize,
+		subtitleBrightness = subtitleBrightness,
 		backgroundColor = subtitlesBackgroundColor.toInt(),
 		edgeType = if (subtitleTextStrokeColor.toInt().alpha > 0) CaptionStyleCompat.EDGE_TYPE_OUTLINE else CaptionStyleCompat.EDGE_TYPE_NONE,
 		edgeColor = subtitleTextStrokeColor.toInt(),
@@ -59,6 +61,7 @@ fun SubtitleStylePreview(
 	modifier: Modifier = Modifier,
 	text: String = stringResource(R.string.app_name),
 	textSize: Float = 12f,
+	subtitleBrightness: Int = 100,
 	textColor: Int = CaptionStyleCompat.DEFAULT.foregroundColor,
 	backgroundColor: Int = CaptionStyleCompat.DEFAULT.backgroundColor,
 	edgeType: Int = CaptionStyleCompat.EDGE_TYPE_OUTLINE,
@@ -68,6 +71,7 @@ fun SubtitleStylePreview(
 	modifier = modifier,
 	factory = ::SubtitleView,
 	update = { view ->
+		view.alpha = subtitleBrightness.coerceIn(25, 100) / 100f
 		view.setFixedTextSize(TypedValue.COMPLEX_UNIT_DIP, textSize)
 
 		view.setStyle(

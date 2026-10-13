@@ -13,10 +13,11 @@ import org.jellyfin.design.Tokens
 @Composable
 fun SettingsColumn(
 	state: LazyListState = rememberLazyListState(),
+	modifier: Modifier = Modifier,
 	content: LazyListScope.() -> Unit,
 ) = LazyColumn(
 	state = state,
-	modifier = Modifier
+	modifier = modifier
 		.padding(Tokens.Space.spaceSm),
 	verticalArrangement = Arrangement.spacedBy(Tokens.Space.spaceXs),
 	content = content,
