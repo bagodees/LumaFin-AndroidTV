@@ -83,6 +83,10 @@ fun FullDetailsFragment.showDetailsMenu(
 		item(getString(R.string.lbl_shuffle_all)) { shufflePlay() }
 	}
 
+	if (extrasButton?.isVisible == false) {
+		item(getString(R.string.extras_title)) { showExtras(view) }
+	}
+
 	if (trailerButton?.isVisible == false) {
 		item(getString(R.string.lbl_play_trailers)) { playTrailers() }
 	}
@@ -398,4 +402,59 @@ fun FullDetailsFragment.getLiveTvChannel(
 			callback(channel)
 		}
 	}
+}
+
+fun FullDetailsFragment.showExtras(anchor: View) {
+    val selectedItem = mBaseItem
+    var loading = true
+    val dialog = android.app.AlertDialog.Builder(requireContext())
+        .setTitle(R.string.extras_title)
+        .setMessage(R.string.loading)
+        .setNegativeButton(android.R.string.cancel, null)
+        .create()
+    val api by inject<ApiClient>()
+    val job = lifecycleScope.launch {
+        try {
+            val entries = withContext(Dispatchers.IO) {
+                val features = if ((selectedItem.specialFeatureCount ?: 0) > 0)
+                    api.userLibraryApi.getSpecialFeatures(selectedItem.id).content else emptyList()
+                val trailers = if ((selectedItem.localTrailerCount ?: 0) > 0)
+                    api.userLibraryApi.getLocalTrailers(selectedItem.id).content else emptyList()
+                org.jellyfin.androidtv.util.combineExtras(features, trailers)
+            }
+            if (!dialog.isShowing || !isAdded) return@launch
+            loading = false
+            dialog.dismiss()
+            if (entries.isEmpty()) {
+                Toast.makeText(requireContext(), R.string.extras_empty, Toast.LENGTH_LONG).show()
+                return@launch
+            }
+            val labels = entries.map { extra ->
+                val type = if (extra.type == BaseItemKind.TRAILER) R.string.extra_trailer
+                    else org.jellyfin.androidtv.util.extraTypeLabel(extra.extraType)
+                "${extra.name?.takeIf { it.isNotBlank() } ?: getString(type)}\n${getString(type)}"
+            }.toTypedArray()
+            android.app.AlertDialog.Builder(requireContext())
+                .setTitle(R.string.extras_title)
+                .setAdapter(android.widget.ArrayAdapter(requireContext(), R.layout.extras_menu_item, labels)) { _, index ->
+                    returnToExtras = true
+                    play(listOf(entries[index]), 0, false)
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .create().apply {
+                    setOnDismissListener { anchor.requestFocus() }
+                    show()
+                }
+        } catch (cancelled: kotlinx.coroutines.CancellationException) {
+            throw cancelled
+        } catch (error: ApiClientException) {
+            Timber.w(error, "Unable to load extras")
+            if (dialog.isShowing) dialog.setMessage(getString(R.string.extras_error))
+        }
+    }
+    dialog.setOnDismissListener {
+        if (loading && job.isActive) job.cancel()
+        anchor.requestFocus()
+    }
+    dialog.show()
 }

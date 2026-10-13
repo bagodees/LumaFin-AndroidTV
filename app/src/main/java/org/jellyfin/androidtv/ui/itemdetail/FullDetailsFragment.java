@@ -227,6 +227,8 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
     @Override
     public void onResume() {
         super.onResume();
+        final boolean restoreExtras = returnToExtras;
+        returnToExtras = false;
 
         ClockBehavior clockBehavior = userPreferences.getValue().get(UserPreferences.Companion.getClockBehavior());
         if (clockBehavior == ClockBehavior.ALWAYS || clockBehavior == ClockBehavior.IN_MENUS) {
@@ -269,12 +271,14 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
                                 }
                                 showMoreButtonIfNeeded();
                             }
+                            if (restoreExtras) focusExtrasAction();
                             updateWatched();
                             mLastUpdated = Instant.now();
                             return null;
                         });
                     }
                 }
+                if (restoreExtras) focusExtrasAction();
             }
         }, 750);
     }
@@ -546,11 +550,11 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
 
                 //Specials
                 if (mBaseItem.getSpecialFeatureCount() != null && mBaseItem.getSpecialFeatureCount() > 0) {
-                    addItemRow(adapter, new ItemRowAdapter(requireContext(), new GetSpecialsRequest(mBaseItem.getId()), new CardPresenter(), adapter), 3, getString(R.string.lbl_specials));
+                    addItemRow(adapter, new ItemRowAdapter(requireContext(), new GetSpecialsRequest(mBaseItem.getId()), new CardPresenter(), adapter), 3, getString(R.string.extras_bonus_material));
                 }
 
                 //Trailers
-                if (mBaseItem.getLocalTrailerCount() != null && mBaseItem.getLocalTrailerCount() > 1) {
+                if (mBaseItem.getLocalTrailerCount() != null && mBaseItem.getLocalTrailerCount() > 0) {
                     addItemRow(adapter, new ItemRowAdapter(requireContext(), new GetTrailersRequest(mBaseItem.getId()), new CardPresenter(), adapter), 4, getString(R.string.lbl_trailers));
                 }
 
@@ -605,7 +609,7 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
 
                 //Specials
                 if (mBaseItem.getSpecialFeatureCount() != null && mBaseItem.getSpecialFeatureCount() > 0) {
-                    addItemRow(adapter, new ItemRowAdapter(requireContext(), new GetSpecialsRequest(mBaseItem.getId()), new CardPresenter(), adapter), 3, getString(R.string.lbl_specials));
+                    addItemRow(adapter, new ItemRowAdapter(requireContext(), new GetSpecialsRequest(mBaseItem.getId()), new CardPresenter(), adapter), 3, getString(R.string.extras_bonus_material));
                 }
 
                 ItemRowAdapter upcomingAdapter = new ItemRowAdapter(requireContext(), BrowsingUtils.createUpcomingEpisodesRequest(mBaseItem.getId()), new CardPresenter(), adapter);
@@ -785,6 +789,13 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
     TextUnderButton moreButton;
     TextUnderButton playButton = null;
     TextUnderButton trailerButton = null;
+    TextUnderButton extrasButton = null;
+    boolean returnToExtras = false;
+
+    private void focusExtrasAction() {
+        if (extrasButton != null && ViewKt.isVisible(extrasButton)) extrasButton.requestFocus();
+        else if (moreButton != null && ViewKt.isVisible(moreButton)) moreButton.requestFocus();
+    }
 
     private void addButtons(int buttonSize) {
         BaseItemDto baseItem = mBaseItem;
@@ -876,6 +887,12 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
                 }
             });
             mDetailsOverviewRow.addAction(mVersionsButton);
+        }
+
+        if (org.jellyfin.androidtv.util.Extras.available(mBaseItem)) {
+            extrasButton = TextUnderButton.create(requireContext(), R.drawable.ic_movie, buttonSize, 0,
+                    getString(R.string.extras_title), view -> FullDetailsFragmentHelperKt.showExtras(FullDetailsFragment.this, view));
+            mDetailsOverviewRow.addAction(extrasButton);
         }
 
         if (TrailerUtils.hasPlayableTrailers(requireContext(), mBaseItem)) {
@@ -1156,6 +1173,7 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
         if (favButton != null) actionsList.add(favButton);
         if (queueButton != null) actionsList.add(queueButton);
         if (trailerButton != null) actionsList.add(trailerButton);
+        if (extrasButton != null) actionsList.add(extrasButton);
         if (shuffleButton != null) actionsList.add(shuffleButton);
         if (goToSeriesButton != null) actionsList.add(goToSeriesButton);
 
