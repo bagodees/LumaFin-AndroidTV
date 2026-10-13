@@ -778,4 +778,8 @@
     <string name="sleep_timer_episode_end">End of Episode</string>
     <string name="hide_unwatched_episode_artwork">Hide Unwatched Episode Artwork</string>
     <string name="hide_unwatched_episode_artwork_description">Use series artwork for unwatched episodes to avoid visual spoilers, with a neutral icon when unavailable. Episode artwork appears after an episode is marked watched.</string>
+    <string name="library_reverse_sort">Descending Order</string>
+    <string name="library_reset_browsing">Reset Sorting and Filters</string>
+    <string name="library_sort_ascending">Ascending</string>
+    <string name="library_sort_descending">Descending</string>
 </resources>

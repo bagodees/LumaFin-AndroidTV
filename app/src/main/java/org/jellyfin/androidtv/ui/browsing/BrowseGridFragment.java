@@ -322,7 +322,8 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
             text += " " + getString(R.string.lbl_starting_with) + " " + mAdapter.getStartLetter();
         }
 
-        text += " " + getString(R.string.lbl_from) + " '" + folderName + "' " + getString(R.string.lbl_sorted_by) + " " + getSortOption(mAdapter.getSortBy()).name;
+        text += " " + getString(R.string.lbl_from) + " '" + folderName + "' " + getString(R.string.lbl_sorted_by) + " " + getSortOption(mAdapter.getSortBy()).name + " / " + getString(mAdapter.getSortOrder() == SortOrder.ASCENDING
+                ? R.string.library_sort_ascending : R.string.library_sort_descending);
 
         binding.statusText.setText(text);
     }
@@ -697,7 +698,9 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
             buildAdapter();
         }
 
-        mAdapter.setSortBy(getSortOption(libraryPreferences.get(LibraryPreferences.Companion.getSortBy())));
+        SortOption savedSort = getSortOption(libraryPreferences.get(LibraryPreferences.Companion.getSortBy()));
+        mAdapter.setSortBy(new SortOption(savedSort.name, savedSort.value,
+                libraryPreferences.get(LibraryPreferences.Companion.getSortOrder())));
         mAdapter.Retrieve();
     }
 
@@ -708,13 +711,9 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
     private ImageButton mLetterButton;
 
     private void updateDisplayPrefs() {
-        CoroutineUtils.runOnLifecycle(getLifecycle(), (coroutineScope, continuation) -> {
-            libraryPreferences.set(LibraryPreferences.Companion.getFilterFavoritesOnly(), mAdapter.getFilters().isFavoriteOnly());
-            libraryPreferences.set(LibraryPreferences.Companion.getFilterUnwatchedOnly(), mAdapter.getFilters().isUnwatchedOnly());
-            libraryPreferences.set(LibraryPreferences.Companion.getSortBy(), mAdapter.getSortBy());
-            libraryPreferences.set(LibraryPreferences.Companion.getSortOrder(), getSortOption(mAdapter.getSortBy()).order);
-            return libraryPreferences.commit(continuation);
-        });
+        libraryPreferences.saveBrowsingChoices(mAdapter.getFilters().isFavoriteOnly(),
+                mAdapter.getFilters().isUnwatchedOnly(), mAdapter.getSortBy(), mAdapter.getSortOrder());
+        setStatusText(mFolder.getName());
     }
 
     private void addTools() {
@@ -735,10 +734,26 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
                     item.setChecked(entry.getValue().value.equals(libraryPreferences.get(LibraryPreferences.Companion.getSortBy())));
                 }
                 sortMenu.getMenu().setGroupCheckable(0, true, true);
+                sortMenu.getMenu().add(1, 100, 100, getString(R.string.library_reverse_sort)).setCheckable(true)
+                        .setChecked(mAdapter.getSortOrder() == SortOrder.DESCENDING);
+                sortMenu.getMenu().add(1, 101, 101, getString(R.string.library_reset_browsing));
                 sortMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                     @Override
                     public boolean onMenuItemClick(MenuItem item) {
-                        mAdapter.setSortBy(Objects.requireNonNull(sortOptions.get(item.getItemId())));
+
+                        if (item.getItemId() == 101) {
+                            mAdapter.setFilters(new FilterOptions());
+                            mAdapter.setStartLetter(null);
+                            mAdapter.setSortBy(getSortOption(ItemSortBy.SORT_NAME));
+                            if (mUnwatchedButton != null) mUnwatchedButton.setActivated(false);
+                            mFavoriteButton.setActivated(false);
+                        } else if (item.getItemId() == 100) {
+                            SortOption current = getSortOption(mAdapter.getSortBy());
+                            mAdapter.setSortBy(new SortOption(current.name, current.value,
+                                    mAdapter.getSortOrder() == SortOrder.ASCENDING ? SortOrder.DESCENDING : SortOrder.ASCENDING));
+                        } else {
+                            mAdapter.setSortBy(Objects.requireNonNull(sortOptions.get(item.getItemId())));
+                        }
                         mAdapter.Retrieve();
                         item.setChecked(true);
                         updateDisplayPrefs();

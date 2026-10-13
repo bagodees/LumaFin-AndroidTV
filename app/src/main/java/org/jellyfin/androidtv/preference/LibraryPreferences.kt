@@ -1,5 +1,10 @@
 package org.jellyfin.androidtv.preference
 
+import androidx.lifecycle.ProcessLifecycleOwner
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.jellyfin.androidtv.constant.GridDirection
 import org.jellyfin.androidtv.constant.ImageType
 import org.jellyfin.androidtv.constant.PosterSize
@@ -17,6 +22,19 @@ class LibraryPreferences(
 	displayPreferencesId = displayPreferencesId,
 	api = api,
 ) {
+	private val browsingSaveMutex = Mutex()
+
+	fun saveBrowsingChoices(favoritesOnly: Boolean, unwatchedOnly: Boolean, sort: ItemSortBy, order: SortOrder) {
+		this[filterFavoritesOnly] = favoritesOnly
+		this[filterUnwatchedOnly] = unwatchedOnly
+		this[sortBy] = sort
+		this[sortOrder] = order
+		// Keep the write alive when the library screen closes, and serialize rapid changes.
+		ProcessLifecycleOwner.get().lifecycleScope.launch {
+			browsingSaveMutex.withLock { commit() }
+		}
+	}
+
 	companion object {
 		val posterSize = enumPreference("PosterSize", PosterSize.MED)
 		val imageType = enumPreference("ImageType", ImageType.POSTER)
