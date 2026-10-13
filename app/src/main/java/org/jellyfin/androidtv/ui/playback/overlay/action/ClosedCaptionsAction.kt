@@ -6,6 +6,7 @@ import android.view.Gravity
 import android.view.View
 import android.widget.PopupMenu
 import android.widget.Toast
+import org.jellyfin.androidtv.util.trackLabels
 import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.ui.playback.PlaybackController
 import org.jellyfin.androidtv.ui.playback.overlay.CustomPlaybackTransportControlGlue
@@ -41,19 +42,20 @@ class ClosedCaptionsAction(
 			return
 		}
 
+		val labels = playbackController.currentMediaSource.mediaStreams.orEmpty().filter { it.type == MediaStreamType.SUBTITLE }.trackLabels(context)
 		videoPlayerAdapter.leanbackOverlayFragment.setFading(false)
 		removePopup()
 		popup = PopupMenu(context, view, Gravity.END).apply {
 			with(menu) {
 				var order = 0
-				add(0, -1, order++, context.getString(R.string.lbl_none)).apply {
+				add(0, -1, order++, context.getString(R.string.lbl_track_off)).apply {
 					isChecked = playbackController.subtitleStreamIndex == -1
 				}
 
 				for (sub in playbackController.currentMediaSource.mediaStreams.orEmpty()) {
 					if (sub.type != MediaStreamType.SUBTITLE) continue
 
-					add(0, sub.index, order++, sub.displayTitle).apply {
+					add(0, sub.index, order++, labels.getValue(sub.index)).apply {
 						isChecked = sub.index == playbackController.subtitleStreamIndex
 					}
 				}

@@ -864,4 +864,12 @@
     <string name="home_libraries_empty">No libraries are available for this account.</string>
     <string name="home_libraries_failed">Libraries could not be loaded. Check the server connection and try again.</string>
     <string name="home_libraries_loading">Loading Libraries…</string>
+    <string name="track_unknown_language">Unknown Language</string>
+    <string name="track_mono">Mono</string>
+    <string name="track_stereo">Stereo</string>
+    <string name="track_channels">%1$d Channels</string>
+    <string name="track_forced">Forced Only</string>
+    <string name="track_hearing_impaired">Hearing Impaired (SDH)</string>
+    <string name="track_default">Default</string>
+    <string name="track_number">Track %1$d</string>
 </resources>

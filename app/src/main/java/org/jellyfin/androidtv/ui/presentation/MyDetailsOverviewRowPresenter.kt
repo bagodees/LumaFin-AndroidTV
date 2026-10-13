@@ -15,6 +15,7 @@ import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.ui.itemdetail.MyDetailsOverviewRow
 import org.jellyfin.androidtv.ui.playback.PlaybackTrackSelection
 import org.jellyfin.androidtv.ui.playback.VideoQueueManager
+import org.jellyfin.androidtv.util.trackLabels
 import org.jellyfin.androidtv.util.popupMenu
 import org.jellyfin.androidtv.util.showIfNotEmpty
 import org.jellyfin.sdk.model.api.MediaStream
@@ -125,6 +126,7 @@ class MyDetailsOverviewRowPresenter(
 			if (!enabled || source == null) return
 
 			val context = view.context
+			val labels = audioStreams.trackLabels(context) + subtitleStreams.trackLabels(context)
 			val queueManager = GlobalContext.get().get<VideoQueueManager>()
 
 			fun currentAudio(): MediaStream? {
@@ -139,7 +141,7 @@ class MyDetailsOverviewRowPresenter(
 			// Null means subtitles will be off, "Auto" means the server picks the default at playback time
 			fun currentSubtitleLabel(): String {
 				val chosen = PlaybackTrackSelection.get(item.id)?.subtitleIndex
-				if (chosen != null) return subtitleStreams.firstOrNull { it.index == chosen }?.trackLabel() ?: context.getString(R.string.lbl_track_off)
+				if (chosen != null) return subtitleStreams.firstOrNull { it.index == chosen }?.let { labels[it.index] } ?: context.getString(R.string.lbl_track_off)
 
 				val lastLanguage = queueManager.getLastPlayedSubtitleLanguageIsoCode()
 				val stream = when {
@@ -147,18 +149,18 @@ class MyDetailsOverviewRowPresenter(
 					source.defaultSubtitleStreamIndex != null -> subtitleStreams.firstOrNull { it.index == source.defaultSubtitleStreamIndex }
 					else -> return context.getString(R.string.lbl_track_auto)
 				}
-				return stream?.trackLabel() ?: context.getString(R.string.lbl_track_off)
+				return stream?.let { labels[it.index] } ?: context.getString(R.string.lbl_track_off)
 			}
 
 			fun refreshLabels() {
-				binding.fdAudioChip.text = context.getString(R.string.lbl_track_audio, currentAudio()?.trackLabel() ?: context.getString(R.string.lbl_track_off))
+				binding.fdAudioChip.text = context.getString(R.string.lbl_track_audio, currentAudio()?.let { labels[it.index] } ?: context.getString(R.string.lbl_track_off))
 				binding.fdSubtitleChip.text = context.getString(R.string.lbl_track_subtitles, currentSubtitleLabel())
 			}
 			refreshLabels()
 
 			binding.fdAudioChip.setOnClickListener { chip ->
 				popupMenu(context, chip) {
-					for (stream in audioStreams) item(stream.trackLabel()) {
+					for (stream in audioStreams) item(labels.getValue(stream.index)) {
 						PlaybackTrackSelection.setAudio(item.id, stream.index)
 						refreshLabels()
 					}
@@ -171,7 +173,7 @@ class MyDetailsOverviewRowPresenter(
 						PlaybackTrackSelection.setSubtitle(item.id, PlaybackTrackSelection.SUBTITLES_OFF)
 						refreshLabels()
 					}
-					for (stream in subtitleStreams) item(stream.trackLabel()) {
+					for (stream in subtitleStreams) item(labels.getValue(stream.index)) {
 						PlaybackTrackSelection.setSubtitle(item.id, stream.index)
 						refreshLabels()
 					}
@@ -179,9 +181,6 @@ class MyDetailsOverviewRowPresenter(
 			}
 		}
 
-		private fun MediaStream.trackLabel(): String =
-			displayTitle?.takeIf { it.isNotBlank() }
-				?: listOfNotNull(language, codec?.uppercase()).joinToString(" ").ifBlank { "#$index" }
 
 		fun setTitle(title: String?) {
 			binding.fdTitle.text = title

@@ -4,6 +4,7 @@ import android.content.Context
 import android.view.Gravity
 import android.view.View
 import android.widget.PopupMenu
+import org.jellyfin.androidtv.util.trackLabels
 import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.ui.playback.PlaybackController
 import org.jellyfin.androidtv.ui.playback.overlay.CustomPlaybackTransportControlGlue
@@ -27,13 +28,14 @@ class SelectAudioAction(
 	) {
 		videoPlayerAdapter.leanbackOverlayFragment.setFading(false)
 		val audioTracks = playbackController.currentStreamInfo?.selectableAudioStreams ?: return
+		val labels = audioTracks.trackLabels(context)
 		val currentAudioIndex = playbackController.audioStreamIndex
 
 		dismissPopup()
 		popup = PopupMenu(context, view, Gravity.END).apply {
 			with(menu) {
 				for (track in audioTracks) {
-					add(0, track.index, track.index, track.displayTitle).apply {
+					add(0, track.index, track.index, labels.getValue(track.index)).apply {
 						isChecked = currentAudioIndex == track.index
 					}
 				}
