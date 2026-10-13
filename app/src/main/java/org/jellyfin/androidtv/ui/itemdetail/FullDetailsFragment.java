@@ -790,6 +790,7 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
     TextUnderButton playButton = null;
     TextUnderButton trailerButton = null;
     TextUnderButton extrasButton = null;
+    TextUnderButton watchLaterButton = null;
     boolean returnToExtras = false;
 
     private void focusExtrasAction() {
@@ -887,6 +888,16 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
                 }
             });
             mDetailsOverviewRow.addAction(mVersionsButton);
+        }
+
+        org.jellyfin.androidtv.preference.WatchLaterPreferences watchLater = KoinJavaComponent.get(org.jellyfin.androidtv.preference.WatchLaterPreferences.class);
+        if (watchLater.canSave(mBaseItem)) {
+            watchLaterButton = TextUnderButton.create(requireContext(), R.drawable.ic_time, buttonSize, 0,
+                    getString(watchLater.contains(mBaseItem.getId()) ? R.string.watch_later_remove : R.string.watch_later_add), view -> {
+                        org.jellyfin.androidtv.util.WatchLaterMenuKt.toggleWatchLater(requireContext(), mBaseItem);
+                        watchLaterButton.setLabel(getString(watchLater.contains(mBaseItem.getId()) ? R.string.watch_later_remove : R.string.watch_later_add));
+                    });
+            mDetailsOverviewRow.addAction(watchLaterButton);
         }
 
         if (org.jellyfin.androidtv.util.Extras.available(mBaseItem)) {
@@ -1108,6 +1119,11 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
 
         moreButton.setVisibility(View.GONE);
         mDetailsOverviewRow.addAction(moreButton);
+        mDetailsOverviewRow.setOnActionRowLayout(capacity -> {
+            detailsActionCapacity = capacity;
+            showMoreButtonIfNeeded();
+            return kotlin.Unit.INSTANCE;
+        });
         if (mBaseItem.getType() != BaseItemKind.EPISODE)
             showMoreButtonIfNeeded();  //Episodes check for previous and then call this above
     }
@@ -1164,36 +1180,28 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
     }
 
     int collapsedOptions = 0;
+    private int detailsActionCapacity = 7;
 
     void showMoreButtonIfNeeded() {
-        int visibleOptions = mDetailsOverviewRow.getVisibleActions();
-
-        List<TextUnderButton> actionsList = new ArrayList<>();
-        // added in order of priority (should match res/menu/menu_details_more.xml)
-        if (favButton != null) actionsList.add(favButton);
-        if (queueButton != null) actionsList.add(queueButton);
-        if (trailerButton != null) actionsList.add(trailerButton);
-        if (extrasButton != null) actionsList.add(extrasButton);
-        if (shuffleButton != null) actionsList.add(shuffleButton);
-        if (goToSeriesButton != null) actionsList.add(goToSeriesButton);
-
-        // reverse the list so the less important actions are hidden first
-        Collections.reverse(actionsList);
-
-        collapsedOptions = 0;
-        for (TextUnderButton action : actionsList) {
-            if (visibleOptions - (ViewKt.isVisible(action) ? 1 : 0) + (!ViewKt.isVisible(moreButton) && collapsedOptions > 0 ? 1 : 0) < 7) {
-                if (!ViewKt.isVisible(action)) {
-                    action.setVisibility(View.VISIBLE);
-                    visibleOptions++;
-                }
-            } else {
-                if (ViewKt.isVisible(action)) {
-                    action.setVisibility(View.GONE);
-                    visibleOptions--;
-                }
-                collapsedOptions++;
-            }
+        if (moreButton == null) return;
+        List<TextUnderButton> optional = new ArrayList<>();
+        if (mWatchedToggleButton != null) optional.add(mWatchedToggleButton);
+        if (favButton != null) optional.add(favButton);
+        if (queueButton != null) optional.add(queueButton);
+        if (watchLaterButton != null) optional.add(watchLaterButton);
+        if (extrasButton != null) optional.add(extrasButton);
+        if (trailerButton != null) optional.add(trailerButton);
+        if (shuffleButton != null) optional.add(shuffleButton);
+        if (goToSeriesButton != null) optional.add(goToSeriesButton);
+        int fixed = 0;
+        for (TextUnderButton action : mDetailsOverviewRow.getActions()) {
+            if (action != moreButton && !optional.contains(action) && ViewKt.isVisible(action)) fixed++;
+        }
+        int available = Math.max(0, detailsActionCapacity - fixed);
+        int visibleOptional = optional.size() <= available ? optional.size() : Math.max(0, available - 1);
+        collapsedOptions = optional.size() - visibleOptional;
+        for (int index = 0; index < optional.size(); index++) {
+            optional.get(index).setVisibility(index < visibleOptional ? View.VISIBLE : View.GONE);
         }
         moreButton.setVisibility(collapsedOptions > 0 ? View.VISIBLE : View.GONE);
     }

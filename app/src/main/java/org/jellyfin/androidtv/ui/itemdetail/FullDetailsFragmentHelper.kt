@@ -74,7 +74,10 @@ fun FullDetailsFragment.showDetailsMenu(
 	view: View,
 	baseItemDto: BaseItemDto,
 ) = popupMenu(requireContext(), view) {
-	// for each button check if it exists (not-null) and is invisible (overflow prevention)
+	// Hidden actions remain available in More.
+    if (mWatchedToggleButton?.isVisible == false) {
+        item(getString(if (baseItemDto.userData?.played == true) R.string.lbl_unwatched else R.string.lbl_watched)) { togglePlayed() }
+    }
 	if (queueButton?.isVisible == false) {
 		item(getString(R.string.lbl_add_to_queue)) { addItemToQueue() }
 	}
@@ -83,7 +86,15 @@ fun FullDetailsFragment.showDetailsMenu(
 		item(getString(R.string.lbl_shuffle_all)) { shufflePlay() }
 	}
 
-	if (extrasButton?.isVisible == false) {
+	if (watchLaterButton?.isVisible == false) {
+        val watchLater = org.koin.core.context.GlobalContext.get().get<org.jellyfin.androidtv.preference.WatchLaterPreferences>()
+        item(getString(if (watchLater.contains(baseItemDto.id)) R.string.watch_later_remove else R.string.watch_later_add)) {
+            org.jellyfin.androidtv.util.toggleWatchLater(requireContext(), baseItemDto)
+            watchLaterButton?.setLabel(getString(if (watchLater.contains(baseItemDto.id)) R.string.watch_later_remove else R.string.watch_later_add))
+        }
+    }
+
+    if (extrasButton?.isVisible == false) {
 		item(getString(R.string.extras_title)) { showExtras(view) }
 	}
 

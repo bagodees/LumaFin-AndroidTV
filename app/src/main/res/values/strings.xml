@@ -896,4 +896,10 @@
     <string name="extra_theme_video">Theme Video</string>
     <string name="extra_featurette">Featurette</string>
     <string name="extra_short">Short Film</string>
+    <string name="watch_later">Watch Later</string>
+    <string name="watch_later_add">Add to Watch Later</string>
+    <string name="watch_later_remove">Remove from Watch Later</string>
+    <string name="watch_later_added">Saved to Watch Later on this device</string>
+    <string name="watch_later_removed">Removed from Watch Later</string>
+    <string name="watch_later_unavailable_hint">This title could not be loaded. Long-press to retry or remove it from Watch Later.</string>
 </resources>

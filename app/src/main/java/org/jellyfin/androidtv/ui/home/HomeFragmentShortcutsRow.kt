@@ -21,21 +21,21 @@ import org.jellyfin.sdk.api.client.extensions.userLibraryApi
 import org.jellyfin.sdk.model.api.BaseItemDto
 import java.util.UUID
 
-class HomeShortcutRowItem(item: BaseItemDto, val available: Boolean) : BaseItemDtoBaseRowItem(item) {
+class HomeShortcutRowItem(item: BaseItemDto, val available: Boolean, val watchLater: Boolean = false) : BaseItemDtoBaseRowItem(item) {
 	override fun getSubText(context: Context): String? = if (available) null else context.getString(R.string.home_shortcut_unavailable)
 }
 
-class HomeFragmentShortcutsRow(private val items: List<HomeShortcutRowItem>) : HomeFragmentRow {
+class HomeFragmentShortcutsRow(private val items: List<HomeShortcutRowItem>, private val title: Int = R.string.home_shortcuts) : HomeFragmentRow {
 	override suspend fun addToRowsAdapter(context: Context, cardPresenter: CardPresenter, rowsAdapter: MutableObjectAdapter<Row>) {
 		if (items.isEmpty()) return
 		val adapter = MutableObjectAdapter<BaseRowItem>(CardPresenter(true, 100))
 		items.forEach(adapter::add)
-		rowsAdapter.add(ListRow(HeaderItem(context.getString(R.string.home_shortcuts)), adapter))
+		rowsAdapter.add(ListRow(HeaderItem(context.getString(title)), adapter))
 	}
 }
 
 // Resolve every target for the signed-in user rather than persisting artwork or permissions.
-suspend fun loadHomeShortcuts(api: ApiClient, shortcuts: List<HomeShortcut>, libraries: Collection<BaseItemDto>): List<HomeShortcutRowItem> =
+suspend fun loadHomeShortcuts(api: ApiClient, shortcuts: List<HomeShortcut>, libraries: Collection<BaseItemDto>, watchLater: Boolean = false): List<HomeShortcutRowItem> =
 	withContext(Dispatchers.IO) {
 		coroutineScope {
 			shortcuts.map { shortcut -> async {
@@ -47,7 +47,7 @@ suspend fun loadHomeShortcuts(api: ApiClient, shortcuts: List<HomeShortcut>, lib
 				} catch (_: Exception) {
 					null
 				}
-				HomeShortcutRowItem(item ?: BaseItemDto(id = id, name = shortcut.name, type = shortcut.type), item != null)
+				HomeShortcutRowItem(item ?: BaseItemDto(id = id, name = shortcut.name, type = shortcut.type), item != null, watchLater)
 			} }.awaitAll()
 		}
 	}

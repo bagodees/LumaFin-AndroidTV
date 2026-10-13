@@ -28,6 +28,7 @@ enum class HomeSectionType(
 	WATCH_AGAIN("watchagain", R.string.home_section_watch_again),
 	GENRES("genres", R.string.home_section_genres),
 	CONTINUE_WATCHING_NEXT_UP("continuewatchingnextup", R.string.home_section_continue_watching_next_up),
+	WATCH_LATER("watchlater", R.string.watch_later),
 	FAVORITES("favorites", R.string.home_section_favorites),
 	RECENTLY_ADDED_MOVIES("recentlyaddedmovies", R.string.home_section_recently_added_movies),
 	RECENTLY_ADDED_SHOWS("recentlyaddedshows", R.string.home_section_recently_added_shows),

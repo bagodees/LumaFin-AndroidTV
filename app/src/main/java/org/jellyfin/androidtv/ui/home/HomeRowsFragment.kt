@@ -77,6 +77,8 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 	private val userSettingPreferences by inject<UserSettingPreferences>()
 	private val recommendationPreferences by inject<RecommendationPreferences>()
 	private val shortcutPreferences by inject<HomeShortcutPreferences>()
+	private val watchLaterPreferences by inject<org.jellyfin.androidtv.preference.WatchLaterPreferences>()
+	private var loadedWatchLater: List<HomeShortcut> = emptyList()
 	private var homeLoadJob: Job? = null
 	private var loadedShortcuts: List<HomeShortcut> = emptyList()
 	private val userViewsRepository by inject<UserViewsRepository>()
@@ -102,7 +104,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 	private var loadedHideWatchedLatestMovies = false
 	private var loadedHideWatchedRecentlyAddedMovies = false
 
-	private fun homePreferencesChanged() = shortcutPreferences.shortcuts != loadedShortcuts || recommendationPreferences.hiddenRows != loadedHiddenRecommendations || userSettingPreferences.activeHomesections != loadedHomeSections ||
+	private fun homePreferencesChanged() = watchLaterPreferences.items != loadedWatchLater || shortcutPreferences.shortcuts != loadedShortcuts || recommendationPreferences.hiddenRows != loadedHiddenRecommendations || userSettingPreferences.activeHomesections != loadedHomeSections ||
 		userSettingPreferences[UserSettingPreferences.latestMoviesItemLimit] != loadedLatestMoviesLimit ||
 		userSettingPreferences[UserSettingPreferences.latestShowsItemLimit] != loadedLatestShowsLimit ||
 		userSettingPreferences[UserSettingPreferences.recentlyAddedMoviesItemLimit] != loadedRecentlyAddedMoviesLimit ||
@@ -190,6 +192,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 
 			val shortcutScope = shortcutPreferences.scope
 			loadedShortcuts = shortcutPreferences.shortcuts
+			loadedWatchLater = watchLaterPreferences.items
 			val shortcuts = if (loadedShortcuts.isEmpty()) emptyList() else loadHomeShortcuts(api, loadedShortcuts, userViewsRepository.views.first())
 
 			// Start out with default sections
@@ -231,6 +234,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 				HomeSectionType.WATCH_AGAIN -> rows.add(helper.loadWatchAgain())
 				HomeSectionType.GENRES -> rows.add(HomeFragmentGenreRow(api))
 				HomeSectionType.CONTINUE_WATCHING_NEXT_UP -> rows.add(HomeFragmentContinueWatchingNextUpRow(api))
+				HomeSectionType.WATCH_LATER -> rows.add(HomeFragmentShortcutsRow(loadHomeShortcuts(api, loadedWatchLater, emptyList(), true), R.string.watch_later))
 				HomeSectionType.FAVORITES -> rows.add(helper.loadFavorites())
 				HomeSectionType.RECENTLY_ADDED_MOVIES -> rows.add(helper.loadRecentlyAddedMovies(loadedRecentlyAddedMoviesLimit, loadedHideWatchedRecentlyAddedMovies))
 				HomeSectionType.RECENTLY_ADDED_SHOWS -> rows.add(helper.loadRecentlyAddedShows(loadedRecentlyAddedShowsLimit))
@@ -284,7 +288,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 		val item = currentItem
 		if (keyCode == KeyEvent.KEYCODE_MENU && item is HomeShortcutRowItem && !item.available) {
 			val menu = PopupMenu(requireContext(), v ?: requireView())
-			item.baseItem?.let { addHomeShortcutMenu(menu, requireActivity(), it) }
+			item.baseItem?.let { if (item.watchLater) org.jellyfin.androidtv.util.addWatchLaterMenu(menu, requireActivity(), it) else addHomeShortcutMenu(menu, requireActivity(), it) }
 			menu.menu.add(R.string.home_shortcut_retry).setOnMenuItemClickListener { loadHomeRows(); true }
 			menu.show()
 			return true
@@ -413,7 +417,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 			}
 
 			if (item is HomeShortcutRowItem && !item.available) {
-				android.widget.Toast.makeText(requireContext(), R.string.home_shortcut_unavailable_hint, android.widget.Toast.LENGTH_LONG).show()
+				android.widget.Toast.makeText(requireContext(), if (item.watchLater) R.string.watch_later_unavailable_hint else R.string.home_shortcut_unavailable_hint, android.widget.Toast.LENGTH_LONG).show()
 				return
 			}
 			if (item !is BaseRowItem) return

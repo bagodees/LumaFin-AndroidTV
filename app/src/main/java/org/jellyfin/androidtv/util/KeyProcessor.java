@@ -260,6 +260,7 @@ public class KeyProcessor {
         }
 
         HomeShortcutMenuKt.addHomeShortcutMenu(menu, activity, item);
+        WatchLaterMenuKt.addWatchLaterMenu(menu, activity, item);
         menu.setOnMenuItemClickListener(new KeyProcessorItemMenuClickListener(activity, rowItem));
         menu.show();
         return menu;

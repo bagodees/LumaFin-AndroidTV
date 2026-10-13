@@ -9,6 +9,7 @@ import org.jellyfin.sdk.model.api.BaseItemDto
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
+import androidx.core.view.doOnLayout
 import androidx.leanback.widget.RowPresenter
 import org.jellyfin.androidtv.ui.DetailRowView
 import org.jellyfin.androidtv.R
@@ -102,6 +103,13 @@ class MyDetailsOverviewRowPresenter(
 
 				binding.fdButtonRow.addView(button)
 			}
+            binding.fdButtonRow.doOnLayout { container ->
+                val widest = row.actions.maxOfOrNull { button ->
+                    val margins = button.layoutParams as? ViewGroup.MarginLayoutParams
+                    button.measuredWidth + (margins?.leftMargin ?: 0) + (margins?.rightMargin ?: 0)
+                } ?: 0
+                if (widest > 0 && container.width > 0) row.onActionRowLayout?.invoke((container.width / widest).coerceIn(2, 7))
+            }
 		}
 
 		fun setEpisodeArtwork(item: BaseItemDto, row: MyDetailsOverviewRow) {

@@ -17,6 +17,7 @@ class MyDetailsOverviewRow @JvmOverloads constructor(
 	var selectedMediaSourceIndex: Int = 0,
 ) : Row() {
 	var playbackItemId = item.id
+	var onActionRowLayout: ((Int) -> Unit)? = null
 	private val _actions = mutableListOf<TextUnderButton>()
 	val actions get() = _actions.toList()
 	val visibleActions get() = _actions.count { it.isVisible }
