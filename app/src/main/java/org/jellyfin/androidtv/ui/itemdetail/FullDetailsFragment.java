@@ -124,6 +124,7 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
     protected UUID mItemId;
     protected UUID mChannelId;
     protected BaseRowItem mCurrentItem;
+    private final org.jellyfin.androidtv.ui.itemhandling.SeriesBrowseFocus seriesFocus = new org.jellyfin.androidtv.ui.itemhandling.SeriesBrowseFocus(this, () -> this.mRowsFragment, () -> this.mRowsAdapter, () -> this.mBaseItem);
     private Instant mLastUpdated;
     public UUID mPrevItemId;
 
@@ -172,6 +173,7 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
 
         mDorPresenter = new MyDetailsOverviewRowPresenter(markdownRenderer.getValue());
 
+        seriesFocus.read(savedInstanceState);
         mItemId = Utils.uuidOrNull(getArguments().getString("ItemId"));
         mChannelId = Utils.uuidOrNull(getArguments().getString("ChannelId"));
         String programJson = getArguments().getString("ProgramInfo");
@@ -215,6 +217,8 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
         return binding.getRoot();
     }
 
+    @Override public void onSaveInstanceState(@NonNull Bundle state) { super.onSaveInstanceState(state); seriesFocus.save(state); }
+
     int getResumePreroll() {
         try {
             return Integer.parseInt(KoinJavaComponent.<UserPreferences>get(UserPreferences.class).get(UserPreferences.Companion.getResumeSubtractDuration())) * 1000;
@@ -227,6 +231,7 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
     @Override
     public void onResume() {
         super.onResume();
+        seriesFocus.returning();
         final boolean restoreExtras = returnToExtras;
         returnToExtras = false;
 
@@ -272,6 +277,7 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
                                 showMoreButtonIfNeeded();
                             }
                             if (restoreExtras) focusExtrasAction();
+                            else if (mBaseItem.getType() == BaseItemKind.SERIES) seriesFocus.returning();
                             updateWatched();
                             mLastUpdated = Instant.now();
                             return null;
@@ -285,6 +291,7 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
 
     @Override
     public void onPause() {
+        seriesFocus.leaving();
         super.onPause();
         stopClock();
     }
@@ -522,6 +529,7 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
         ListRow listRow = new ListRow(header, row);
         parent.add(listRow);
         row.setRow(listRow);
+        seriesFocus.observe(row);
         row.Retrieve();
     }
 
@@ -1256,6 +1264,7 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
                 mCurrentItem = null;
             } else {
                 mCurrentItem = (BaseRowItem) item;
+                seriesFocus.selected(mCurrentItem, row instanceof ListRow ? (ListRow) row : null);
             }
         }
     }

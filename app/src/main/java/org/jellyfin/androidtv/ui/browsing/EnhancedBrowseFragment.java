@@ -85,6 +85,7 @@ public class EnhancedBrowseFragment extends Fragment implements RowLoader, View.
     protected static final int ALBUM_ARTISTS = 12;
     protected static final int SHUFFLE_SONGS = 13;
     protected BaseItemDto mFolder;
+    private final org.jellyfin.androidtv.ui.itemhandling.SeriesBrowseFocus seriesFocus = new org.jellyfin.androidtv.ui.itemhandling.SeriesBrowseFocus(this, () -> this.mRowsFragment, () -> this.mRowsAdapter, () -> this.mFolder);
     protected BaseItemKind itemType;
     protected boolean showViews = true;
     protected boolean justLoaded = true;
@@ -110,6 +111,7 @@ public class EnhancedBrowseFragment extends Fragment implements RowLoader, View.
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        seriesFocus.read(savedInstanceState);
 
         mRowsAdapter = new MutableObjectAdapter<Row>(new PositionableListRowPresenter());
 
@@ -156,6 +158,9 @@ public class EnhancedBrowseFragment extends Fragment implements RowLoader, View.
         mSelectedListener.removeListeners();
     }
 
+    @Override public void onPause() { seriesFocus.leaving(); super.onPause(); }
+    @Override public void onSaveInstanceState(@NonNull Bundle state) { super.onSaveInstanceState(state); seriesFocus.save(state); }
+
     protected void setupQueries(RowLoader rowLoader) {
         rowLoader.loadRows(mRows);
     }
@@ -190,6 +195,7 @@ public class EnhancedBrowseFragment extends Fragment implements RowLoader, View.
     @Override
     public void onResume() {
         super.onResume();
+        seriesFocus.returning();
 
         // React to deletion
         DataRefreshService dataRefreshService = KoinJavaComponent.<DataRefreshService>get(DataRefreshService.class);
@@ -277,6 +283,7 @@ public class EnhancedBrowseFragment extends Fragment implements RowLoader, View.
             ListRow row = new ListRow(header, rowAdapter);
             mRowsAdapter.add(row);
             rowAdapter.setRow(row);
+            seriesFocus.observe(rowAdapter);
             rowAdapter.Retrieve();
         }
 
@@ -474,6 +481,7 @@ public class EnhancedBrowseFragment extends Fragment implements RowLoader, View.
             BaseRowItem rowItem = (BaseRowItem) item;
 
             mCurrentItem = rowItem;
+            seriesFocus.selected(rowItem, row instanceof ListRow ? (ListRow) row : null);
             mCurrentRow = (ListRow) row;
             mInfoRow.removeAllViews();
 
