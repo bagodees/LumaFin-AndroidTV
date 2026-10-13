@@ -1114,31 +1114,36 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
     }
 
     private void addVersionsMenu(View v) {
-        PopupMenu menu = new PopupMenu(requireContext(), v, Gravity.END);
-
-        for (int i = 0; i < versions.size(); i++) {
-            menu.getMenu().add(Menu.NONE, i, Menu.NONE, versions.get(i).getName());
-        }
-
-        menu.getMenu().setGroupCheckable(0, true, true);
-        menu.getMenu().getItem(mDetailsOverviewRow.getSelectedMediaSourceIndex()).setChecked(true);
-        menu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem menuItem) {
-                mDetailsOverviewRow.setSelectedMediaSourceIndex(menuItem.getItemId());
-                FullDetailsFragmentHelperKt.getItem(FullDetailsFragment.this, UUIDSerializerKt.toUUID(versions.get(mDetailsOverviewRow.getSelectedMediaSourceIndex()).getId()), item -> {
-                    if (item == null) return null;
-
-                    mBaseItem = item;
-                    mDorPresenter.getViewHolder().setItem(mDetailsOverviewRow);
-                    if (mVersionsButton != null) mVersionsButton.requestFocus();
-                    return null;
-                });
-                return true;
-            }
-        });
-
-        menu.show();
+        String[] labels = org.jellyfin.androidtv.util.VideoVersionLabels.labels(requireContext(), versions);
+        android.widget.ArrayAdapter<String> adapter = new android.widget.ArrayAdapter<>(
+                requireContext(), R.layout.video_version_menu_item, labels);
+        new AlertDialog.Builder(requireContext())
+                .setTitle(R.string.select_version)
+                .setSingleChoiceItems(adapter, mDetailsOverviewRow.getSelectedMediaSourceIndex(), (dialog, index) -> {
+                    java.util.UUID versionId = UUIDSerializerKt.toUUIDOrNull(versions.get(index).getId());
+                    if (versionId == null) {
+                        Utils.showToast(requireContext(), R.string.video_version_unavailable);
+                        return;
+                    }
+                    FullDetailsFragmentHelperKt.getItem(FullDetailsFragment.this, versionId, item -> {
+                        if (!isAdded()) return null;
+                        if (item == null) {
+                            Utils.showToast(requireContext(), R.string.video_version_unavailable);
+                            return null;
+                        }
+                        mDetailsOverviewRow.setSelectedMediaSourceIndex(index);
+                        mBaseItem = item;
+                        // A stream index from another version may refer to a different track.
+                        org.jellyfin.androidtv.ui.playback.PlaybackTrackSelection.INSTANCE.consume(mDetailsOverviewRow.getPlaybackItemId());
+                        mDetailsOverviewRow.setPlaybackItemId(item.getId());
+                        mDorPresenter.getViewHolder().setItem(mDetailsOverviewRow);
+                        dialog.dismiss();
+                        if (mVersionsButton != null) mVersionsButton.requestFocus();
+                        return null;
+                    });
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
     }
 
     int collapsedOptions = 0;

@@ -130,7 +130,7 @@ class MyDetailsOverviewRowPresenter(
 			val queueManager = GlobalContext.get().get<VideoQueueManager>()
 
 			fun currentAudio(): MediaStream? {
-				val chosen = PlaybackTrackSelection.get(item.id)?.audioIndex
+				val chosen = PlaybackTrackSelection.get(row.playbackItemId)?.audioIndex
 				val lastLanguage = queueManager.getLastPlayedAudioLanguageIsoCode()
 				return audioStreams.firstOrNull { it.index == chosen }
 					?: audioStreams.firstOrNull { lastLanguage != null && it.language == lastLanguage }
@@ -140,7 +140,7 @@ class MyDetailsOverviewRowPresenter(
 
 			// Null means subtitles will be off, "Auto" means the server picks the default at playback time
 			fun currentSubtitleLabel(): String {
-				val chosen = PlaybackTrackSelection.get(item.id)?.subtitleIndex
+				val chosen = PlaybackTrackSelection.get(row.playbackItemId)?.subtitleIndex
 				if (chosen != null) return subtitleStreams.firstOrNull { it.index == chosen }?.let { labels[it.index] } ?: context.getString(R.string.lbl_track_off)
 
 				val lastLanguage = queueManager.getLastPlayedSubtitleLanguageIsoCode()
@@ -161,7 +161,7 @@ class MyDetailsOverviewRowPresenter(
 			binding.fdAudioChip.setOnClickListener { chip ->
 				popupMenu(context, chip) {
 					for (stream in audioStreams) item(labels.getValue(stream.index)) {
-						PlaybackTrackSelection.setAudio(item.id, stream.index)
+						PlaybackTrackSelection.setAudio(row.playbackItemId, stream.index)
 						refreshLabels()
 					}
 				}.showIfNotEmpty()
@@ -170,11 +170,11 @@ class MyDetailsOverviewRowPresenter(
 			binding.fdSubtitleChip.setOnClickListener { chip ->
 				popupMenu(context, chip) {
 					item(context.getString(R.string.lbl_track_off)) {
-						PlaybackTrackSelection.setSubtitle(item.id, PlaybackTrackSelection.SUBTITLES_OFF)
+						PlaybackTrackSelection.setSubtitle(row.playbackItemId, PlaybackTrackSelection.SUBTITLES_OFF)
 						refreshLabels()
 					}
 					for (stream in subtitleStreams) item(labels.getValue(stream.index)) {
-						PlaybackTrackSelection.setSubtitle(item.id, stream.index)
+						PlaybackTrackSelection.setSubtitle(row.playbackItemId, stream.index)
 						refreshLabels()
 					}
 				}.showIfNotEmpty()
