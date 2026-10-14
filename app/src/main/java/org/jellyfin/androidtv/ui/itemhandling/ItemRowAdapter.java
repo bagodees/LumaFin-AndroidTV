@@ -77,6 +77,7 @@ public class ItemRowAdapter extends MutableObjectAdapter<Object> {
     private ItemSortBy mSortBy;
     private SortOrder sortOrder;
     private FilterOptions mFilters;
+    private GetItemsRequest mFilterBaseRequest;
 
     private EmptyResponse mRetrieveFinishedListener;
 
@@ -402,6 +403,7 @@ public class ItemRowAdapter extends MutableObjectAdapter<Object> {
     }
 
     public void setFilters(FilterOptions filters) {
+        if (mFilters == null) mFilterBaseRequest = mQuery;
         mFilters = filters;
         switch (queryType) {
             case Artists:
@@ -411,7 +413,7 @@ public class ItemRowAdapter extends MutableObjectAdapter<Object> {
                 mAlbumArtistsQuery = ItemRowAdapterHelperKt.setAlbumArtistsFilter(mAlbumArtistsQuery, filters.getFilters());
                 break;
             default:
-                mQuery = ItemRowAdapterHelperKt.setItemsFilter(mQuery, filters.getFilters());
+                mQuery = ItemRowAdapterHelperKt.setCombinedItemsFilter(mQuery, filters, mFilterBaseRequest);
         }
         removeRow();
     }

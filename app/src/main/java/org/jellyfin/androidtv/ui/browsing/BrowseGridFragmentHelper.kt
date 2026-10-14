@@ -3,6 +3,7 @@ package org.jellyfin.androidtv.ui.browsing
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import org.jellyfin.sdk.api.client.extensions.itemsApi
+import org.jellyfin.sdk.api.client.extensions.filterApi
 import org.jellyfin.sdk.api.client.extensions.artistsApi
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -81,4 +82,99 @@ fun BrowseGridFragment.loadAvailableLetters(
         }
         callback(available)
     }
+}
+
+/** One menu combines filters without changing sorting or the current letter selection. */
+fun BrowseGridFragment.showCombinedFilters(
+    adapter: org.jellyfin.androidtv.ui.itemhandling.ItemRowAdapter,
+    api: org.jellyfin.sdk.api.client.ApiClient,
+    onChanged: () -> Unit,
+) {
+    val context = requireContext()
+    val request = adapter.itemsRequest ?: return
+    var loadingFinished = false
+    val loading = androidx.appcompat.app.AlertDialog.Builder(context)
+        .setTitle(org.jellyfin.androidtv.R.string.library_filters_title)
+        .setMessage(org.jellyfin.androidtv.R.string.library_filter_loading)
+        .setNegativeButton(android.R.string.cancel, null).create()
+    val job = lifecycleScope.launch {
+        try {
+            val available = api.filterApi.getQueryFiltersLegacy(
+                userId = request.userId, parentId = request.parentId,
+                includeItemTypes = request.includeItemTypes,
+            ).content
+            loadingFinished = true
+            loading.dismiss()
+            if (!isAdded || !lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.STARTED)) return@launch
+            showLibraryFilterMenu(adapter, available.genres.orEmpty().distinct().sorted(), available.years.orEmpty().distinct().sortedDescending(), onChanged)
+        } catch (cancelled: kotlinx.coroutines.CancellationException) {
+            throw cancelled
+        } catch (error: Exception) {
+            loadingFinished = true
+            loading.dismiss()
+            timber.log.Timber.w(error, "Unable to load library filter options")
+            if (isAdded) androidx.appcompat.app.AlertDialog.Builder(context)
+                .setTitle(org.jellyfin.androidtv.R.string.library_filters_title)
+                .setMessage(org.jellyfin.androidtv.R.string.library_filter_load_failed)
+                .setPositiveButton(android.R.string.ok, null).show()
+        }
+    }
+    loading.setOnDismissListener { if (!loadingFinished) job.cancel() }
+    loading.show()
+}
+
+private fun BrowseGridFragment.showLibraryFilterMenu(
+    adapter: org.jellyfin.androidtv.ui.itemhandling.ItemRowAdapter,
+    genres: List<String>, years: List<Int>, onChanged: () -> Unit,
+) {
+    if (!isAdded) return
+    val options = adapter.filters
+    val any = getString(org.jellyfin.androidtv.R.string.library_filter_any)
+    val labels = arrayOf(
+        getString(org.jellyfin.androidtv.R.string.library_filter_genre, options.genre ?: any),
+        getString(org.jellyfin.androidtv.R.string.library_filter_year, options.year?.toString() ?: any),
+        getString(org.jellyfin.androidtv.R.string.library_filter_rating, options.minimumRating?.let { getString(org.jellyfin.androidtv.R.string.library_rating_minimum, it) } ?: any),
+        getString(org.jellyfin.androidtv.R.string.library_filter_watch, getString(if (options.isUnwatchedOnly) org.jellyfin.androidtv.R.string.lbl_unwatched else org.jellyfin.androidtv.R.string.library_filter_all)),
+        getString(org.jellyfin.androidtv.R.string.library_filter_favorites, getString(if (options.isFavoriteOnly) org.jellyfin.androidtv.R.string.library_filter_on else org.jellyfin.androidtv.R.string.library_filter_off)),
+        getString(org.jellyfin.androidtv.R.string.library_filter_reset),
+    )
+    fun apply() {
+        adapter.setFilters(options)
+        onChanged()
+        showLibraryFilterMenu(adapter, genres, years, onChanged)
+    }
+    fun choose(title: Int, labels: List<String>, selected: Int, action: (Int) -> Unit) {
+        var picked = false
+        androidx.appcompat.app.AlertDialog.Builder(requireContext()).setTitle(title)
+            .setSingleChoiceItems(labels.toTypedArray(), selected) { dialog, index ->
+                picked = true
+                dialog.dismiss()
+                action(index)
+                apply()
+            }.setNegativeButton(android.R.string.cancel, null)
+            .create().apply {
+                setOnDismissListener { if (!picked) showLibraryFilterMenu(adapter, genres, years, onChanged) }
+                show()
+            }
+    }
+    androidx.appcompat.app.AlertDialog.Builder(requireContext())
+        .setTitle(org.jellyfin.androidtv.R.string.library_filters_title)
+        .setItems(labels) { _, index ->
+            when (index) {
+                0 -> choose(org.jellyfin.androidtv.R.string.library_filter_genre_title, listOf(any) + genres,
+                    genres.indexOf(options.genre) + 1) { options.genre = if (it == 0) null else genres[it - 1] }
+                1 -> choose(org.jellyfin.androidtv.R.string.library_filter_year_title, listOf(any) + years.map(Int::toString),
+                    years.indexOf(options.year) + 1) { options.year = if (it == 0) null else years[it - 1] }
+                2 -> choose(org.jellyfin.androidtv.R.string.library_filter_rating_title,
+                    listOf(any) + (1..10).map { getString(org.jellyfin.androidtv.R.string.library_rating_minimum, it) },
+                    options.minimumRating ?: 0) { options.minimumRating = it.takeIf { it > 0 } }
+                3 -> { options.isUnwatchedOnly = !options.isUnwatchedOnly; apply() }
+                4 -> { options.isFavoriteOnly = !options.isFavoriteOnly; apply() }
+                5 -> {
+                    options.genre = null; options.year = null; options.minimumRating = null
+                    options.isFavoriteOnly = false; options.isUnwatchedOnly = false
+                    apply()
+                }
+            }
+        }.setNegativeButton(android.R.string.ok, null).show()
 }

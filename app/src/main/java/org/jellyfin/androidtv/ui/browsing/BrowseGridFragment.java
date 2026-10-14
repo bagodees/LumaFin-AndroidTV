@@ -327,6 +327,9 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
         text += " " + getString(R.string.lbl_from) + " '" + folderName + "' " + getString(R.string.lbl_sorted_by) + " " + getSortOption(mAdapter.getSortBy()).name + " / " + getString(mAdapter.getSortOrder() == SortOrder.ASCENDING
                 ? R.string.library_sort_ascending : R.string.library_sort_descending);
 
+        if (filters != null && filters.getGenre() != null) text += " \u00b7 " + filters.getGenre();
+        if (filters != null && filters.getYear() != null) text += " \u00b7 " + filters.getYear();
+        if (filters != null && filters.getMinimumRating() != null) text += " \u00b7 " + getString(R.string.library_rating_minimum, filters.getMinimumRating());
         binding.statusText.setText(text);
     }
 
@@ -665,6 +668,12 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
         FilterOptions filters = new FilterOptions();
         filters.setFavoriteOnly(libraryPreferences.get(LibraryPreferences.Companion.getFilterFavoritesOnly()));
         filters.setUnwatchedOnly(libraryPreferences.get(LibraryPreferences.Companion.getFilterUnwatchedOnly()));
+        String savedGenre = libraryPreferences.get(LibraryPreferences.Companion.getFilterGenre());
+        filters.setGenre(savedGenre.isEmpty() ? null : savedGenre);
+        int savedYear = libraryPreferences.get(LibraryPreferences.Companion.getFilterYear());
+        filters.setYear(savedYear > 0 ? savedYear : null);
+        int savedRating = libraryPreferences.get(LibraryPreferences.Companion.getFilterMinimumRating());
+        filters.setMinimumRating(savedRating > 0 && savedRating <= 10 ? savedRating : null);
 
         mAdapter.setRetrieveFinishedListener(new EmptyResponse(getLifecycle()) {
             @Override
@@ -713,6 +722,10 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
     private ImageButton mLetterButton;
 
     private void updateDisplayPrefs() {
+        FilterOptions active = mAdapter.getFilters();
+        libraryPreferences.set(LibraryPreferences.Companion.getFilterGenre(), active.getGenre() == null ? "" : active.getGenre());
+        libraryPreferences.set(LibraryPreferences.Companion.getFilterYear(), active.getYear() == null ? 0 : active.getYear());
+        libraryPreferences.set(LibraryPreferences.Companion.getFilterMinimumRating(), active.getMinimumRating() == null ? 0 : active.getMinimumRating());
         libraryPreferences.saveBrowsingChoices(mAdapter.getFilters().isFavoriteOnly(),
                 mAdapter.getFilters().isUnwatchedOnly(), mAdapter.getSortBy(), mAdapter.getSortOrder());
         setStatusText(mFolder.getName());
@@ -790,6 +803,19 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
             });
             mUnwatchedButton.setContentDescription(getString(R.string.lbl_unwatched));
             binding.toolBar.addView(mUnwatchedButton);
+            ImageButton combinedFilters = new ImageButton(requireContext(), null, 0, R.style.Button_Icon);
+            combinedFilters.setImageResource(R.drawable.ic_filter);
+            combinedFilters.setMaxHeight(size);
+            combinedFilters.setAdjustViewBounds(true);
+            combinedFilters.setContentDescription(getString(R.string.library_filters_title));
+            combinedFilters.setOnClickListener(v -> BrowseGridFragmentHelperKt.showCombinedFilters(this, mAdapter, api.getValue(), () -> {
+                mUnwatchedButton.setActivated(mAdapter.getFilters().isUnwatchedOnly());
+                mFavoriteButton.setActivated(mAdapter.getFilters().isFavoriteOnly());
+                updateDisplayPrefs();
+                mAdapter.Retrieve();
+                return kotlin.Unit.INSTANCE;
+            }));
+            binding.toolBar.addView(combinedFilters);
         }
 
         mFavoriteButton = new ImageButton(requireContext(), null, 0, R.style.Button_Icon);

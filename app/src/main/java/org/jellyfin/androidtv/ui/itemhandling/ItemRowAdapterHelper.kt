@@ -744,3 +744,10 @@ fun ItemRowAdapter.refreshItem(
 		callback()
 	}
 }
+
+fun setCombinedItemsFilter(request: GetItemsRequest, options: org.jellyfin.androidtv.data.model.FilterOptions, base: GetItemsRequest = request) = request.copy(
+    filters = options.filters,
+    genres = options.genre?.let { listOf(it) } ?: base.genres,
+    years = options.year?.let { listOf(it) } ?: base.years,
+    minCommunityRating = options.minimumRating?.toDouble() ?: base.minCommunityRating,
+)

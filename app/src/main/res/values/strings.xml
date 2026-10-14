@@ -921,4 +921,21 @@
     <string name="artwork_cleared">Cached artwork cleared. Browse your libraries to reload images.</string>
     <string name="artwork_clear_failed">Could not clear all cached artwork. Try again.</string>
     <string name="chapter_at_time">Chapter at %1$s</string>
+    <string name="library_filters_title">Filters</string>
+    <string name="library_filter_genre">Genre: %1$s</string>
+    <string name="library_filter_year">Year: %1$s</string>
+    <string name="library_filter_rating">Rating: %1$s</string>
+    <string name="library_filter_watch">Watch Status: %1$s</string>
+    <string name="library_filter_favorites">Favorites Only: %1$s</string>
+    <string name="library_filter_any">Any</string>
+    <string name="library_filter_all">All</string>
+    <string name="library_filter_reset">Reset Filters</string>
+    <string name="library_filter_loading">Loading available genres and years...</string>
+    <string name="library_filter_load_failed">Could not load genres and years. Try again when connected to your server.</string>
+    <string name="library_filter_genre_title">Genre</string>
+    <string name="library_filter_year_title">Year</string>
+    <string name="library_filter_rating_title">Minimum Rating</string>
+    <string name="library_rating_minimum">%1$d/10 or higher</string>
+    <string name="library_filter_on">On</string>
+    <string name="library_filter_off">Off</string>
 </resources>
