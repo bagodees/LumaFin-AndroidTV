@@ -1118,7 +1118,7 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
         }
 
         //Now, create a more button to show if needed
-        moreButton = TextUnderButton.create(requireContext(), R.drawable.ic_more, buttonSize, 0, getString(R.string.lbl_other_options), new View.OnClickListener() {
+        moreButton = TextUnderButton.create(requireContext(), R.drawable.ic_more, buttonSize, 0, getString(R.string.details_more), new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 FullDetailsFragmentHelperKt.showDetailsMenu(FullDetailsFragment.this, v, mBaseItem);

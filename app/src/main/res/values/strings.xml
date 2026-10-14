@@ -910,4 +910,5 @@
     <string name="subtitle_brightness">Subtitle Brightness</string>
     <string name="subtitle_brightness_description">Dim subtitles drawn by LumaFin without changing the video. Does not affect subtitles burned into the video or external players. Applies when playback starts.</string>
     <string name="subtitle_brightness_reset">Reset Brightness to Default</string>
+    <string name="details_more">More</string>
 </resources>
