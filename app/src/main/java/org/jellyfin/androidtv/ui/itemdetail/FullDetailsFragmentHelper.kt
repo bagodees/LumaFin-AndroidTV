@@ -76,7 +76,7 @@ fun FullDetailsFragment.showDetailsMenu(
 ) = popupMenu(requireContext(), view) {
 	// Hidden actions remain available in More.
     if (mWatchedToggleButton?.isVisible == false) {
-        item(getString(if (baseItemDto.userData?.played == true) R.string.lbl_unwatched else R.string.lbl_watched)) { togglePlayed() }
+        item(getString(if (baseItemDto.userData?.played == true) R.string.details_mark_unwatched else R.string.details_mark_watched)) { togglePlayed() }
     }
 	if (queueButton?.isVisible == false) {
 		item(getString(R.string.lbl_add_to_queue)) { addItemToQueue() }
