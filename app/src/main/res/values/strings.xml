@@ -920,4 +920,5 @@
     <string name="artwork_clearing">Clearing artwork...</string>
     <string name="artwork_cleared">Cached artwork cleared. Browse your libraries to reload images.</string>
     <string name="artwork_clear_failed">Could not clear all cached artwork. Try again.</string>
+    <string name="chapter_at_time">Chapter at %1$s</string>
 </resources>

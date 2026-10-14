@@ -30,6 +30,8 @@ class CustomSeekProvider(
 ) : PlaybackSeekDataProvider() {
 	private val imageRequests = mutableMapOf<Int, Disposable>()
 	private var currentSeekPositions = LongArray(0)
+	private var requestSequence = 0L
+	private val requestTokens = mutableMapOf<Int, Long>()
 
 	private var cachedPlaceholderThumbnail: Bitmap? = null
 
@@ -67,7 +69,11 @@ class CustomSeekProvider(
 	}
 
 	override fun getThumbnail(index: Int, callback: ResultCallback) {
-		if (index >= currentSeekPositions.size) return
+		if (index !in currentSeekPositions.indices) return
+		val token = ++requestSequence
+		requestTokens[index] = token
+		val fallback = getPlaceholderThumbnail(160, 90)
+		callback.onThumbnailLoaded(fallback, index)
 
 		val currentRequest = imageRequests[index]
 		if (currentRequest?.isDisposed == false) currentRequest.dispose()
@@ -78,9 +84,11 @@ class CustomSeekProvider(
 		if (item == null || mediaSource == null || mediaSourceId == null) return
 
 		val trickPlayResolutions = item.trickplay?.get(mediaSource.id)
-		val trickPlayInfo = trickPlayResolutions?.values?.firstOrNull() ?: return
+		val trickPlayInfo = trickPlayResolutions?.values?.firstOrNull {
+			it.interval > 0 && it.tileWidth > 0 && it.tileHeight > 0 && it.width > 0 && it.height > 0
+		} ?: return
 
-		val currentTimeMs = currentSeekPositions[index]
+		val currentTimeMs = currentSeekPositions[index].coerceAtMost((videoPlayerAdapter.duration - 1).coerceAtLeast(0))
 		val currentTile = currentTimeMs.floorDiv(trickPlayInfo.interval).toInt()
 
 		val tileSize = trickPlayInfo.tileWidth * trickPlayInfo.tileHeight
@@ -121,17 +129,18 @@ class CustomSeekProvider(
 			transformations(SubsetTransformation(offsetX, offsetY, trickPlayInfo.width, trickPlayInfo.height))
 
 			target(
-				onStart = { _ -> callback.onThumbnailLoaded(placeholderThumbnail, index) },
-				onError = { _ -> callback.onThumbnailLoaded(placeholderThumbnail, index) },
+				onStart = { _ -> if (requestTokens[index] == token) callback.onThumbnailLoaded(placeholderThumbnail, index) },
+				onError = { _ -> if (requestTokens[index] == token) callback.onThumbnailLoaded(placeholderThumbnail, index) },
 				onSuccess = { image ->
 					val bitmap = image.toBitmap()
-					callback.onThumbnailLoaded(bitmap, index)
+					if (requestTokens[index] == token) callback.onThumbnailLoaded(bitmap, index)
 				}
 			)
 		}.build())
 	}
 
 	override fun reset() {
+		requestTokens.clear()
 		for (request in imageRequests.values) {
 			if (!request.isDisposed) request.dispose()
 		}

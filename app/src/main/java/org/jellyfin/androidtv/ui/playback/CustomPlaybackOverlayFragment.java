@@ -475,7 +475,7 @@ public class CustomPlaybackOverlayFragment extends Fragment implements LiveTvGui
         @Override
         public boolean onKey(View v, int keyCode, KeyEvent event) {
             if (event.getAction() == KeyEvent.ACTION_DOWN) {
-                if (!mGuideVisible)
+                if (!mGuideVisible && !mPopupPanelVisible)
                     leanbackOverlayFragment.setShouldShowOverlay(true);
                 else {
                     leanbackOverlayFragment.setShouldShowOverlay(false);
@@ -731,12 +731,25 @@ public class CustomPlaybackOverlayFragment extends Fragment implements LiveTvGui
     }
 
     private void showChapterPanel() {
+        mPopupPanelVisible = true;
+        leanbackOverlayFragment.setShouldShowOverlay(false);
+        leanbackOverlayFragment.getPlayerGlue().cancelSeekForPopup();
+        leanbackOverlayFragment.hideControlsOverlay(false);
+        View controls = leanbackOverlayFragment.getView();
+        if (controls instanceof android.view.ViewGroup) {
+            ((android.view.ViewGroup) controls).setDescendantFocusability(android.view.ViewGroup.FOCUS_BLOCK_DESCENDANTS);
+        }
         setFadingEnabled(false);
         binding.popupArea.startAnimation(showPopup);
         binding.skipOverlay.setSkipUiEnabled(!mIsVisible && !mGuideVisible && !mPopupPanelVisible);
     }
 
     private void hidePopupPanel() {
+        View controls = leanbackOverlayFragment.getView();
+        if (controls instanceof android.view.ViewGroup) {
+            ((android.view.ViewGroup) controls).setDescendantFocusability(android.view.ViewGroup.FOCUS_AFTER_DESCENDANTS);
+        }
+        leanbackOverlayFragment.setShouldShowOverlay(true);
         startFadeTimer();
         binding.popupArea.startAnimation(hidePopup);
         mPopupPanelVisible = false;
@@ -1136,7 +1149,7 @@ public class CustomPlaybackOverlayFragment extends Fragment implements LiveTvGui
             if (!getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.STARTED)) return;
 
             int ndx = TvManager.getAllChannelsIndex(TvManager.getLastLiveTvChannel());
-            if (ndx > 0) {
+            if (ndx >= 0) {
                 mPopupRowPresenter.setPosition(ndx);
             }
             mPopupPanelVisible = true;
@@ -1157,16 +1170,10 @@ public class CustomPlaybackOverlayFragment extends Fragment implements LiveTvGui
     }
 
     private int getCurrentChapterIndex(BaseItemDto item, long pos) {
-        int ndx = 0;
-        Timber.d("*** looking for chapter at pos: %d", pos);
-        if (item.getChapters() != null) {
-            for (ChapterInfo chapter : item.getChapters()) {
-                Timber.d("*** chapter %d has pos: %d", ndx, chapter.getStartPositionTicks());
-                if (chapter.getStartPositionTicks() > pos) return ndx - 1;
-                ndx++;
-            }
-        }
-        return ndx - 1;
+        if (item == null || item.getChapters() == null || item.getChapters().isEmpty()) return -1;
+        long[] starts = new long[item.getChapters().size()];
+        for (int i = 0; i < starts.length; i++) starts[i] = item.getChapters().get(i).getStartPositionTicks();
+        return org.jellyfin.androidtv.util.ChapterNavigation.indexAt(starts, pos);
     }
 
     public void toggleRecording(BaseItemDto item) {
@@ -1280,6 +1287,10 @@ public class CustomPlaybackOverlayFragment extends Fragment implements LiveTvGui
     private void prepareChapterAdapter() {
         BaseItemDto item = playbackControllerContainer.getValue().getPlaybackController().getCurrentlyPlayingItem();
         List<ChapterInfo> chapters = item.getChapters();
+        if (mChapterRow != null) {
+            mPopupRowAdapter.remove(mChapterRow);
+            mChapterRow = null;
+        }
 
         if (chapters != null && !chapters.isEmpty()) {
             // create chapter row for later use

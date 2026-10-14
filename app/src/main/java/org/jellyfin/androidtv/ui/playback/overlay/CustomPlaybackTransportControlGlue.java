@@ -83,6 +83,7 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
     private TextView mEndsText = null;
     private TextView mRemainingText = null;
     private TextView mFocusLabel = null;
+    private PlaybackTransportRowPresenter.ViewHolder transportViewHolder;
     private ChapterTicksView mChapterTicks = null;
     private View mControlsDock = null;
     private View mSecondaryDock = null;
@@ -157,6 +158,7 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
                         () -> seekPreferences.get(UserSettingPreferences.Companion.getSkipBackLength()).longValue(),
                         () -> seekPreferences.get(UserSettingPreferences.Companion.getSkipForwardLength()).longValue());
 
+                transportViewHolder = (PlaybackTransportRowPresenter.ViewHolder) vh;
                 View root = vh.view;
                 mEndsText = root.findViewById(R.id.ends_at);
                 mRemainingText = root.findViewById(R.id.remaining_time);
@@ -165,6 +167,18 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
                 mControlsDock = root.findViewById(androidx.leanback.R.id.controls_dock);
                 mSecondaryDock = root.findViewById(androidx.leanback.R.id.secondary_controls_dock);
                 mButtonRef = (LinearLayout) ((FrameLayout) mControlsDock).getChildAt(0);
+                View buttons = root.findViewById(R.id.playback_button_row);
+                View seekBar = root.findViewById(androidx.leanback.R.id.playback_progress);
+                root.addOnLayoutChangeListener((view, l, t, r, b, oldL, oldT, oldR, oldB) -> {
+                    int[] seekLocation = new int[2];
+                    int[] buttonLocation = new int[2];
+                    seekBar.getLocationInWindow(seekLocation);
+                    buttons.getLocationInWindow(buttonLocation);
+                    float delta = seekLocation[0] + seekBar.getWidth() / 2f
+                            - buttonLocation[0] - buttons.getWidth() / 2f;
+                    buttons.setTranslationX(buttons.getTranslationX() + delta);
+                    updateFocusLabel(root.findFocus());
+                });
 
                 ClockBehavior showClock = KoinJavaComponent.<UserPreferences>get(UserPreferences.class).get(UserPreferences.Companion.getClockBehavior());
                 if (showClock == ClockBehavior.ALWAYS || showClock == ClockBehavior.IN_VIDEO) {
@@ -320,6 +334,14 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
         secondaryActionsAdapter.add(sleepTimerAction);
         secondaryActionsAdapter.add(playbackInformationAction);
 
+        // Leanback renders at most seven controls in each group. Keep Info at the
+        // right end and move overflow controls into spare primary slots.
+        while (secondaryActionsAdapter.size() > 7 && primaryActionsAdapter.size() < 7) {
+            int overflowIndex = secondaryActionsAdapter.size() - 2;
+            Object overflow = secondaryActionsAdapter.get(overflowIndex);
+            secondaryActionsAdapter.remove(overflow);
+            primaryActionsAdapter.add(overflow);
+        }
         updateChapterTicks();
     }
 
@@ -400,6 +422,9 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
             if (adapter != null && index >= 0 && index < adapter.size() && adapter.get(index) instanceof Action) {
                 Action action = (Action) adapter.get(index);
                 label = action.getLabel1();
+                if (action == playbackSpeedAction && (label == null || label.length() == 0)) {
+                    label = getContext().getString(R.string.lbl_playback_speed);
+                }
                 if (label == null && action instanceof PlaybackControlsRow.MultiAction) {
                     PlaybackControlsRow.MultiAction multi = (PlaybackControlsRow.MultiAction) action;
                     try {
@@ -411,6 +436,25 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
             }
         }
         mFocusLabel.setText(label != null ? label : "");
+        if (label != null && focused != null) {
+            View selected = entry != null ? entry : focused;
+            int labelWidth = (int) Math.ceil(mFocusLabel.getPaint().measureText(label.toString()))
+                    + mFocusLabel.getPaddingLeft() + mFocusLabel.getPaddingRight();
+            mFocusLabel.setWidth(labelWidth);
+            mFocusLabel.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+            mFocusLabel.post(() -> {
+                int[] selectedLocation = new int[2];
+                int[] parentLocation = new int[2];
+                selected.getLocationInWindow(selectedLocation);
+                View parent = (View) mFocusLabel.getParent();
+                parent.getLocationInWindow(parentLocation);
+                float center = selectedLocation[0] - parentLocation[0] + selected.getWidth() / 2f;
+                float left = center - labelWidth / 2f;
+                float minimum = 0;
+                float maximum = Math.max(minimum, parent.getWidth() - labelWidth);
+                mFocusLabel.setTranslationX(Math.max(minimum, Math.min(left, maximum)) - mFocusLabel.getLeft());
+            });
+        }
     }
 
     private void setEndTime() {
@@ -475,6 +519,10 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
             mEndsText.setVisibility(mButtonRef.getVisibility());
         mHandler.removeCallbacks(mRefreshViewVisibility);
         mHandler.postDelayed(mRefreshViewVisibility, 100);
+    }
+
+    public void cancelSeekForPopup() {
+        if (transportViewHolder != null) DirectionalSeek.cancel(transportViewHolder);
     }
 
     @Override

@@ -120,7 +120,9 @@
 		</LinearLayout>
 
 		<LinearLayout
-			android:layout_width="match_parent"
+			android:id="@+id/playback_button_row"
+			android:layout_width="wrap_content"
+			android:layout_gravity="center_horizontal"
 			android:layout_height="wrap_content"
 			android:gravity="center_vertical"
 			android:layoutDirection="ltr"
@@ -139,32 +141,32 @@
 				android:layout_height="wrap_content"
 				android:layout_marginStart="12dp" />
 
-			<TextView
-				android:id="@+id/focus_label"
-				style="?attr/playbackControlsTimeStyle"
-				android:layout_width="130dp"
-				android:layout_height="wrap_content"
-				android:layout_marginStart="12dp"
-				android:gravity="end"
-				android:ellipsize="end"
-				android:singleLine="true" />
-
 			<Space
 				android:layout_width="12dp"
 				android:layout_height="0dp"
 				/>
 
 			<HorizontalScrollView
-				android:layout_width="0dp"
+				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
-				android:layout_weight="1"
-				android:scrollbars="none"
-				android:fillViewport="true">
+				android:scrollbars="none">
 				<FrameLayout
 					android:id="@+id/secondary_controls_dock"
 					android:layout_width="wrap_content"
 					android:layout_height="wrap_content" />
 			</HorizontalScrollView>
 		</LinearLayout>
+		<TextView
+			android:id="@+id/focus_label"
+			style="?attr/playbackControlsTimeStyle"
+			android:layout_width="wrap_content"
+			android:maxWidth="240dp"
+			android:textAlignment="center"
+			android:layout_height="wrap_content"
+			android:minHeight="18dp"
+			android:gravity="center"
+			android:ellipsize="end"
+			android:singleLine="true" />
+
 	</androidx.leanback.widget.PlaybackTransportRowView>
 </LinearLayout>

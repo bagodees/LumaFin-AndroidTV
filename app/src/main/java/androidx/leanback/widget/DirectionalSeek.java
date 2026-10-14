@@ -32,6 +32,10 @@ public final class DirectionalSeek {
                 : boundedPosition - Math.min(boundedInterval, boundedPosition);
     }
 
+    public static void cancel(PlaybackTransportRowPresenter.ViewHolder vh) {
+        if (vh.mInSeek) vh.stopSeek(true);
+    }
+
     public static void install(PlaybackTransportRowPresenter.ViewHolder vh,
                                LongSupplier backwardInterval, LongSupplier forwardInterval) {
         vh.mProgressBar.setOnKeyListener((view, keyCode, event) -> {

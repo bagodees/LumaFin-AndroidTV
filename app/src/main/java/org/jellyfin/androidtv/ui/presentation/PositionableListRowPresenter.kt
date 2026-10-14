@@ -29,5 +29,6 @@ class PositionableListRowPresenter : CustomListRowPresenter {
 		set(value) {
 			Timber.d("Setting position to $value")
 			viewHolder?.gridView?.selectedPosition = value
+			viewHolder?.gridView?.requestFocus()
 		}
 }

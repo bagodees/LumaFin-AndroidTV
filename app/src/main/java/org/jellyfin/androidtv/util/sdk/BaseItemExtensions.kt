@@ -151,7 +151,7 @@ fun BaseItemDto.buildChapterItems(): List<ChapterItemInfo> {
 			itemId = id,
 			name = dto.name,
 			startPositionTicks = dto.startPositionTicks,
-			image = images[i].takeIf { it.tag.isNotEmpty() },
+			image = images.getOrNull(i)?.takeIf { it.tag.isNotEmpty() },
 		)
 	}.orEmpty()
 }
