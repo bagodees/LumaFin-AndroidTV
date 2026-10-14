@@ -913,4 +913,11 @@
     <string name="details_more">More</string>
     <string name="details_mark_watched">Mark as Watched</string>
     <string name="details_mark_unwatched">Mark as Unwatched</string>
+    <string name="maintenance_title">Maintenance</string>
+    <string name="artwork_clear_title">Clear Cached Artwork</string>
+    <string name="artwork_clear_description">Remove downloaded posters and backgrounds from this device. Artwork downloads again as you browse. Sign-in, settings and watch history are kept.</string>
+    <string name="artwork_cache_size">Downloaded artwork: %1$s</string>
+    <string name="artwork_clearing">Clearing artwork...</string>
+    <string name="artwork_cleared">Cached artwork cleared. Browse your libraries to reload images.</string>
+    <string name="artwork_clear_failed">Could not clear all cached artwork. Try again.</string>
 </resources>

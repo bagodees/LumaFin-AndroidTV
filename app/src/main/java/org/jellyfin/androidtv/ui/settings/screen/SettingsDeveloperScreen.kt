@@ -1,15 +1,12 @@
 package org.jellyfin.androidtv.ui.settings.screen
 
-import android.text.format.Formatter
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import coil3.ImageLoader
 import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.preference.SystemPreferences
 import org.jellyfin.androidtv.preference.UserPreferences
@@ -62,27 +59,5 @@ fun SettingsDeveloperScreen() {
 			)
 		}
 
-		item {
-			// Image cache
-			val imageLoader = koinInject<ImageLoader>()
-			var imageCacheSize by remember { mutableLongStateOf(imageLoader.diskCache?.size ?: 0L) }
-			ListButton(
-				headingContent = { Text(stringResource(R.string.clear_image_cache)) },
-				captionContent = {
-					Text(
-						stringResource(
-							R.string.clear_image_cache_content,
-							Formatter.formatFileSize(context, imageCacheSize)
-						)
-					)
-				},
-				onClick = {
-					imageLoader.memoryCache?.clear()
-					imageLoader.diskCache?.clear()
-					imageCacheSize = imageLoader.diskCache?.size ?: 0L
-				},
-				modifier = Modifier.focusKey("clear_image_cache")
-			)
-		}
 	}
 }
