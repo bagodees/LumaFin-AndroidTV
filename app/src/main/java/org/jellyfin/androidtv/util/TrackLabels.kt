@@ -16,6 +16,11 @@ private val languageCodes by lazy {
 		mapOf("fre" to "fr", "ger" to "de", "chi" to "zh", "dut" to "nl", "cze" to "cs", "gre" to "el", "rum" to "ro")
 }
 
+// Exact container-generated names only: never discard descriptive or commentary titles.
+private fun String.isGenericTrackTitle(): Boolean = trim().replace(Regex("\\s+"), " ").lowercase(Locale.ROOT) in setOf(
+	"apple sound media handler", "soundhandler", "sound handler",
+)
+
 internal fun MediaStream.readableTrackLabel(locale: Locale, text: TrackLabelText): String {
 	val code = language?.trim()?.lowercase(Locale.ROOT).orEmpty()
 	val languageLocale = Locale.forLanguageTag(languageCodes[code] ?: code.replace('_', '-'))
@@ -23,7 +28,9 @@ internal fun MediaStream.readableTrackLabel(locale: Locale, text: TrackLabelText
 		code.isNotBlank() && code != "und" && it.isNotBlank() && !it.equals(code, true)
 	}
 	val parts = mutableListOf(languageName ?: text.unknown)
-	val customTitle = title?.trim()?.takeIf { it.isNotEmpty() && !it.equals(code, true) && !it.equals(languageName, true) }
+	val customTitle = title?.trim()?.takeIf {
+		it.isNotEmpty() && !it.isGenericTrackTitle() && !it.equals(code, true) && !it.equals(languageName, true)
+	}
 	if (customTitle != null) parts += customTitle
 	if (type == MediaStreamType.AUDIO) {
 		parts += when {
@@ -48,7 +55,7 @@ internal fun MediaStream.readableTrackLabel(locale: Locale, text: TrackLabelText
 	if (isDefault) parts += text.default
 	// Preserve a server label when structured metadata cannot identify the track.
 	if (languageName == null && customTitle == null && codec.isNullOrBlank()) {
-		displayTitle?.takeIf { it.isNotBlank() }?.let { parts[0] = it }
+		displayTitle?.takeIf { it.isNotBlank() && !it.isGenericTrackTitle() }?.let { parts[0] = it }
 	}
 	return parts.filter { it.isNotBlank() }.distinct().joinToString(" · ")
 }

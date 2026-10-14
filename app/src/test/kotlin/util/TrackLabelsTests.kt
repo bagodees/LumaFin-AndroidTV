@@ -35,6 +35,19 @@ class TrackLabelsTests : FunSpec({
 	test("channel count does not invent a surround layout") {
 		stream(channels = 6).readableTrackLabel(Locale.ENGLISH, text) shouldBe "English · 6 Channels · AAC"
 	}
+	test("generic container audio names are omitted without removing useful custom titles") {
+		for (title in listOf("Apple Sound Media Handler", " apple  SOUND media handler ", "SoundHandler")) {
+			stream(title = title).readableTrackLabel(Locale.ENGLISH, text) shouldBe "English · Stereo · AAC"
+		}
+		stream(title = "Audio Description").readableTrackLabel(Locale.ENGLISH, text) shouldBe
+			"English · Audio Description · Stereo · AAC"
+		stream(title = "Sound Handler Commentary").readableTrackLabel(Locale.ENGLISH, text) shouldBe
+			"English · Sound Handler Commentary · Stereo · AAC"
+	}
+	test("generic fallback names do not return when metadata is missing") {
+		stream(language = null, codec = null, channels = null, title = "SoundHandler", display = "SoundHandler")
+			.readableTrackLabel(Locale.ENGLISH, text) shouldBe "Unknown Language"
+	}
 	test("subtitle flags reflect server metadata") {
 		stream(type = MediaStreamType.SUBTITLE, codec = "subrip", forced = true, sdh = true, default = true)
 			.readableTrackLabel(Locale.ENGLISH, text) shouldBe "English · SRT · Forced Only · Hearing Impaired (SDH) · Default"
