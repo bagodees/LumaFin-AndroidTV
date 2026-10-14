@@ -443,7 +443,10 @@ fun FullDetailsFragment.showExtras(anchor: View) {
             val labels = entries.map { extra ->
                 val type = if (extra.type == BaseItemKind.TRAILER) R.string.extra_trailer
                     else org.jellyfin.androidtv.util.extraTypeLabel(extra.extraType)
-                "${extra.name?.takeIf { it.isNotBlank() } ?: getString(type)}\n${getString(type)}"
+                val runtime = extra.runTimeTicks?.takeIf { it >= 10_000_000L }
+                    ?.let { TimeUtils.formatMillis(it / 10_000L) }
+                val details = listOfNotNull(getString(type), runtime).joinToString(" · ")
+                "${extra.name?.takeIf { it.isNotBlank() } ?: getString(type)}\n$details"
             }.toTypedArray()
             android.app.AlertDialog.Builder(requireContext())
                 .setTitle(R.string.extras_title)
