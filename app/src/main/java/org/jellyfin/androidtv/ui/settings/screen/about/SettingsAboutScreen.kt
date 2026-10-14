@@ -2,10 +2,12 @@ package org.jellyfin.androidtv.ui.settings.screen.about
 
 import android.content.ClipData
 import android.os.Build
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import org.jellyfin.androidtv.BuildConfig
 import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.ui.base.Icon
@@ -17,6 +19,7 @@ import org.jellyfin.androidtv.ui.navigation.focus.focusKey
 import org.jellyfin.androidtv.ui.settings.Routes
 import org.jellyfin.androidtv.ui.settings.composable.SettingsColumn
 import org.jellyfin.androidtv.ui.settings.util.copyAction
+import org.jellyfin.androidtv.util.AppVersionLabel
 
 @Composable
 fun SettingsAboutScreen(launchedFromLogin: Boolean = false) {
@@ -37,9 +40,9 @@ fun SettingsAboutScreen(launchedFromLogin: Boolean = false) {
 
 		item {
 			val heading = "LumaFin app version"
-			val caption = "LumaFin ${BuildConfig.VERSION_NAME} ${BuildConfig.BUILD_TYPE}"
+			val caption = AppVersionLabel.format(BuildConfig.VERSION_NAME, BuildConfig.BUILD_TYPE, BuildConfig.NEXT_VERSION)
 			ListButton(
-				leadingContent = { Icon(painterResource(R.drawable.ic_jellyfin), contentDescription = null) },
+				leadingContent = { Icon(painterResource(R.drawable.ic_jellyfin), contentDescription = null, modifier = Modifier.size(24.dp)) },
 				headingContent = { Text(heading) },
 				captionContent = { Text(caption) },
 				onClick = copyAction(ClipData.newPlainText(heading, caption)),

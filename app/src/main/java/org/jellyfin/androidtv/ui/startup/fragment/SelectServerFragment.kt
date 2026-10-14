@@ -47,6 +47,7 @@ import org.jellyfin.androidtv.util.ListAdapter
 import org.jellyfin.androidtv.util.MenuBuilder
 import org.jellyfin.androidtv.util.createBundle
 import org.jellyfin.androidtv.util.getSummary
+import org.jellyfin.androidtv.util.AppVersionLabel
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
 import org.koin.compose.koinInject
 
@@ -200,7 +201,7 @@ class SelectServerFragment : Fragment() {
 
 		// App info
 		@Suppress("SetTextI18n")
-		binding.appVersion.text = "LumaFin ${BuildConfig.VERSION_NAME} ${BuildConfig.BUILD_TYPE}"
+		binding.appVersion.text = AppVersionLabel.format(BuildConfig.VERSION_NAME, BuildConfig.BUILD_TYPE, BuildConfig.NEXT_VERSION)
 
 		// Set focus to fragment
 		binding.root.requestFocus()

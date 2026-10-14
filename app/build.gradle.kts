@@ -20,6 +20,9 @@ android {
 		applicationId = appId
 		versionName = project.getVersionName()
 		versionCode = getVersionCode(versionName!!)
+
+		// Only used for the version label shown in dev builds
+		buildConfigField("String", "NEXT_VERSION", "\"${project.property("lumafin.nextVersion")}\"")
 	}
 
 	buildFeatures {
