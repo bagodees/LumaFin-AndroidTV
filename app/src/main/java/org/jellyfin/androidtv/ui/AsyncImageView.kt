@@ -20,6 +20,10 @@ import coil3.request.transformations
 import coil3.transform.CircleCropTransformation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import coil3.network.HttpException
+import java.io.IOException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jellyfin.androidtv.R
@@ -43,6 +47,7 @@ class AsyncImageView @JvmOverloads constructor(
 	private val styledAttributes = context.obtainStyledAttributes(attrs, R.styleable.AsyncImageView, defStyleAttr, 0)
 	private val imageLoader by inject<ImageLoader>()
 	private var loadJob: Job? = null
+	private var resumeLoad: (() -> Unit)? = null
 
 	/**
 	 * The duration of the crossfade when changing switching the images of the url, blurhash and
@@ -67,7 +72,8 @@ class AsyncImageView @JvmOverloads constructor(
 		placeholder: Drawable? = null,
 		aspectRatio: Double = 1.0,
 		blurHashResolution: Int = 32,
-	) = doOnAttach {
+	): Unit = doOnAttach {
+		resumeLoad = { load(url, blurHash, placeholder, aspectRatio, blurHashResolution) }
 		// Cancel the previous load if still running
 		loadJob?.cancel()
 
@@ -106,7 +112,36 @@ class AsyncImageView @JvmOverloads constructor(
 				}.build()
 			}
 
-			imageLoader.enqueue(request).job.await()
+			var attempt = 0
+			do {
+				var retryableFailure = false
+				val retryRequest = request.newBuilder().listener(
+					onError = { _, result ->
+						val error = result.throwable
+						retryableFailure = error is IOException && error !is HttpException
+					},
+				).build()
+				val pending = imageLoader.enqueue(retryRequest)
+				try {
+					pending.job.await()
+				} finally {
+					if (!isActive) pending.dispose()
+				}
+				if (!retryableFailure || url == null) break
+				// Bound retry frequency; retain recovery even after a long outage.
+				delay(when (attempt++) { 0 -> 3_000L; 1 -> 6_000L; 2 -> 15_000L; else -> 30_000L })
+			} while (isActive && withContext(Dispatchers.Main) { isAttachedToWindow && isShown })
 		}
 	}
+
+	override fun onAttachedToWindow() {
+		super.onAttachedToWindow()
+		resumeLoad?.invoke()
+	}
+
+	override fun onDetachedFromWindow() {
+		loadJob?.cancel()
+		super.onDetachedFromWindow()
+	}
+
 }
