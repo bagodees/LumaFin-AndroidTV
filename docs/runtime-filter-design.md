@@ -2,8 +2,9 @@
 
 Tracking: [#20](https://github.com/bagodees/LumaFin-AndroidTV/issues/20).
 
-Status: proposed implementation design. Runtime filtering is not implemented or
-performance-validated. Existing combined filters remain available.
+Status: implementation design with a debug-only metadata-check prototype. The
+prototype has a real-library timing result; the production result-grid filter
+is not implemented. Existing combined filters remain available.
 
 ## User experience
 
@@ -115,3 +116,18 @@ Automated cases must include:
 User validation must cover a short demo, known longer movies, several combined
 filters, reopening the library, cancelling a check and recovery after a network
 failure. #20 stays open through implementation and those checks.
+
+## Prototype measurement (2026-10-15)
+
+The user supplied a screenshot from Check Movie Lengths / Under 90 minutes:
+5,033 movies checked in 3.8 seconds using 11 sequential requests; 889 matched and
+2 had no valid runtime. This confirms the reduced response includes usable runtime
+metadata on this server and provides a timing baseline for this library. It is
+not independent ground-truth verification of all 889 matches, a slow-network
+measurement, a memory profile, or a guarantee of performance on larger libraries.
+
+Seven scanner regression tests pass, including a 100,000-item synthetic dataset,
+strict runtime boundaries, later-page matches, cancellation, changing/duplicate
+results and work-budget failures. The debug prototype does not apply or persist
+filters. Runtime Cancel still needs explicit user confirmation, and the full
+result-grid/pagination integration remains to be implemented and validated.

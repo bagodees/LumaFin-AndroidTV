@@ -141,6 +141,7 @@ private fun BrowseGridFragment.showLibraryFilterMenu(
     )
     val resolutions = org.jellyfin.androidtv.data.model.LibraryResolution.entries
     if (allowResolution) labels.add(5, getString(org.jellyfin.androidtv.R.string.library_filter_resolution, getString(options.resolution.labelRes)))
+    if (allowResolution && org.jellyfin.androidtv.BuildConfig.DEBUG) labels.add(getString(org.jellyfin.androidtv.R.string.runtime_check_title))
     fun apply() {
         adapter.setFilters(options)
         onChanged()
@@ -184,6 +185,7 @@ private fun BrowseGridFragment.showLibraryFilterMenu(
                         options.resolution = resolutions[it]
                     } else reset()
                 6 -> reset()
+                7 -> showRuntimeCheckChoices(adapter)
             }
         }.setNegativeButton(android.R.string.ok, null).show()
 }

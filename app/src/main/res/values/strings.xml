@@ -944,4 +944,12 @@
     <string name="library_resolution_720">720p</string>
     <string name="library_resolution_1080">1080p</string>
     <string name="library_resolution_4k">4K and higher</string>
+    <string name="runtime_check_title">Check Movie Lengths</string>
+    <string name="runtime_check_under">Under %1$d minutes</string>
+    <string name="runtime_check_starting">Checking movie lengths...</string>
+    <string name="runtime_check_progress">Checking movie lengths: %1$d of %2$d</string>
+    <string name="runtime_check_result">%1$d movies under %2$d minutes.\n\nChecked %3$d movies in %4$s seconds using %5$d requests. %6$d had no valid runtime.\n\nThis test checked metadata only. Your library filters have not changed.</string>
+    <string name="runtime_check_changed">The library changed while checking. Try again.</string>
+    <string name="runtime_check_limit">This check is too large or took too long. Narrow the other filters and try again.</string>
+    <string name="runtime_check_failed">Could not finish checking movie lengths. Your filters have not changed.</string>
 </resources>
