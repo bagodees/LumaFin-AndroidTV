@@ -20,21 +20,13 @@ import org.jellyfin.androidtv.ui.settings.composable.SettingsColumn
 fun SettingsMainScreen() {
 	val router = LocalRouter.current
 
-	SettingsColumn {
-		item {
-			ListSection(
-				overlineContent = { Text(stringResource(R.string.app_name).uppercase()) },
-				headingContent = { Text(stringResource(R.string.settings)) },
-				captionContent = { Text(stringResource(R.string.settings_description)) },
-			)
-		}
-
+	SettingsSearchScreen(mainMenu = {
 		item {
 			ListButton(
 				leadingContent = { Icon(painterResource(R.drawable.ic_users), contentDescription = null) },
 				headingContent = { Text(stringResource(R.string.pref_login)) },
 				onClick = { router.push(Routes.AUTHENTICATION) },
-				modifier = Modifier.focusKey(Routes.AUTHENTICATION),
+				modifier = Modifier.focusKey(Routes.AUTHENTICATION, initialFocus = true),
 			)
 		}
 
@@ -93,5 +85,5 @@ fun SettingsMainScreen() {
 				modifier = Modifier.focusKey(Routes.ABOUT),
 			)
 		}
-	}
+	})
 }

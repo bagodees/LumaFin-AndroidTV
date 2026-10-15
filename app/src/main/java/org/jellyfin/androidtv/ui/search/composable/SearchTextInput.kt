@@ -4,6 +4,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -28,6 +29,7 @@ import org.jellyfin.androidtv.ui.base.Icon
 import org.jellyfin.androidtv.ui.base.JellyfinTheme
 import org.jellyfin.androidtv.ui.base.LocalTextStyle
 import org.jellyfin.androidtv.ui.base.ProvideTextStyle
+import org.jellyfin.androidtv.ui.base.Text
 
 @Composable
 fun SearchTextInput(
@@ -35,6 +37,8 @@ fun SearchTextInput(
 	onQueryChange: (query: String) -> Unit,
 	onQuerySubmit: () -> Unit,
 	modifier: Modifier = Modifier,
+	placeholder: String? = null,
+	showKeyboardOnFocus: Boolean = true,
 ) {
 	val interactionSource = remember { MutableInteractionSource() }
 	val focused by interactionSource.collectIsFocusedAsState()
@@ -64,7 +68,7 @@ fun SearchTextInput(
 				// Note: Compose does not support a press to open functionality (yet?) or programmatic keyboard activation so we can only
 				// use the show on focus behavior. Unfortunately this does not work great with some vendors like Amazon.
 				// In addition, this boolean cannot be unset with the (stateless) BasicTextField implementation we're using
-				showKeyboardOnFocus = true,
+				showKeyboardOnFocus = showKeyboardOnFocus,
 			),
 			textStyle = LocalTextStyle.current,
 			cursorBrush = SolidColor(color.first),
@@ -77,7 +81,10 @@ fun SearchTextInput(
 				) {
 					Icon(ImageVector.vectorResource(R.drawable.ic_search), contentDescription = null)
 					Spacer(Modifier.width(12.dp))
-					innerTextField()
+					Box(Modifier.weight(1f)) {
+						if (query.isEmpty() && placeholder != null) Text(placeholder, color = color.second.copy(alpha = 0.65f))
+						innerTextField()
+					}
 				}
 			}
 		)

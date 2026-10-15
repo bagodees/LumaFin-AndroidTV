@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_search_title">Search settings</string>
+    <string name="settings_search_hint">Find a setting by name or what it does.</string>
+    <string name="settings_search_empty">No matching settings. Try a shorter phrase or a different word.</string>
+    <string name="settings_search_clear">Clear search</string>
+    <string name="settings_search_current">Current value: %1$s</string>
+    <string name="settings_search_on">On</string>
+    <string name="settings_search_off">Off</string>
+    <string name="settings_search_mbps">%1$s Mbps</string>
+    <string name="settings_search_percent">%1$d%%</string>
+    <string name="settings_search_points">%1$s sp</string>
+    <string name="settings_search_login">Manage saved sign-in choices, users and servers.</string>
+    <string name="settings_search_home">Choose Home rows, their order, item limits, layout presets and resets.</string>
+    <string name="settings_search_shortcuts">Manage pinned Home shortcuts and favorites.</string>
+    <string name="settings_search_recommendations">Restore hidden Because You Watched recommendation rows.</string>
+    <string name="settings_search_appearance">Change appearance, theme, clock, backgrounds, posters, thumbnails and rating badges.</string>
+    <string name="settings_search_motion">Reduce animations and motion effects.</string>
+    <string name="settings_search_spoilers">Hide unwatched episode artwork or descriptions to avoid spoilers.</string>
+    <string name="settings_search_libraries">Choose a library to change its poster size, image type and grid layout.</string>
+    <string name="settings_search_screensaver">Choose idle screensaver artwork, timeout and age-rating restrictions.</string>
+    <string name="settings_search_subtitles">Customize subtitles and captions: size, font weight, position, brightness and reset controls.</string>
+    <string name="settings_search_subtitle_colors">Change subtitle or caption text, background and outline colors.</string>
+    <string name="settings_search_autoplay">Automatically play the next episode or queued item.</string>
+    <string name="settings_search_nextup">Control the next-episode prompt, countdown and timeout.</string>
+    <string name="settings_search_inactivity">Choose when to ask whether you are still watching.</string>
+    <string name="settings_search_player">Choose the video player or an external playback app.</string>
+    <string name="settings_search_photos">Choose the photo viewer and slideshow duration.</string>
+    <string name="settings_search_prerolls">Play cinema trailers and pre-roll videos before a movie.</string>
+    <string name="settings_search_segments">Choose how intro, credits and other media-segment skipping behaves.</string>
+    <string name="settings_search_quality">Choose streaming quality, resolution and bandwidth limits, or reset the quality preset.</string>
+    <string name="settings_search_audio">Choose audio output, direct streaming, downmixing and receiver passthrough.</string>
+    <string name="settings_search_codecs">Adjust hardware decoding and audio passthrough support for AC3, EAC3, DTS and TrueHD.</string>
+    <string name="settings_search_hdr">Adjust device support overrides for HDR10, HDR10+ and Dolby Vision.</string>
+    <string name="settings_search_refresh">Match the display refresh rate to the video frame rate.</string>
+    <string name="settings_search_zoom">Set the default video zoom, fit, fill and aspect ratio.</string>
+    <string name="settings_search_buffer">Choose how much playback data is buffered ahead.</string>
+    <string name="settings_search_advanced">Advanced playback, skip forward/back lengths, resume rewind, video start delay and troubleshooting.</string>
+    <string name="settings_search_cache">Clear the downloaded poster and background artwork cache on this device.</string>
+    <string name="settings_search_telemetry">Control crash reporting and diagnostic logs.</string>
+    <string name="settings_search_about">View the app version, credits and open-source licenses.</string>
+</resources>

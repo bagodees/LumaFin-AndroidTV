@@ -6,6 +6,7 @@ import org.jellyfin.androidtv.ui.navigation.RouteComposable
 import org.jellyfin.androidtv.ui.settings.screen.SettingsDeveloperScreen
 import org.jellyfin.androidtv.ui.settings.screen.SettingsMaintenanceScreen
 import org.jellyfin.androidtv.ui.settings.screen.SettingsMainScreen
+import org.jellyfin.androidtv.ui.settings.screen.SettingsSearchScreen
 import org.jellyfin.androidtv.ui.settings.screen.SettingsTelemetryScreen
 import org.jellyfin.androidtv.ui.settings.screen.about.SettingsAboutScreen
 import org.jellyfin.androidtv.ui.settings.screen.authentication.SettingsAuthenticationAutoSignInScreen
@@ -69,6 +70,7 @@ object Routes {
 	const val HOME_SHORTCUTS = "/home/shortcuts"
 	const val HOME_RECOMMENDATIONS = "/home/recommendations"
 	const val MAIN = "/"
+	const val SEARCH = "/search"
 	const val AUTHENTICATION = "/authentication"
 	const val AUTHENTICATION_FROM_LOGIN = "/authentication+login"
 	const val AUTHENTICATION_SERVER = "/authentication/server/{serverId}"
@@ -129,6 +131,7 @@ object Routes {
 }
 
 val routes = mapOf<String, RouteComposable>(
+	Routes.SEARCH to { SettingsSearchScreen() },
 	Routes.HOME_SHORTCUTS to { SettingsHomeShortcutsScreen() },
 	Routes.HOME_RECOMMENDATIONS to { SettingsHomeRecommendationsScreen() },
 	Routes.MAIN to {
