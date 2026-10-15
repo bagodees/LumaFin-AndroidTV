@@ -13,10 +13,11 @@ import org.jellyfin.playback.core.PlaybackManager
 import org.jellyfin.playback.core.queue.queue
 import org.jellyfin.playback.jellyfin.queue.baseItem
 
-class AudioQueueBaseRowAdapter(
+class AudioQueueBaseRowAdapter @JvmOverloads constructor(
 	private val playbackManager: PlaybackManager,
 	lifecycleScope: LifecycleCoroutineScope,
-) : MutableObjectAdapter<AudioQueueBaseRowItem>(CardPresenter(true, @Suppress("MagicNumber") 140)) {
+	cardPresenter: CardPresenter = CardPresenter(true, @Suppress("MagicNumber") 140),
+) : MutableObjectAdapter<AudioQueueBaseRowItem>(cardPresenter) {
 	init {
 		lifecycleScope.launch {
 			updateAdapter()

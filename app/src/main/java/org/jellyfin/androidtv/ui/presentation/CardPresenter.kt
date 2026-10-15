@@ -35,6 +35,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.Color
 import androidx.leanback.widget.Presenter
 import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.lifecycle.setViewTreeLifecycleOwner
@@ -42,6 +48,7 @@ import androidx.savedstate.findViewTreeSavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.jellyfin.androidtv.R
+import org.jellyfin.androidtv.ui.GridButton
 import org.jellyfin.androidtv.constant.ImageType
 import org.jellyfin.androidtv.ui.base.JellyfinTheme
 import org.jellyfin.androidtv.ui.base.Text
@@ -106,9 +113,12 @@ class CardPresenter @JvmOverloads constructor(
 
 	override fun onBindViewHolder(viewHolder: ViewHolder, item: Any?) {
 		if (viewHolder !is CardViewHolder) return
-		if (item !is BaseRowItem) return
-
-		viewHolder.bind(item)
+		val rowItem = when {
+			item is BaseRowItem -> item
+			homeRow && item is GridButton -> GridButtonBaseRowItem(item)
+			else -> return
+		}
+		viewHolder.bind(rowItem)
 	}
 
 	override fun onUnbindViewHolder(viewHolder: ViewHolder) {
@@ -322,6 +332,7 @@ private fun CardViewHolderContent(
 	val size = DpSize(baseSize.width * scale, baseSize.height * scale)
 
 	val usePreview = displayConfig.overrideShowInfo ?: showInfo
+	val hideLibraryCaption = homeRow && item.baseItem?.type in setOf(BaseItemKind.USER_VIEW, BaseItemKind.COLLECTION_FOLDER)
 	// The focused card is the visual anchor for a TV row. Gently dim the artwork on
 	// its neighbours so focus remains clear without relying on an oversized zoom.
 	val reducedMotion = rememberReducedMotion()
@@ -400,11 +411,17 @@ private fun CardViewHolderContent(
 			},
 			modifier = Modifier
 				.size(size)
+				.then(if (hideLibraryCaption) Modifier.semantics { contentDescription = title.orEmpty() } else Modifier)
 				.graphicsLayer(alpha = cardAlpha)
 		)
 	}
 
-	if (usePreview) {
+	if (hideLibraryCaption) {
+		ItemPreview(
+			card = { card() },
+			metadataMinHeight = with(localDensity) { 50.sp.toDp() } + 12.dp,
+		)
+	} else if (usePreview) {
 		val focusModifier = if (focused) Modifier.basicMarquee(
 			iterations = Int.MAX_VALUE,
 			initialDelayMillis = 0,
@@ -412,14 +429,20 @@ private fun CardViewHolderContent(
 
 		ItemPreview(
 			card = { card() },
+			metadataMinHeight = if (homeRow) with(localDensity) { 50.sp.toDp() } + 12.dp else 0.dp,
 			title = title?.let { text ->
 				{
 					Text(
 						text = text,
-						maxLines = 1,
+						fontSize = if (homeRow) 15.sp else TextUnit.Unspecified,
+						lineHeight = if (homeRow) 18.sp else TextUnit.Unspecified,
+						fontWeight = if (homeRow) FontWeight.SemiBold else null,
+						color = if (homeRow) Color.White else Color.Unspecified,
+						minLines = 1,
+						maxLines = if (homeRow) 2 else 1,
 						overflow = TextOverflow.Ellipsis,
-						textAlign = TextAlign.Center,
-						modifier = Modifier.then(focusModifier),
+						textAlign = if (homeRow) TextAlign.Start else TextAlign.Center,
+						modifier = if (homeRow) Modifier.fillMaxWidth() else Modifier.then(focusModifier),
 					)
 				}
 			},
@@ -427,6 +450,9 @@ private fun CardViewHolderContent(
 				{
 					Text(
 						text = text,
+						fontSize = if (homeRow) 11.sp else TextUnit.Unspecified,
+						lineHeight = if (homeRow) 14.sp else TextUnit.Unspecified,
+						color = if (homeRow) Color.White.copy(alpha = 0.85f) else Color.Unspecified,
 						maxLines = 1,
 						overflow = TextOverflow.Ellipsis,
 						textAlign = TextAlign.Center,

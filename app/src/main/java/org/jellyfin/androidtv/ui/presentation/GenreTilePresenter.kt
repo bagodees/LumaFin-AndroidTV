@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import org.jellyfin.androidtv.preference.UserPreferences
 import org.jellyfin.androidtv.ui.composable.item.ItemPreview
@@ -66,6 +67,7 @@ class GenreTilePresenter : Presenter() {
 			val cardSize by preferences.mediaCardSizeChanges.collectAsState(initial = preferences[UserPreferences.mediaCardSize])
 			val cardWidth = 150.dp * (16f / 9f) * cardSize.scale
 			val isFocused by focused.collectAsState()
+			val captionHeight = with(LocalDensity.current) { 50.sp.toDp() } + 12.dp
 
 			ItemPreview(card = {
 				Box(
@@ -78,14 +80,12 @@ class GenreTilePresenter : Presenter() {
 				) {
 					AsyncImage(url = value.imageUrl, scaleType = ImageView.ScaleType.CENTER_CROP,
 						modifier = Modifier.fillMaxSize())
-					Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(
-						Color.Transparent, Color.Black.copy(alpha = 0.15f), Color.Black.copy(alpha = 0.9f)))))
-					Text(value.name, color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.SemiBold,
-						maxLines = 1, overflow = TextOverflow.Ellipsis,
-						modifier = Modifier.align(Alignment.BottomStart).padding(12.dp))
 				}
 
-			}, title = { Text(" ") }, subtitle = { Text(" ") })
+			}, metadataMinHeight = captionHeight, title = {
+				Text(value.name, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold,
+					lineHeight = 18.sp, minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
+			}, subtitle = { Text(" ", fontSize = 11.sp, lineHeight = 14.sp) })
 		}
 	}
 

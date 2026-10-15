@@ -3,11 +3,13 @@ package org.jellyfin.androidtv.ui.composable.item
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.jellyfin.androidtv.ui.base.JellyfinTheme
 import org.jellyfin.androidtv.ui.base.ProvideTextStyle
@@ -21,6 +23,7 @@ fun ItemPreview(
 	title: (@Composable () -> Unit)? = null,
 	subtitle: (@Composable () -> Unit)? = null,
 	spacing: Dp = Tokens.Space.spaceXs,
+	metadataMinHeight: Dp = 0.dp,
 ) {
 	ItemPreviewLayout(
 		card = card,
@@ -29,6 +32,7 @@ fun ItemPreview(
 				title = title,
 				subtitle = subtitle,
 				spacing = spacing,
+				minHeight = metadataMinHeight,
 			)
 		},
 		spacing = spacing,
@@ -42,9 +46,10 @@ private fun ItemPreviewMetadata(
 	title: (@Composable () -> Unit)?,
 	subtitle: (@Composable () -> Unit)?,
 	spacing: Dp,
+	minHeight: Dp,
 ) {
 	Column(
-		modifier = Modifier.padding(spacing),
+		modifier = Modifier.heightIn(min = minHeight).padding(spacing),
 		verticalArrangement = Arrangement.spacedBy(spacing),
 	) {
 		title?.let { content ->
