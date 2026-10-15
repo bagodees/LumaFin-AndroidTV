@@ -30,14 +30,18 @@ fun SettingsPlaybackMediaSegmentScreen(
 			ListSection(
 				overlineContent = { Text(stringResource(R.string.settings_intro_recap_credits).uppercase()) },
 				headingContent = { Text(stringResource(if (segmentType == MediaSegmentType.INTRO) R.string.intro_skipping else segmentType.nameRes)) },
-				captionContent = if (segmentType == MediaSegmentType.INTRO) ({ Text(stringResource(R.string.intro_skip_requires_segments)) }) else null,
+				captionContent = { Text(stringResource(R.string.settings_segment_requirement)) },
 			)
 		}
 
 		items(MediaSegmentAction.entries) { entry ->
 			ListButton(
 				headingContent = { Text(stringResource(if (segmentType == MediaSegmentType.INTRO) entry.introNameRes else entry.nameRes)) },
-				captionContent = if (segmentType == MediaSegmentType.INTRO) ({ Text(stringResource(entry.introDescriptionRes)) }) else null,
+				captionContent = { Text(stringResource(if (segmentType == MediaSegmentType.INTRO) entry.introDescriptionRes else when (entry) {
+					MediaSegmentAction.NOTHING -> R.string.settings_segment_nothing
+					MediaSegmentAction.SKIP -> R.string.settings_segment_skip
+					MediaSegmentAction.ASK_TO_SKIP -> R.string.settings_segment_ask
+				})) },
 				trailingContent = { RadioButton(checked = action == entry) },
 				onClick = {
 					mediaSegmentRepository.setDefaultSegmentTypeAction(segmentType, entry)

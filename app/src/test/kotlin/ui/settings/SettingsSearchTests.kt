@@ -29,4 +29,13 @@ class SettingsSearchTests : FunSpec({
 		searchSettings(entries.reversed(), "") shouldBe searchSettings(entries, "")
 		searchSettings(entries, "100%").isEmpty() shouldBe true
 	}
+	test("format-specific results retain distinct navigation parameters and current values") {
+		val formats = listOf(
+			SettingsSearchEntry("hdr10", "/hdr/{format}", "HDR10", "HDR", "Device support", "Auto", mapOf("format" to "HDR10")),
+			SettingsSearchEntry("hdr10plus", "/hdr/{format}", "HDR10+", "HDR", "Device support", "Disable", mapOf("format" to "HDR10PLUS")),
+		)
+		val results = searchSettings(formats, "HDR10")
+		results.map { it.parameters["format"] } shouldBe listOf("HDR10", "HDR10PLUS")
+		results.map { it.currentValue } shouldBe listOf("Auto", "Disable")
+	}
 })

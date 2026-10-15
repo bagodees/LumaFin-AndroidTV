@@ -20,6 +20,8 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.auth.repository.UserRepository
 import org.jellyfin.androidtv.preference.UserPreferences
+import org.jellyfin.androidtv.preference.UserSettingPreferences
+import org.jellyfin.androidtv.ui.playback.segment.MediaSegmentRepository
 import org.jellyfin.androidtv.ui.base.Text
 import org.jellyfin.androidtv.ui.base.list.ListButton
 import org.jellyfin.androidtv.ui.base.list.ListSection
@@ -38,10 +40,12 @@ fun SettingsSearchScreen(mainMenu: (LazyListScope.() -> Unit)? = null) {
 	val owner = LocalLifecycleOwner.current
 	val router = LocalRouter.current
 	val prefs = koinInject<UserPreferences>()
+	val userSettings = koinInject<UserSettingPreferences>()
+	val segments = koinInject<MediaSegmentRepository>()
 	val users = koinInject<UserRepository>()
 	val keyboard = LocalSoftwareKeyboardController.current
 	var query by rememberSaveable { mutableStateOf("") }
-	fun catalog() = settingsSearchCatalog(context, prefs, users.currentUser.value?.policy?.enableLiveTvAccess == true)
+	fun catalog() = settingsSearchCatalog(context, prefs, users.currentUser.value?.policy?.enableLiveTvAccess == true, userSettings, segments)
 	var entries by remember(context) { mutableStateOf(catalog()) }
 	LaunchedEffect(router.backStack.size) { entries = catalog() }
 	DisposableEffect(owner, prefs, context) {
@@ -84,7 +88,7 @@ fun SettingsSearchScreen(mainMenu: (LazyListScope.() -> Unit)? = null) {
 				captionContent = { Text(listOfNotNull(entry.description, entry.currentValue?.let {
 					context.getString(R.string.settings_search_current, it)
 				}).joinToString("\n")) },
-				onClick = { keyboard?.hide(); router.push(entry.route) },
+				onClick = { keyboard?.hide(); router.push(entry.route, parameters = entry.parameters) },
 				modifier = (if (index == 0) Modifier.focusRequester(firstResult) else Modifier).focusKey("search_${entry.id}"))
 		}
 		}

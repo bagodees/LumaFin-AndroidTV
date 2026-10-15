@@ -30,6 +30,7 @@ fun SettingsPlaybackResumeSubtractDurationScreen() {
 			ListSection(
 				overlineContent = { Text(stringResource(R.string.pref_playback_advanced).uppercase()) },
 				headingContent = { Text(stringResource(R.string.settings_resume_rewind)) },
+				captionContent = { Text(stringResource(R.string.settings_resume_description)) },
 			)
 		}
 

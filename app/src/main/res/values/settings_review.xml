@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_value_seconds">%1$s seconds</string>
+    <string name="settings_search_bitrate">Choose or reset a bandwidth limit. Using a limit switches Streaming Quality to Custom.</string>
+    <string name="settings_resume_description">Replay a short part before the saved position when resuming a video. None resumes at the saved position.</string>
+    <string name="settings_segment_requirement">Skipping requires segment information supplied by your Jellyfin server for the video. These choices do not detect intros, recaps or credits themselves.</string>
+    <string name="settings_segment_nothing">Play through this segment without a skip prompt or automatic skip.</string>
+    <string name="settings_segment_skip">Automatically jump to the end when playback reaches a supported segment.</string>
+    <string name="settings_segment_ask">Show a skip prompt when playback reaches a supported segment. Keep watching unless you choose to skip.</string>
+</resources>

@@ -10,6 +10,7 @@ data class SettingsSearchEntry(
 	val section: String,
 	val description: String,
 	val currentValue: String? = null,
+	val parameters: Map<String, String> = emptyMap(),
 )
 
 private fun String.searchText() = Normalizer.normalize(this, Normalizer.Form.NFD)

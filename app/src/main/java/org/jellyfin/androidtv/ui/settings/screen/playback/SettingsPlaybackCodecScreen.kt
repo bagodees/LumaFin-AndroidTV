@@ -58,7 +58,7 @@ fun SettingsPlaybackCodecScreen() {
 
 		items(BitstreamAudioFormat.entries.size) { index ->
 			val format = BitstreamAudioFormat.entries[index]
-			val mode = userPreferences[format.preference]
+			val mode by rememberPreference(userPreferences, format.preference)
 
 			ListButton(
 				headingContent = { Text(stringResource(format.nameRes)) },
