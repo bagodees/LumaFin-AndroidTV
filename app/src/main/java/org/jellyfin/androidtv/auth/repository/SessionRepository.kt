@@ -13,6 +13,8 @@ import org.jellyfin.androidtv.auth.store.AuthenticationPreferences
 import org.jellyfin.androidtv.auth.store.AuthenticationStore
 import org.jellyfin.androidtv.preference.PreferencesRepository
 import org.jellyfin.androidtv.preference.TelemetryPreferences
+import org.jellyfin.androidtv.preference.AccountPreferences
+import org.jellyfin.androidtv.ui.playback.VideoQueueManager
 import org.jellyfin.androidtv.preference.constant.UserSelectBehavior.DISABLED
 import org.jellyfin.androidtv.preference.constant.UserSelectBehavior.LAST_USER
 import org.jellyfin.androidtv.preference.constant.UserSelectBehavior.SPECIFIC_USER
@@ -56,6 +58,9 @@ class SessionRepositoryImpl(
 	private val userRepository: UserRepository,
 	private val serverRepository: ServerRepository,
 	private val telemetryPreferences: TelemetryPreferences,
+	private val accountPreferences: AccountPreferences,
+	private val videoQueue: VideoQueueManager,
+	private val clearAudioQueue: () -> Unit,
 ) : SessionRepository {
 	private val currentSessionMutex = Mutex()
 	private val _currentSession = MutableStateFlow<Session?>(null)
@@ -89,7 +94,7 @@ class SessionRepositoryImpl(
 
 	override suspend fun switchCurrentSession(serverId: UUID, userId: UUID): Boolean {
 		// No change in user - don't switch
-		if (currentSession.value?.userId == userId) {
+		if (currentSession.value?.let { it.userId == userId && it.serverId == serverId } == true) {
 			Timber.d("Current session user is the same as the requested user")
 			return false
 		}
@@ -112,6 +117,8 @@ class SessionRepositoryImpl(
 	override fun destroyCurrentSession() {
 		Timber.i("Destroying current session")
 
+		clearSessionState()
+		accountPreferences.select(null, null)
 		userRepository.setCurrentUser(null)
 		serverRepository.setCurrentServer(null)
 		_currentSession.value = null
@@ -123,7 +130,7 @@ class SessionRepositoryImpl(
 
 		if (session != null) {
 			// No change in session - don't switch
-			if (currentSession.value?.userId == session.userId) return true
+			if (currentSession.value?.let { it.userId == session.userId && it.serverId == session.serverId } == true) return true
 
 			// Update last active user
 			authenticationPreferences[AuthenticationPreferences.lastServerId] = session.serverId.toString()
@@ -138,14 +145,19 @@ class SessionRepositoryImpl(
 		val deviceInfo = session?.let { defaultDeviceInfo.forUser(it.userId) } ?: defaultDeviceInfo
 		Timber.i("Updating current session. userId=${session?.userId} server=${server?.serverVersion}")
 
+		clearSessionState()
+		accountPreferences.select(null, null)
+		userRepository.setCurrentUser(null)
+		serverRepository.setCurrentServer(null)
 		val applied = userApiClient.applySession(session, deviceInfo)
 		if (applied && session != null) {
 			try {
 				val user = withContext(Dispatchers.IO) {
 					userApiClient.userApi.getCurrentUser().content
 				}
-				userRepository.setCurrentUser(user)
+				accountPreferences.select(session.serverId, session.userId)
 				serverRepository.setCurrentServer(server)
+				userRepository.setCurrentUser(user)
 			} catch (err: ApiClientException) {
 				Timber.e(err, "Unable to authenticate: bad response when getting user info")
 				destroyCurrentSession()
@@ -164,6 +176,12 @@ class SessionRepositoryImpl(
 		_currentSession.value = session
 
 		return true
+	}
+
+	private fun clearSessionState() {
+		videoQueue.clearVideoQueue()
+		if (_currentSession.value != null) clearAudioQueue()
+		preferencesRepository.clearSessionState()
 	}
 
 	private fun createLastUserSession(): Session? {

@@ -80,6 +80,7 @@ class MediaSegmentRepositoryImpl(
 	}
 
 	override fun getDefaultSegmentTypeAction(type: MediaSegmentType): MediaSegmentAction {
+		restoreMediaTypeActions()
 		// Always return no action for unsupported types
 		if (!MediaSegmentRepository.SupportedTypes.contains(type)) return MediaSegmentAction.NOTHING
 
@@ -90,6 +91,7 @@ class MediaSegmentRepositoryImpl(
 		// Don't allow modifying actions for unsupported types
 		if (!MediaSegmentRepository.SupportedTypes.contains(type)) return
 
+		restoreMediaTypeActions()
 		mediaTypeActions[type] = action
 		saveMediaTypeActions()
 	}

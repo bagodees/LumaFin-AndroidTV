@@ -36,4 +36,13 @@ class MediaSegmentRepositoryTests : FunSpec({
 	test("missing intro preference safely plays normally") {
 		repository("Outro=SKIP").getMediaSegmentAction(intro(30)) shouldBe MediaSegmentAction.NOTHING
 	}
+	test("a changed account preference is used instead of the previous cached segment action") {
+		var saved = "Intro=SKIP"
+		val preferences = mockk<UserPreferences>()
+		every { preferences[UserPreferences.mediaSegmentActions] } answers { saved }
+		val repo = MediaSegmentRepositoryImpl(preferences, mockk())
+		repo.getDefaultSegmentTypeAction(MediaSegmentType.INTRO) shouldBe MediaSegmentAction.SKIP
+		saved = "Intro=NOTHING"
+		repo.getDefaultSegmentTypeAction(MediaSegmentType.INTRO) shouldBe MediaSegmentAction.NOTHING
+	}
 })

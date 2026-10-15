@@ -25,8 +25,13 @@ class PreferencesRepository(
 	}
 
 	suspend fun onSessionChanged() {
+		clearSessionState()
 		liveTvPreferences.update()
+	}
 
+	fun clearSessionState() {
+		libraryPreferences.values.forEach { it.clearCache() }
 		libraryPreferences.clear()
+		liveTvPreferences.clearCache()
 	}
 }

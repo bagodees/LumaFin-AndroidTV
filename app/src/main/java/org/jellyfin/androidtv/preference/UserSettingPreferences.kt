@@ -1,6 +1,7 @@
 package org.jellyfin.androidtv.preference
 
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.preference.PreferenceManager
 import org.jellyfin.androidtv.constant.HomeSectionType
 import org.jellyfin.androidtv.constant.HomeLayoutPreset
@@ -14,9 +15,10 @@ import org.jellyfin.preference.store.SharedPreferenceStore
  * Stored locally on-device (not synced via the server's shared display preferences) so that
  * home layout changes can't be reverted by another client or a session refresh racing the save.
  */
-class UserSettingPreferences(context: Context) : SharedPreferenceStore(
-	sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+class UserSettingPreferences(context: Context, storage: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)) : SharedPreferenceStore(
+	sharedPreferences = storage
 ) {
+	val accountRevision get() = (sharedPreferences as? SwitchingAccountPreferences)?.revision ?: 0
 	companion object {
 		val skipBackLength = intPreference("skipBackLength", 10_000)
 		val skipForwardLength = intPreference("skipForwardLength", 30_000)

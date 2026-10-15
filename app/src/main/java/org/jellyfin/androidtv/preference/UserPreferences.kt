@@ -41,9 +41,10 @@ import kotlin.time.Duration.Companion.minutes
  *
  * @param context Context to get the SharedPreferences from
  */
-class UserPreferences(context: Context) : SharedPreferenceStore(
-	sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+class UserPreferences(context: Context, storage: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)) : SharedPreferenceStore(
+	sharedPreferences = storage
 ) {
+	val accountRevision get() = (sharedPreferences as? SwitchingAccountPreferences)?.revision ?: 0
 	init {
 		if (!sharedPreferences.contains(streamingQuality.key) && sharedPreferences.contains(maxBitrate.key)) {
 			this[streamingQuality] = StreamingQuality.CUSTOM

@@ -137,6 +137,7 @@ class RewriteMediaManager(
 
 	override fun clearAudioQueue() {
 		playbackManager.state.stop()
+		playbackManager.queue.clear()
 	}
 
 	override fun addToAudioQueue(items: List<BaseItemDto>) {

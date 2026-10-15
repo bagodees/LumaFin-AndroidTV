@@ -22,20 +22,30 @@ abstract class DisplayPreferencesStore(
 ) : AsyncPreferenceStore<Unit, Unit>() {
 	private var displayPreferencesDto: DisplayPreferencesDto? = null
 	private var cachedPreferences: MutableMap<String, String?> = mutableMapOf()
+	private var generation = 0
+	private var identity: Pair<String?, String?>? = null
+	private fun currentIdentity() = api.baseUrl to api.accessToken
 	override val shouldUpdate: Boolean
 		get() = displayPreferencesDto == null
 
 	override suspend fun commit(): Boolean {
-		if (displayPreferencesDto == null) return false
+		val dto = displayPreferencesDto ?: return false
+		val owner = identity ?: return false
+		val version = generation
+		val data = dto.copy(customPrefs = cachedPreferences.toMap())
+		if (owner != currentIdentity()) return false
 
 		try {
-			api.displayPreferencesApi.updateDisplayPreferences(
-				displayPreferencesId = displayPreferencesId,
-				client = app,
-				data = displayPreferencesDto!!.copy(
-					customPrefs = cachedPreferences
+			val saved = withContext(Dispatchers.IO) {
+				if (version != generation || owner != currentIdentity()) return@withContext false
+				api.displayPreferencesApi.updateDisplayPreferences(
+					displayPreferencesId = displayPreferencesId,
+					client = app,
+					data = data
 				)
-			)
+				true
+			}
+			if (!saved) return false
 		} catch (err: ApiClientException) {
 			Timber.e(err, "Unable to save displaypreferences. (displayPreferencesId=$displayPreferencesId, app=$app)")
 			return false
@@ -48,15 +58,18 @@ abstract class DisplayPreferencesStore(
 	 * Clear local copy of display preferences and require an update for new modifications.
 	 */
 	fun clearCache(): Boolean {
-		if (displayPreferencesDto == null) return false
-
+		generation++
+		identity = null
+		val populated = displayPreferencesDto != null
 		displayPreferencesDto = null
 		cachedPreferences.clear()
 
-		return true
+		return populated
 	}
 
 	override suspend fun update(): Boolean {
+		val version = ++generation
+		val owner = currentIdentity()
 		try {
 			val result = withContext(Dispatchers.IO) {
 				api.displayPreferencesApi.getDisplayPreferences(
@@ -64,6 +77,8 @@ abstract class DisplayPreferencesStore(
 					client = app
 				).content
 			}
+			if (version != generation || owner != currentIdentity()) return false
+			identity = owner
 			displayPreferencesDto = result
 			cachedPreferences = result.customPrefs.toMutableMap()
 
@@ -71,6 +86,8 @@ abstract class DisplayPreferencesStore(
 		} catch (err: ApiClientException) {
 			Timber.e(err, "Unable to retrieve displaypreferences. (displayPreferencesId=$displayPreferencesId, app=$app)")
 
+			if (version != generation || owner != currentIdentity()) return false
+			identity = owner
 			if (displayPreferencesDto == null) {
 				Timber.i("Creating an empty DisplayPreferencesDto for next commit.")
 				displayPreferencesDto = DisplayPreferencesDto.empty()

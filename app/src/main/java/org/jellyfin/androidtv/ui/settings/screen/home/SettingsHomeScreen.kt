@@ -61,10 +61,11 @@ fun SettingsHomeScreen() {
 	val userSettingPreferences = koinInject<UserSettingPreferences>()
 	val router = LocalRouter.current
 
-	var visibleSections by remember { mutableStateOf(userSettingPreferences.activeHomesections) }
-	var grabbed by remember { mutableStateOf<HomeSectionType?>(null) }
-	var layoutBeforeReset by remember { mutableStateOf<List<HomeSectionType>?>(null) }
-	var layoutBeforePreset by remember { mutableStateOf<List<HomeSectionType>?>(null) }
+	val accountRevision = userSettingPreferences.accountRevision
+	var visibleSections by remember(accountRevision) { mutableStateOf(userSettingPreferences.activeHomesections) }
+	var grabbed by remember(accountRevision) { mutableStateOf<HomeSectionType?>(null) }
+	var layoutBeforeReset by remember(accountRevision) { mutableStateOf<List<HomeSectionType>?>(null) }
+	var layoutBeforePreset by remember(accountRevision) { mutableStateOf<List<HomeSectionType>?>(null) }
 	var presetsExpanded by remember { mutableStateOf(false) }
 	var limitsExpanded by remember { mutableStateOf(false) }
 	var latestMoviesLimit by rememberPreference(userSettingPreferences, UserSettingPreferences.latestMoviesItemLimit)

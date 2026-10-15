@@ -19,7 +19,12 @@ import org.jellyfin.preference.store.PreferenceStore
  */
 @Composable
 fun <ME, MV, T : Any> rememberPreference(store: PreferenceStore<ME, MV>, preference: Preference<T>): MutableState<T> {
-	val mutableState = remember { mutableStateOf(store[preference]) }
+	val revision = when (store) {
+		is org.jellyfin.androidtv.preference.UserPreferences -> store.accountRevision
+		is org.jellyfin.androidtv.preference.UserSettingPreferences -> store.accountRevision
+		else -> 0
+	}
+	val mutableState = remember(store, preference, revision) { mutableStateOf(store[preference]) }
 	LaunchedEffect(mutableState.value) {
 		if (store[preference] != mutableState.value) {
 			store[preference] = mutableState.value
@@ -39,7 +44,12 @@ fun <ME, MV, T : Enum<T>> rememberPreference(
 	store: PreferenceStore<ME, MV>,
 	preference: Preference<T>
 ): MutableState<T> {
-	val mutableState = remember { mutableStateOf(store[preference]) }
+	val revision = when (store) {
+		is org.jellyfin.androidtv.preference.UserPreferences -> store.accountRevision
+		is org.jellyfin.androidtv.preference.UserSettingPreferences -> store.accountRevision
+		else -> 0
+	}
+	val mutableState = remember(store, preference, revision) { mutableStateOf(store[preference]) }
 	LaunchedEffect(mutableState.value) {
 		if (store[preference] != mutableState.value) {
 			store[preference] = mutableState.value
