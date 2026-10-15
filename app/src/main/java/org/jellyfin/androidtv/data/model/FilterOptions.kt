@@ -9,6 +9,7 @@ class FilterOptions {
 	var genre: String? = null
 	var year: Int? = null
 	var minimumRating: Int? = null
+	var resolution = LibraryResolution.ANY
 
 	val filters: Set<ItemFilter>
 		get() = buildSet {

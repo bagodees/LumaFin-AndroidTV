@@ -50,6 +50,7 @@ class LibraryPreferences(
 		val filterGenre = stringPreference("FilterGenre", "")
 		val filterYear = intPreference("FilterYear", 0)
 		val filterMinimumRating = intPreference("FilterMinimumRating", 0)
+		val filterResolution = enumPreference("FilterResolution", org.jellyfin.androidtv.data.model.LibraryResolution.ANY)
 
 		// Item sorting
 		val sortBy = enumPreference("SortBy", ItemSortBy.SORT_NAME)

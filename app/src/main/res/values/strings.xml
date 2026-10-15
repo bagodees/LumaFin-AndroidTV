@@ -938,4 +938,10 @@
     <string name="library_rating_minimum">%1$d/10 or higher</string>
     <string name="library_filter_on">On</string>
     <string name="library_filter_off">Off</string>
+    <string name="library_filter_resolution">Resolution: %1$s</string>
+    <string name="library_resolution_title">Movie Resolution</string>
+    <string name="library_resolution_sd">SD</string>
+    <string name="library_resolution_720">720p</string>
+    <string name="library_resolution_1080">1080p</string>
+    <string name="library_resolution_4k">4K and higher</string>
 </resources>

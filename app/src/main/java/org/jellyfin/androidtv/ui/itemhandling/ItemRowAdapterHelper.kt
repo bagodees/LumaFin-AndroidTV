@@ -750,4 +750,6 @@ fun setCombinedItemsFilter(request: GetItemsRequest, options: org.jellyfin.andro
     genres = options.genre?.let { listOf(it) } ?: base.genres,
     years = options.year?.let { listOf(it) } ?: base.years,
     minCommunityRating = options.minimumRating?.toDouble() ?: base.minCommunityRating,
+    minWidth = listOfNotNull(base.minWidth, options.resolution.minWidth).maxOrNull(),
+    maxWidth = listOfNotNull(base.maxWidth, options.resolution.maxWidth).minOrNull(),
 )

@@ -3,6 +3,7 @@ package org.jellyfin.androidtv.ui.itemhandling
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import org.jellyfin.androidtv.data.model.FilterOptions
+import org.jellyfin.androidtv.data.model.LibraryResolution
 import org.jellyfin.sdk.model.api.ItemFilter
 import org.jellyfin.sdk.model.api.ItemSortBy
 import org.jellyfin.sdk.model.api.SortOrder
@@ -45,5 +46,38 @@ class CombinedLibraryFiltersTests : FunSpec({
 		result.genres shouldBe null
 		result.years shouldBe listOf(2020)
 		result.minCommunityRating shouldBe 7.0
+	}
+	test("resolution combines with metadata filters and respects an existing width scope") {
+		val base = GetItemsRequest(minWidth = 2000, maxWidth = 3000, nameStartsWith = "S")
+		val options = FilterOptions().apply {
+			resolution = LibraryResolution.FULL_HD; genre = "Drama"; isUnwatchedOnly = true
+		}
+		val result = setCombinedItemsFilter(base, options)
+		result.minWidth shouldBe 2000
+		result.maxWidth shouldBe 3000
+		result.genres shouldBe listOf("Drama")
+		result.filters shouldBe setOf(ItemFilter.IS_UNPLAYED)
+		result.nameStartsWith shouldBe "S"
+	}
+	test("Any resolution clears prior width bounds while keeping selected genre and rating") {
+		val base = GetItemsRequest()
+		val options = FilterOptions().apply { resolution = LibraryResolution.UHD; genre = "Drama"; minimumRating = 7 }
+		val filtered = setCombinedItemsFilter(base, options)
+		options.resolution = LibraryResolution.ANY
+		val result = setCombinedItemsFilter(filtered, options, base)
+		result.minWidth shouldBe null
+		result.maxWidth shouldBe null
+		result.genres shouldBe listOf("Drama")
+		result.minCommunityRating shouldBe 7.0
+	}
+	test("SD excludes unknown video width and changing resolution removes the previous upper bound") {
+		val base = GetItemsRequest()
+		val options = FilterOptions().apply { resolution = LibraryResolution.SD }
+		val sd = setCombinedItemsFilter(base, options)
+		(sd.minWidth!! > 0) shouldBe true
+		options.resolution = LibraryResolution.UHD
+		val uhd = setCombinedItemsFilter(sd, options, base)
+		uhd.maxWidth shouldBe null
+		(uhd.minWidth!! > sd.maxWidth!!) shouldBe true
 	}
 })
