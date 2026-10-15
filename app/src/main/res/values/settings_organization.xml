@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_seeking">Seeking &amp; resume</string>
+    <string name="settings_seeking_description">Rewind when resuming, skip forward and back, and reset skip lengths.</string>
+    <string name="settings_video_description">Buffering, bandwidth limits, display matching, zoom, HDR and codec compatibility.</string>
+    <string name="settings_audio_description">Audio output, night mode and decoder compatibility.</string>
+    <string name="settings_subtitle_compatibility">Subtitle compatibility</string>
+    <string name="settings_subtitle_compatibility_description">Direct playback of PGS and ASS subtitles, and burning subtitles into transcoded video. Appearance controls are under Playback → Subtitles.</string>
+    <string name="settings_troubleshooting_description">Send a playback capability report to your Jellyfin server to help investigate playback problems.</string>
+    <string name="settings_resume_rewind">Rewind when resuming</string>
+    <string name="settings_intro_recap_credits">Intro, recap &amp; credits</string>
+    <string name="settings_video_delay_description">Wait before starting video so the display has time to finish changing modes.</string>
+    <string name="settings_night_audio_description">Reduce loud and quiet differences when supported by the audio format and player.</string>
+    <string name="settings_live_direct_description">Allow supported Live TV streams to play without server conversion. Turn off if channels fail to play reliably.</string>
+    <string name="settings_display_matching_description">Let the TV match the video frame rate for smoother motion. Mode changes may briefly blank the screen; support depends on the device and display.</string>
+    <string name="settings_zoom_description">Choose how video fits the screen by default. Filling the screen can crop the picture or change its proportions.</string>
+    <string name="settings_audio_output_description">Choose how audio is sent to your TV or receiver. Direct output requires compatible equipment; downmixing converts multichannel audio for fewer speakers.</string>
+    <string name="settings_buffer_description">Choose how far ahead the player loads video. Larger buffers use more memory and may help with brief network interruptions.</string>
+    <string name="settings_brightness_reset_scope">Restore subtitle brightness to 100%. Other subtitle appearance settings stay as they are.</string>
+    <string name="settings_appearance_display">Display &amp; cards</string>
+    <string name="settings_group_appearance">Appearance &amp; Home</string>
+    <string name="settings_group_accounts">Accounts &amp; Servers</string>
+    <string name="settings_group_help">Help &amp; Maintenance</string>
+    <string name="settings_group_playback_description">Video quality, subtitles, audio, autoplay and player options.</string>
+    <string name="settings_group_appearance_description">Home rows, library cards, theme, screensaver and browsing appearance.</string>
+    <string name="settings_group_accounts_description">Saved servers, users and automatic sign-in.</string>
+    <string name="settings_group_help_description">Artwork cache, crash reporting and app information.</string>
+</resources>

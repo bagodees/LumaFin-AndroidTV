@@ -1,0 +1,40 @@
+package org.jellyfin.androidtv.ui.settings.screen
+
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import org.jellyfin.androidtv.R
+import org.jellyfin.androidtv.ui.base.Text
+import org.jellyfin.androidtv.ui.base.list.ListButton
+import org.jellyfin.androidtv.ui.base.list.ListSection
+import org.jellyfin.androidtv.ui.navigation.LocalRouter
+import org.jellyfin.androidtv.ui.navigation.focus.focusKey
+import org.jellyfin.androidtv.ui.settings.Routes
+import org.jellyfin.androidtv.ui.settings.composable.SettingsColumn
+
+@Composable
+fun SettingsHelpScreen() {
+	val router = LocalRouter.current
+	SettingsColumn {
+		item {
+			ListSection(overlineContent = { Text(stringResource(R.string.settings).uppercase()) },
+				headingContent = { Text(stringResource(R.string.settings_group_help)) },
+				captionContent = { Text(stringResource(R.string.settings_group_help_description)) })
+		}
+		item {
+			ListButton(headingContent = { Text(stringResource(R.string.maintenance_title)) },
+				captionContent = { Text(stringResource(R.string.settings_search_cache)) },
+				onClick = { router.push(Routes.MAINTENANCE) }, modifier = Modifier.focusKey(Routes.MAINTENANCE))
+		}
+		item {
+			ListButton(headingContent = { Text(stringResource(R.string.pref_telemetry_category)) },
+				captionContent = { Text(stringResource(R.string.settings_search_telemetry)) },
+				onClick = { router.push(Routes.TELEMETRY) }, modifier = Modifier.focusKey(Routes.TELEMETRY))
+		}
+		item {
+			ListButton(headingContent = { Text(stringResource(R.string.pref_about_title)) },
+				captionContent = { Text(stringResource(R.string.settings_search_about)) },
+				onClick = { router.push(Routes.ABOUT) }, modifier = Modifier.focusKey(Routes.ABOUT))
+		}
+	}
+}

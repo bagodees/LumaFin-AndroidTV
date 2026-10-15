@@ -26,7 +26,7 @@ fun SettingsPlaybackHdrOverridesScreen() {
 			ListSection(
 				overlineContent = { Text(stringResource(R.string.pref_playback_advanced).uppercase()) },
 				headingContent = { Text(stringResource(R.string.preference_hdr_overrides)) },
-				captionContent = { Text(stringResource(R.string.preference_hdr_overrides_summary)) },
+				captionContent = { Text(stringResource(R.string.settings_hdr_guidance)) },
 			)
 		}
 

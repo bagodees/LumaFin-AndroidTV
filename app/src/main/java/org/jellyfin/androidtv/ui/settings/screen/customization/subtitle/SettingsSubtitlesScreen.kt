@@ -2,8 +2,8 @@ package org.jellyfin.androidtv.ui.settings.screen.customization.subtitle
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -56,6 +56,7 @@ fun SettingsSubtitlesScreen() {
         ListSection(
             overlineContent = { Text(stringResource(R.string.pref_playback).uppercase()) },
             headingContent = { Text(stringResource(R.string.pref_subtitles)) },
+            captionContent = { Text(stringResource(R.string.settings_subtitle_appearance_scope)) },
         )
         SubtitleStylePreview(
             userPreferences = userPreferences,
@@ -67,7 +68,6 @@ fun SettingsSubtitlesScreen() {
             subtitleBrightness = subtitleBrightness,
         )
         SettingsColumn(modifier = Modifier.weight(1f)) {
-
         item {
             val interactionSource = remember { MutableInteractionSource() }
             ListControl(
@@ -92,6 +92,7 @@ fun SettingsSubtitlesScreen() {
         item {
             ListButton(
                 headingContent = { Text(stringResource(R.string.subtitle_brightness_reset)) },
+                captionContent = { Text(stringResource(R.string.settings_brightness_reset_scope)) },
                 onClick = { subtitleBrightness = 100 },
                 modifier = Modifier.focusKey("subtitle_brightness_reset"),
             )
@@ -202,10 +203,26 @@ fun SettingsSubtitlesScreen() {
 		}
 
 		item {
+			ListButton(
+				headingContent = { Text(stringResource(R.string.settings_subtitle_reset_appearance)) },
+				captionContent = { Text(stringResource(R.string.settings_subtitle_reset_appearance_scope)) },
+				onClick = {
+					subtitleBrightness = UserPreferences.subtitleBrightness.defaultValue
+					subtitlesTextSize = UserPreferences.subtitlesTextSize.defaultValue
+					subtitlesTextWeight = UserPreferences.subtitlesTextWeight.defaultValue
+					subtitlesTextColor = UserPreferences.subtitlesTextColor.defaultValue
+					subtitlesBackgroundColor = UserPreferences.subtitlesBackgroundColor.defaultValue
+					subtitleTextStrokeColor = UserPreferences.subtitleTextStrokeColor.defaultValue
+				}, modifier = Modifier.focusKey("reset_subtitle_appearance"),
+			)
+		}
+		item { ListSection(headingContent = { Text(stringResource(R.string.settings_subtitle_position)) }) }
+		item {
 			val interactionSource = remember { MutableInteractionSource() }
 
 			ListControl(
 				headingContent = { Text(stringResource(R.string.pref_subtitles_position)) },
+				captionContent = { Text(stringResource(R.string.settings_subtitle_position_description)) },
 				interactionSource = interactionSource,
 				modifier = Modifier.focusKey("subtitles_position")
 			) {
@@ -234,6 +251,22 @@ fun SettingsSubtitlesScreen() {
 					}
 				}
 			}
+		}
+		item {
+			ListButton(headingContent = { Text(stringResource(R.string.settings_subtitle_reset_position)) },
+				captionContent = { Text(stringResource(R.string.settings_subtitle_reset_position_scope)) },
+				onClick = { subtitlesOffsetPosition = UserPreferences.subtitlesOffsetPosition.defaultValue },
+				modifier = Modifier.focusKey("reset_subtitle_position"))
+		}
+		item {
+			ListSection(headingContent = { Text(stringResource(R.string.settings_subtitle_timing_help)) },
+				captionContent = { Text(stringResource(R.string.settings_subtitle_timing_help_description)) })
+		}
+		item {
+			ListButton(headingContent = { Text(stringResource(R.string.settings_subtitle_compatibility)) },
+				captionContent = { Text(stringResource(R.string.settings_subtitle_compatibility_link)) },
+				onClick = { router.push(Routes.PLAYBACK_SUBTITLE_COMPATIBILITY) },
+				modifier = Modifier.focusKey(Routes.PLAYBACK_SUBTITLE_COMPATIBILITY))
 		}
 	}
     }

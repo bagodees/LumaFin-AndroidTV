@@ -51,6 +51,7 @@ fun SettingsPlaybackScreen() {
 			ListButton(
 				leadingContent = { Icon(painterResource(R.drawable.ic_tv_play), contentDescription = null) },
 				headingContent = { Text(stringResource(R.string.playback_video_player)) },
+				captionContent = { Text(stringResource(R.string.settings_search_player)) },
 				trailingContent = {
 					val iconDrawable = remember(context) {
 						externalAppRepository.getCurrentExternalPlayerApp(context)?.loadIcon(context.packageManager)
@@ -73,6 +74,7 @@ fun SettingsPlaybackScreen() {
 			ListButton(
 				leadingContent = { Icon(painterResource(R.drawable.ic_photo), contentDescription = null) },
 				headingContent = { Text(stringResource(R.string.photo_player)) },
+				captionContent = { Text(stringResource(R.string.settings_search_photos)) },
 				onClick = { router.push(Routes.PLAYBACK_PHOTO_PLAYER) },
 				modifier = Modifier.focusKey(Routes.PLAYBACK_PHOTO_PLAYER)
 			)
@@ -82,6 +84,7 @@ fun SettingsPlaybackScreen() {
 			ListButton(
 				leadingContent = { Icon(painterResource(R.drawable.ic_next_up), contentDescription = null) },
 				headingContent = { Text(stringResource(R.string.pref_playback_autoplay)) },
+				captionContent = { Text(stringResource(R.string.settings_search_autoplay)) },
 				onClick = { router.push(Routes.PLAYBACK_AUTOPLAY) },
 				modifier = Modifier.focusKey(Routes.PLAYBACK_AUTOPLAY)
 			)
@@ -91,6 +94,7 @@ fun SettingsPlaybackScreen() {
 			ListButton(
 				leadingContent = { Icon(painterResource(R.drawable.ic_trailer), contentDescription = null) },
 				headingContent = { Text(stringResource(R.string.pref_playback_prerolls)) },
+				captionContent = { Text(stringResource(R.string.settings_search_prerolls)) },
 				onClick = { router.push(Routes.PLAYBACK_PREROLLS) },
 				modifier = Modifier.focusKey(Routes.PLAYBACK_PREROLLS)
 			)
@@ -111,6 +115,7 @@ fun SettingsPlaybackScreen() {
 			ListButton(
 				leadingContent = { Icon(painterResource(R.drawable.ic_subtitles), contentDescription = null) },
 				headingContent = { Text(stringResource(R.string.pref_customization_subtitles)) },
+				captionContent = { Text(stringResource(R.string.settings_search_subtitles)) },
 				onClick = { router.push(Routes.CUSTOMIZATION_SUBTITLES) },
 				modifier = Modifier.focusKey(Routes.CUSTOMIZATION_SUBTITLES)
 			)
@@ -129,7 +134,8 @@ fun SettingsPlaybackScreen() {
 		item {
 			ListButton(
 				leadingContent = { Icon(painterResource(R.drawable.ic_clapperboard), contentDescription = null) },
-				headingContent = { Text(stringResource(R.string.pref_playback_media_segments)) },
+				headingContent = { Text(stringResource(R.string.settings_intro_recap_credits)) },
+				captionContent = { Text(stringResource(R.string.settings_search_segments)) },
 				onClick = { router.push(Routes.PLAYBACK_MEDIA_SEGMENTS) },
 				modifier = Modifier.focusKey(Routes.PLAYBACK_MEDIA_SEGMENTS)
 			)
@@ -139,6 +145,7 @@ fun SettingsPlaybackScreen() {
 			ListButton(
 				leadingContent = { Icon(painterResource(R.drawable.ic_more), contentDescription = null) },
 				headingContent = { Text(stringResource(R.string.pref_playback_advanced)) },
+				captionContent = { Text(stringResource(R.string.settings_search_advanced)) },
 				onClick = { router.push(Routes.PLAYBACK_ADVANCED) },
 				modifier = Modifier.focusKey(Routes.PLAYBACK_ADVANCED)
 			)

@@ -86,7 +86,7 @@ class ClosedCaptionsAction(
 		adapter.leanbackOverlayFragment.setFading(false)
 		val dialog = AlertDialog.Builder(context)
 			.setTitle(R.string.subtitle_timing)
-			.setMessage(R.string.subtitle_timing_description)
+			.setMessage(R.string.settings_subtitle_timing_dialog)
 			.setNegativeButton(R.string.subtitle_earlier, null)
 			.setPositiveButton(R.string.subtitle_later, null)
 			.setNeutralButton(R.string.subtitle_timing_reset, null)

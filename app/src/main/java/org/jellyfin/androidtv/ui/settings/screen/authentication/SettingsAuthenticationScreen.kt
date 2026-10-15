@@ -45,12 +45,12 @@ fun SettingsAuthenticationScreen(launchedFromLogin: Boolean = false) {
 		if (launchedFromLogin) item {
 			ListSection(
 				overlineContent = { Text(stringResource(R.string.app_name).uppercase()) },
-				headingContent = { Text(stringResource(R.string.pref_login)) },
+				headingContent = { Text(stringResource(if (launchedFromLogin) R.string.pref_login else R.string.settings_group_accounts)) },
 			)
 		} else item {
 			ListSection(
 				overlineContent = { Text(stringResource(R.string.settings).uppercase()) },
-				headingContent = { Text(stringResource(R.string.pref_login)) },
+				headingContent = { Text(stringResource(if (launchedFromLogin) R.string.pref_login else R.string.settings_group_accounts)) },
 			)
 		}
 

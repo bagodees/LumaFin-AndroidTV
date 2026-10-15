@@ -6,6 +6,7 @@ import org.jellyfin.androidtv.ui.navigation.RouteComposable
 import org.jellyfin.androidtv.ui.settings.screen.SettingsDeveloperScreen
 import org.jellyfin.androidtv.ui.settings.screen.SettingsMaintenanceScreen
 import org.jellyfin.androidtv.ui.settings.screen.SettingsMainScreen
+import org.jellyfin.androidtv.ui.settings.screen.SettingsHelpScreen
 import org.jellyfin.androidtv.ui.settings.screen.SettingsSearchScreen
 import org.jellyfin.androidtv.ui.settings.screen.SettingsTelemetryScreen
 import org.jellyfin.androidtv.ui.settings.screen.about.SettingsAboutScreen
@@ -37,6 +38,12 @@ import org.jellyfin.androidtv.ui.settings.screen.livetv.SettingsLiveTvGuideChann
 import org.jellyfin.androidtv.ui.settings.screen.livetv.SettingsLiveTvGuideFiltersScreen
 import org.jellyfin.androidtv.ui.settings.screen.livetv.SettingsLiveTvGuideOptionsScreen
 import org.jellyfin.androidtv.ui.settings.screen.playback.SettingsPlaybackAVCLevelScreen
+import org.jellyfin.androidtv.ui.settings.screen.playback.SettingsPlaybackSeekingScreen
+import org.jellyfin.androidtv.ui.settings.screen.playback.SettingsPlaybackVideoScreen
+import org.jellyfin.androidtv.ui.settings.screen.playback.SettingsPlaybackSubtitleCompatibilityScreen
+import org.jellyfin.androidtv.ui.settings.screen.playback.SettingsPlaybackLiveTvScreen
+import org.jellyfin.androidtv.ui.settings.screen.playback.SettingsPlaybackAudioScreen
+import org.jellyfin.androidtv.ui.settings.screen.playback.SettingsPlaybackTroubleshootingScreen
 import org.jellyfin.androidtv.ui.settings.screen.playback.SettingsPlaybackAdvancedScreen
 import org.jellyfin.androidtv.ui.settings.screen.playback.SettingsPlaybackAudioBehaviorScreen
 import org.jellyfin.androidtv.ui.settings.screen.playback.SettingsPlaybackBitstreamAudioScreen
@@ -71,6 +78,7 @@ object Routes {
 	const val HOME_RECOMMENDATIONS = "/home/recommendations"
 	const val MAIN = "/"
 	const val SEARCH = "/search"
+	const val HELP = "/help"
 	const val AUTHENTICATION = "/authentication"
 	const val AUTHENTICATION_FROM_LOGIN = "/authentication+login"
 	const val AUTHENTICATION_SERVER = "/authentication/server/{serverId}"
@@ -108,6 +116,12 @@ object Routes {
 	const val PLAYBACK_PREROLLS = "/playback/prerolls"
 	const val PLAYBACK_MEDIA_SEGMENTS = "/playback/media-segments"
 	const val PLAYBACK_MEDIA_SEGMENT = "/playback/media-segments/{segmentType}"
+	const val PLAYBACK_SEEKING = "/playback/advanced/seeking"
+	const val PLAYBACK_VIDEO = "/playback/advanced/video"
+	const val PLAYBACK_SUBTITLE_COMPATIBILITY = "/playback/advanced/subtitlecompatibility"
+	const val PLAYBACK_LIVE_TV = "/playback/advanced/livetv"
+	const val PLAYBACK_AUDIO = "/playback/advanced/audio"
+	const val PLAYBACK_TROUBLESHOOTING = "/playback/advanced/troubleshooting"
 	const val PLAYBACK_ADVANCED = "/playback/advanced"
 	const val PLAYBACK_RESUME_SUBTRACT_DURATION = "/playback/resume-subtract-duration"
 	const val PLAYBACK_QUALITY = "/playback/quality"
@@ -131,6 +145,7 @@ object Routes {
 }
 
 val routes = mapOf<String, RouteComposable>(
+	Routes.HELP to { SettingsHelpScreen() },
 	Routes.SEARCH to { SettingsSearchScreen() },
 	Routes.HOME_SHORTCUTS to { SettingsHomeShortcutsScreen() },
 	Routes.HOME_RECOMMENDATIONS to { SettingsHomeRecommendationsScreen() },
@@ -261,6 +276,12 @@ val routes = mapOf<String, RouteComposable>(
 			segmentType = context.parameters["segmentType"]?.let(MediaSegmentType::fromNameOrNull)!!,
 		)
 	},
+	Routes.PLAYBACK_SEEKING to { SettingsPlaybackSeekingScreen() },
+	Routes.PLAYBACK_VIDEO to { SettingsPlaybackVideoScreen() },
+	Routes.PLAYBACK_SUBTITLE_COMPATIBILITY to { SettingsPlaybackSubtitleCompatibilityScreen() },
+	Routes.PLAYBACK_LIVE_TV to { SettingsPlaybackLiveTvScreen() },
+	Routes.PLAYBACK_AUDIO to { SettingsPlaybackAudioScreen() },
+	Routes.PLAYBACK_TROUBLESHOOTING to { SettingsPlaybackTroubleshootingScreen() },
 	Routes.PLAYBACK_ADVANCED to {
 		SettingsPlaybackAdvancedScreen()
 	},

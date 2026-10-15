@@ -35,10 +35,41 @@ fun SettingsCustomizationScreen() {
 		item {
 			ListSection(
 				overlineContent = { Text(stringResource(R.string.settings).uppercase()) },
-				headingContent = { Text(stringResource(R.string.pref_customization)) },
+				headingContent = { Text(stringResource(R.string.settings_group_appearance)) },
 			)
 		}
 
+		item { ListSection(headingContent = { Text(stringResource(R.string.pref_browsing)) }) }
+
+		item {
+			ListButton(
+				leadingContent = { Icon(painterResource(R.drawable.ic_grid), contentDescription = null) },
+				headingContent = { Text(stringResource(R.string.pref_libraries)) },
+				captionContent = { Text(stringResource(R.string.settings_search_libraries)) },
+				onClick = { router.push(Routes.LIBRARIES) },
+				modifier = Modifier.focusKey(Routes.LIBRARIES)
+			)
+		}
+
+		item {
+			ListButton(
+				leadingContent = { Icon(painterResource(R.drawable.ic_house), contentDescription = null) },
+				headingContent = { Text(stringResource(R.string.home_prefs)) },
+				captionContent = { Text(stringResource(R.string.settings_search_home)) },
+				onClick = { router.push(Routes.HOME) },
+				modifier = Modifier.focusKey(Routes.HOME)
+			)
+		}
+		item {
+			ListButton(
+				leadingContent = { Icon(painterResource(R.drawable.ic_photos), contentDescription = null) },
+				headingContent = { Text(stringResource(R.string.pref_screensaver)) },
+				captionContent = { Text(stringResource(R.string.settings_search_screensaver)) },
+				onClick = { router.push(Routes.CUSTOMIZATION_SCREENSAVER) },
+				modifier = Modifier.focusKey(Routes.CUSTOMIZATION_SCREENSAVER),
+			)
+		}
+		item { ListSection(headingContent = { Text(stringResource(R.string.settings_appearance_display)) }) }
 		item {
 			var appTheme by rememberPreference(userPreferences, UserPreferences.appTheme)
 
@@ -160,24 +191,5 @@ fun SettingsCustomizationScreen() {
 			}
 		}
 
-		item { ListSection(headingContent = { Text(stringResource(R.string.pref_browsing)) }) }
-
-		item {
-			ListButton(
-				leadingContent = { Icon(painterResource(R.drawable.ic_grid), contentDescription = null) },
-				headingContent = { Text(stringResource(R.string.pref_libraries)) },
-				onClick = { router.push(Routes.LIBRARIES) },
-				modifier = Modifier.focusKey(Routes.LIBRARIES)
-			)
-		}
-
-		item {
-			ListButton(
-				leadingContent = { Icon(painterResource(R.drawable.ic_house), contentDescription = null) },
-				headingContent = { Text(stringResource(R.string.home_prefs)) },
-				onClick = { router.push(Routes.HOME) },
-				modifier = Modifier.focusKey(Routes.HOME)
-			)
-		}
 	}
 }

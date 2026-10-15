@@ -30,6 +30,7 @@ fun SettingsPlaybackZoomModeScreen() {
 			ListSection(
 				overlineContent = { Text(stringResource(R.string.pref_playback_advanced).uppercase()) },
 				headingContent = { Text(stringResource(R.string.default_video_zoom)) },
+				captionContent = { Text(stringResource(R.string.settings_zoom_description)) },
 			)
 		}
 

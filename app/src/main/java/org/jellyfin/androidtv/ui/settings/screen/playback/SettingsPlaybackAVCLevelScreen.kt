@@ -32,13 +32,14 @@ fun SettingsPlaybackAVCLevelScreen() {
 			ListSection(
 				overlineContent = { Text(stringResource(R.string.preference_codecs).uppercase()) },
 				headingContent = { Text(stringResource(R.string.user_avc_level)) },
-				captionContent = { Text(stringResource(R.string.codec_level_warning)) },
+				captionContent = { Text(stringResource(R.string.settings_codec_level_guidance)) },
 			)
 		}
 
 		item {
 			ListButton(
 				headingContent = { Text(stringResource(AVCLevel.AUTO.nameRes)) },
+				captionContent = { Text(stringResource(R.string.settings_codec_level_auto)) },
 				trailingContent = { RadioButton(checked = userAVCLevel == AVCLevel.AUTO) },
 				onClick = {
 					userAVCLevel = AVCLevel.AUTO

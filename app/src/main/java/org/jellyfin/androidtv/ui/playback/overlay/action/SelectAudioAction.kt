@@ -70,7 +70,7 @@ class SelectAudioAction(
         adapter.leanbackOverlayFragment.setFading(false)
         val dialog = AlertDialog.Builder(context)
             .setTitle(R.string.audio_timing)
-            .setMessage(R.string.audio_timing_description)
+            .setMessage(R.string.settings_audio_timing_dialog)
             .setNegativeButton(R.string.audio_earlier, null)
             .setPositiveButton(R.string.audio_later, null)
             .setNeutralButton(R.string.subtitle_timing_reset, null)

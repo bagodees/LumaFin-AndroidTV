@@ -28,7 +28,7 @@ fun SettingsPlaybackMediaSegmentScreen(
 	SettingsColumn {
 		item {
 			ListSection(
-				overlineContent = { Text(stringResource(R.string.pref_playback_media_segments).uppercase()) },
+				overlineContent = { Text(stringResource(R.string.settings_intro_recap_credits).uppercase()) },
 				headingContent = { Text(stringResource(if (segmentType == MediaSegmentType.INTRO) R.string.intro_skipping else segmentType.nameRes)) },
 				captionContent = if (segmentType == MediaSegmentType.INTRO) ({ Text(stringResource(R.string.intro_skip_requires_segments)) }) else null,
 			)

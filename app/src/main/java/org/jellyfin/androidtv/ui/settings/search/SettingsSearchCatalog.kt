@@ -14,10 +14,10 @@ fun settingsSearchCatalog(context: Context, prefs: UserPreferences, liveTvEnable
 	fun addSetting(route: String, title: Int, section: Int, description: Int, value: String? = null) {
 		add(SettingsSearchEntry("$route:$title", route, text(title), text(section), text(description), value))
 	}
-	val appearance = R.string.pref_customization
+	val appearance = R.string.settings_group_appearance
 	val playback = R.string.pref_playback
 	val subtitles = R.string.pref_subtitles
-	addSetting(Routes.AUTHENTICATION, R.string.pref_login, R.string.settings, R.string.settings_search_login)
+	addSetting(Routes.AUTHENTICATION, R.string.settings_group_accounts, R.string.settings, R.string.settings_search_login)
 	addSetting(Routes.CUSTOMIZATION, appearance, R.string.settings, R.string.settings_search_appearance)
 	addSetting(Routes.CUSTOMIZATION_THEME, R.string.pref_app_theme, appearance, R.string.settings_search_appearance, name(prefs[UserPreferences.appTheme]))
 	addSetting(Routes.CUSTOMIZATION_CLOCK, R.string.pref_clock_display, appearance, R.string.settings_search_appearance, name(prefs[UserPreferences.clockBehavior]))
@@ -40,6 +40,11 @@ fun settingsSearchCatalog(context: Context, prefs: UserPreferences, liveTvEnable
 	addSetting(Routes.CUSTOMIZATION_SUBTITLES, subtitles, playback, R.string.settings_search_subtitles)
 	addSetting(Routes.CUSTOMIZATION_SUBTITLES, R.string.subtitle_brightness, subtitles, R.string.settings_search_subtitles, context.getString(R.string.settings_search_percent, prefs[UserPreferences.subtitleBrightness]))
 	addSetting(Routes.CUSTOMIZATION_SUBTITLES, R.string.pref_subtitles_size, subtitles, R.string.settings_search_subtitles, context.getString(R.string.settings_search_points, prefs[UserPreferences.subtitlesTextSize].toString()))
+	addSetting(Routes.CUSTOMIZATION_SUBTITLES, R.string.pref_subtitles_weight, subtitles, R.string.settings_search_subtitles, prefs[UserPreferences.subtitlesTextWeight].toString())
+	addSetting(Routes.CUSTOMIZATION_SUBTITLES, R.string.pref_subtitles_position, subtitles, R.string.settings_subtitle_position_description, context.getString(R.string.settings_search_percent, kotlin.math.round(prefs[UserPreferences.subtitlesOffsetPosition] * 100).toInt()))
+	addSetting(Routes.CUSTOMIZATION_SUBTITLES, R.string.settings_subtitle_reset_appearance, subtitles, R.string.settings_subtitle_reset_appearance_scope)
+	addSetting(Routes.CUSTOMIZATION_SUBTITLES, R.string.settings_subtitle_reset_position, subtitles, R.string.settings_subtitle_reset_position_scope)
+	addSetting(Routes.CUSTOMIZATION_SUBTITLES, R.string.settings_subtitle_timing_help, subtitles, R.string.settings_subtitle_timing_help_description)
 	addSetting(Routes.CUSTOMIZATION_SUBTITLES_TEXT_COLOR, R.string.lbl_subtitle_text_color, subtitles, R.string.settings_search_subtitle_colors)
 	addSetting(Routes.CUSTOMIZATION_SUBTITLES_BACKGROUND_COLOR, R.string.lbl_subtitle_background_color, subtitles, R.string.settings_search_subtitle_colors)
 	addSetting(Routes.CUSTOMIZATION_SUBTITLES_EDGE_COLOR, R.string.lbl_subtitle_text_stroke_color, subtitles, R.string.settings_search_subtitle_colors)
@@ -51,7 +56,7 @@ fun settingsSearchCatalog(context: Context, prefs: UserPreferences, liveTvEnable
 	addSetting(Routes.PLAYBACK_NEXT_UP_BEHAVIOR, R.string.pref_next_up_behavior_title, playback, R.string.settings_search_nextup, name(prefs[UserPreferences.nextUpBehavior]))
 	addSetting(Routes.PLAYBACK_INACTIVITY_PROMPT, R.string.pref_playback_inactivity_prompt, playback, R.string.settings_search_inactivity, name(prefs[UserPreferences.stillWatchingBehavior]))
 	addSetting(Routes.PLAYBACK_PREROLLS, R.string.pref_playback_prerolls, playback, R.string.settings_search_prerolls, enabled(prefs[UserPreferences.cinemaModeEnabled]))
-	addSetting(Routes.PLAYBACK_MEDIA_SEGMENTS, R.string.pref_playback_media_segments, playback, R.string.settings_search_segments)
+	addSetting(Routes.PLAYBACK_MEDIA_SEGMENTS, R.string.settings_intro_recap_credits, playback, R.string.settings_search_segments)
 	addSetting(Routes.PLAYBACK_QUALITY, R.string.pref_streaming_quality, playback, R.string.settings_search_quality, text(prefs[UserPreferences.streamingQuality].nameRes))
 	addSetting(Routes.PLAYBACK_MAX_BITRATE, R.string.pref_max_bitrate_title, playback, R.string.settings_search_quality, context.getString(R.string.settings_search_mbps, prefs[UserPreferences.maxBitrate]))
 	addSetting(Routes.PLAYBACK_AUDIO_BEHAVIOR, R.string.lbl_audio_output, playback, R.string.settings_search_audio, name(prefs[UserPreferences.audioBehaviour]))
@@ -63,10 +68,22 @@ fun settingsSearchCatalog(context: Context, prefs: UserPreferences, liveTvEnable
 	addSetting(Routes.PLAYBACK_ZOOM_MODE, R.string.default_video_zoom, playback, R.string.settings_search_zoom, name(prefs[UserPreferences.playerZoomMode]))
 	addSetting(Routes.PLAYBACK_BUFFER_LENGTH, R.string.playback_buffer_length, playback, R.string.settings_search_buffer, name(prefs[UserPreferences.bufferLength]))
 	addSetting(Routes.PLAYBACK_ADVANCED, R.string.pref_playback_advanced, playback, R.string.settings_search_advanced)
-	addSetting(Routes.PLAYBACK_RESUME_SUBTRACT_DURATION, R.string.lbl_resume_preroll, playback, R.string.settings_search_advanced)
+	addSetting(Routes.PLAYBACK_SEEKING, R.string.settings_seeking, playback, R.string.settings_seeking_description)
+	addSetting(Routes.PLAYBACK_VIDEO, R.string.pref_video, playback, R.string.settings_video_description)
+	addSetting(Routes.PLAYBACK_AUDIO, R.string.pref_audio, playback, R.string.settings_audio_description)
+	addSetting(Routes.PLAYBACK_AUDIO, R.string.pref_audio_night_mode, R.string.pref_audio, R.string.settings_night_audio_description, enabled(prefs[UserPreferences.audioNightMode]))
+	addSetting(Routes.PLAYBACK_AUDIO, R.string.prefer_exoplayer_ffmpeg, R.string.pref_audio, R.string.prefer_exoplayer_ffmpeg_content, enabled(prefs[UserPreferences.preferExoPlayerFfmpeg]))
+	addSetting(Routes.PLAYBACK_SUBTITLE_COMPATIBILITY, R.string.settings_subtitle_compatibility, subtitles, R.string.settings_subtitle_compatibility_description)
+	addSetting(Routes.PLAYBACK_SUBTITLE_COMPATIBILITY, R.string.preference_enable_pgs, subtitles, R.string.preference_enable_pgs_description, enabled(prefs[UserPreferences.pgsDirectPlay]))
+	addSetting(Routes.PLAYBACK_SUBTITLE_COMPATIBILITY, R.string.preference_enable_ass, subtitles, R.string.preference_enable_ass_description, enabled(prefs[UserPreferences.assDirectPlay]))
+	addSetting(Routes.PLAYBACK_SUBTITLE_COMPATIBILITY, R.string.pref_burn_subtitles_when_transcoding, subtitles, R.string.pref_burn_subtitles_when_transcoding_description, enabled(prefs[UserPreferences.subtitlesBurnDuringTranscode]))
+	addSetting(Routes.PLAYBACK_TROUBLESHOOTING, R.string.pref_report_device_profile_title, playback, R.string.settings_troubleshooting_description)
+	addSetting(Routes.PLAYBACK_RESUME_SUBTRACT_DURATION, R.string.settings_resume_rewind, playback, R.string.settings_search_advanced)
 	if (liveTvEnabled) {
+		addSetting(Routes.PLAYBACK_LIVE_TV, R.string.lbl_direct_stream_live, playback, R.string.settings_live_direct_description, enabled(prefs[UserPreferences.liveTvDirectPlayEnabled]))
 		addSetting(Routes.LIVETV_GUIDE_OPTIONS, R.string.pref_live_tv_cat, playback, R.string.settings_search_libraries)
 	}
+	addSetting(Routes.HELP, R.string.settings_group_help, R.string.settings, R.string.settings_group_help_description)
 	addSetting(Routes.MAINTENANCE, R.string.maintenance_title, R.string.settings, R.string.settings_search_cache)
 	addSetting(Routes.TELEMETRY, R.string.pref_telemetry_category, R.string.settings, R.string.settings_search_telemetry)
 	addSetting(Routes.ABOUT, R.string.pref_about_title, R.string.settings, R.string.settings_search_about)

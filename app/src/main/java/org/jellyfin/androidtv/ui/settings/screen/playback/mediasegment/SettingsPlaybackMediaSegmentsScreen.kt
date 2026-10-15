@@ -24,7 +24,7 @@ fun SettingsPlaybackMediaSegmentsScreen() {
 		item {
 			ListSection(
 				overlineContent = { Text(stringResource(R.string.pref_playback).uppercase()) },
-				headingContent = { Text(stringResource(R.string.pref_playback_media_segments)) },
+				headingContent = { Text(stringResource(R.string.settings_intro_recap_credits)) },
 			)
 		}
 

@@ -33,12 +33,18 @@ fun SettingsPlaybackBitstreamAudioScreen(
 			ListSection(
 				overlineContent = { Text(stringResource(R.string.preference_codecs).uppercase()) },
 				headingContent = { Text(stringResource(format.nameRes)) },
+				captionContent = { Text(stringResource(R.string.settings_bitstream_guidance)) },
 			)
 		}
 
 		items(BitstreamAudioMode.entries) { entry ->
 			ListButton(
 				headingContent = { Text(stringResource(entry.nameRes)) },
+				captionContent = { Text(stringResource(when (entry) {
+					BitstreamAudioMode.AUTO -> R.string.settings_bitstream_auto
+					BitstreamAudioMode.ENABLE -> R.string.settings_bitstream_enable
+					BitstreamAudioMode.DISABLE -> R.string.settings_bitstream_disable
+				})) },
 				trailingContent = { RadioButton(checked = mode == entry) },
 				onClick = {
 					mode = entry

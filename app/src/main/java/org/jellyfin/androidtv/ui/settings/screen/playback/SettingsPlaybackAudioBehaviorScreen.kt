@@ -30,6 +30,7 @@ fun SettingsPlaybackAudioBehaviorScreen() {
 			ListSection(
 				overlineContent = { Text(stringResource(R.string.pref_playback_advanced).uppercase()) },
 				headingContent = { Text(stringResource(R.string.lbl_audio_output)) },
+				captionContent = { Text(stringResource(R.string.settings_audio_output_description)) },
 			)
 		}
 

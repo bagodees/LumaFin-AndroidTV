@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_subtitle_appearance">Appearance</string>
+    <string name="settings_subtitle_appearance_scope">Styles subtitles drawn by LumaFin. Subtitles burned into video and external players may use their own appearance.</string>
+    <string name="settings_subtitle_position">Position</string>
+    <string name="settings_subtitle_position_description">Move subtitles up from the bottom of the video. Higher percentages place them farther up; subtitle tracks with their own placement may behave differently.</string>
+    <string name="settings_subtitle_reset_appearance">Reset subtitle appearance</string>
+    <string name="settings_subtitle_reset_appearance_scope">Restore brightness, text size, weight, text color, background color and outline color. Position and playback timing stay as they are.</string>
+    <string name="settings_subtitle_reset_position">Reset subtitle position</string>
+    <string name="settings_subtitle_reset_position_scope">Restore the bottom offset to 8%. Appearance and playback timing stay as they are.</string>
+    <string name="settings_subtitle_timing_help">Tracks &amp; timing during playback</string>
+    <string name="settings_subtitle_timing_help_description">While watching, open the subtitles button to select a track or adjust its timing. Timing applies to the current video and resets for a different video. Burned-in subtitles cannot be retimed by LumaFin.</string>
+    <string name="settings_subtitle_compatibility_link">PGS, ASS and subtitle burn-in options.</string>
+    <string name="settings_subtitle_timing_dialog">Move subtitles earlier or later in 0.1-second steps, up to 30 seconds either way. Reset restores only subtitle timing to 0 for the current video. Press Back to close.</string>
+    <string name="settings_audio_timing_dialog">Move audio earlier or later in 0.1-second steps, up to 2 seconds either way. Reset restores only audio timing to 0 for the current video. Press Back to close.</string>
+</resources>

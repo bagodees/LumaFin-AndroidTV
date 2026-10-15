@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_reset_bitrate">Reset bitrate limit</string>
+    <string name="settings_reset_bitrate_scope">Restore the %1$s limit and switch Streaming Quality to Custom so this limit is used. Display, audio and subtitle settings stay as they are.</string>
+    <string name="settings_hdr_guidance">Choose which HDR formats LumaFin reports as supported to Jellyfin. Auto uses device detection. Overrides do not add HDR support to your TV or player.</string>
+    <string name="settings_hdr_auto">Use device detection for this format. Recommended unless detection is incorrect; selecting Auto also removes a manual override.</string>
+    <string name="settings_hdr_enable">Report this format as supported even if detection says otherwise. Use only when your device and display can play it.</string>
+    <string name="settings_hdr_disable">Report this format as unsupported. Jellyfin may convert the video or offer another version, depending on server support.</string>
+    <string name="settings_bitstream_guidance">Bitstream sends encoded audio to compatible audio equipment for decoding. These choices change the support reported to Jellyfin.</string>
+    <string name="settings_bitstream_auto">Use detected audio passthrough support. Recommended; selecting Auto also removes a manual override.</string>
+    <string name="settings_bitstream_enable">Report passthrough support even if detection says otherwise. The device, connection and TV or receiver must support this format.</string>
+    <string name="settings_bitstream_disable">Report passthrough as unsupported for this format. Jellyfin may convert the audio to a compatible format.</string>
+    <string name="settings_codec_level_guidance">This is the maximum decoding level reported to Jellyfin, not a picture-quality setting. Leave Auto selected unless device detection is incorrect. An unsupported manual level can cause playback failures; a lower level may cause server conversion.</string>
+    <string name="settings_codec_level_auto">Use the detected decoding level. Recommended; selecting Auto removes a manual level override.</string>
+</resources>

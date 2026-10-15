@@ -40,6 +40,11 @@ fun SettingsPlaybackHdrOverrideScreen(
 		items(HdrOverrideMode.entries) { entry ->
 			ListButton(
 				headingContent = { Text(stringResource(entry.nameRes)) },
+				captionContent = { Text(stringResource(when (entry) {
+					HdrOverrideMode.AUTO -> R.string.settings_hdr_auto
+					HdrOverrideMode.ENABLE -> R.string.settings_hdr_enable
+					HdrOverrideMode.DISABLE -> R.string.settings_hdr_disable
+				})) },
 				trailingContent = { RadioButton(checked = mode == entry) },
 				onClick = {
 					mode = entry

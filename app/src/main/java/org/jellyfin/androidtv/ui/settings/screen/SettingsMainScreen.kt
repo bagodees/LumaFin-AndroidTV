@@ -10,80 +10,32 @@ import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.ui.base.Icon
 import org.jellyfin.androidtv.ui.base.Text
 import org.jellyfin.androidtv.ui.base.list.ListButton
-import org.jellyfin.androidtv.ui.base.list.ListSection
 import org.jellyfin.androidtv.ui.navigation.LocalRouter
 import org.jellyfin.androidtv.ui.navigation.focus.focusKey
 import org.jellyfin.androidtv.ui.settings.Routes
-import org.jellyfin.androidtv.ui.settings.composable.SettingsColumn
 
 @Composable
 fun SettingsMainScreen() {
 	val router = LocalRouter.current
-
 	SettingsSearchScreen(mainMenu = {
-		item {
+		items(settingsMainGroups.size, key = { settingsMainGroups[it].route }) { index ->
+			val group = settingsMainGroups[index]
 			ListButton(
-				leadingContent = { Icon(painterResource(R.drawable.ic_users), contentDescription = null) },
-				headingContent = { Text(stringResource(R.string.pref_login)) },
-				onClick = { router.push(Routes.AUTHENTICATION) },
-				modifier = Modifier.focusKey(Routes.AUTHENTICATION, initialFocus = true),
-			)
-		}
-
-		item {
-			ListButton(
-				leadingContent = { Icon(painterResource(R.drawable.ic_adjust), contentDescription = null) },
-				headingContent = { Text(stringResource(R.string.pref_customization)) },
-				onClick = { router.push(Routes.CUSTOMIZATION) },
-				modifier = Modifier.focusKey(Routes.CUSTOMIZATION),
-			)
-		}
-
-		// TODO: Temporarily added to root - should be accessed via customization screen instead
-		item {
-			ListButton(
-				leadingContent = { Icon(painterResource(R.drawable.ic_photos), contentDescription = null) },
-				headingContent = { Text(stringResource(R.string.pref_screensaver)) },
-				onClick = { router.push(Routes.CUSTOMIZATION_SCREENSAVER) },
-				modifier = Modifier.focusKey(Routes.CUSTOMIZATION_SCREENSAVER),
-			)
-		}
-
-		item {
-			ListButton(
-				leadingContent = { Icon(painterResource(R.drawable.ic_next), contentDescription = null) },
-				headingContent = { Text(stringResource(R.string.pref_playback)) },
-				onClick = { router.push(Routes.PLAYBACK) },
-				modifier = Modifier.focusKey(Routes.PLAYBACK),
-			)
-		}
-
-		item {
-			ListButton(
-				leadingContent = { Icon(painterResource(R.drawable.ic_error), contentDescription = null) },
-				headingContent = { Text(stringResource(R.string.pref_telemetry_category)) },
-				onClick = { router.push(Routes.TELEMETRY) },
-				modifier = Modifier.focusKey(Routes.TELEMETRY),
-			)
-
-		}
-
-		item {
-			ListButton(
-				headingContent = { Text(stringResource(R.string.maintenance_title)) },
-				leadingContent = { Icon(painterResource(R.drawable.ic_maintenance), contentDescription = null, modifier = Modifier.size(24.dp)) },
-				onClick = { router.push(Routes.MAINTENANCE) },
-				modifier = Modifier.focusKey(Routes.MAINTENANCE),
-			)
-		}
-
-		item {
-			ListButton(
-				leadingContent = { Icon(painterResource(R.drawable.ic_jellyfin), contentDescription = null, modifier = Modifier.size(24.dp)) },
-				headingContent = { Text(stringResource(R.string.pref_about_title)) },
-				onClick = { router.push(Routes.ABOUT) },
-				modifier = Modifier.focusKey(Routes.ABOUT),
+				leadingContent = { Icon(painterResource(group.icon), contentDescription = null, modifier = Modifier.size(24.dp)) },
+				headingContent = { Text(stringResource(group.title)) },
+				captionContent = { Text(stringResource(group.description)) },
+				onClick = { router.push(group.route) },
+				modifier = Modifier.focusKey(group.route, initialFocus = index == 0),
 			)
 		}
 	})
 }
+
+private data class SettingsMainGroup(val route: String, val title: Int, val description: Int, val icon: Int)
+
+private val settingsMainGroups = listOf(
+	SettingsMainGroup(Routes.PLAYBACK, R.string.pref_playback, R.string.settings_group_playback_description, R.drawable.ic_next),
+	SettingsMainGroup(Routes.CUSTOMIZATION, R.string.settings_group_appearance, R.string.settings_group_appearance_description, R.drawable.ic_adjust),
+	SettingsMainGroup(Routes.AUTHENTICATION, R.string.settings_group_accounts, R.string.settings_group_accounts_description, R.drawable.ic_users),
+	SettingsMainGroup(Routes.HELP, R.string.settings_group_help, R.string.settings_group_help_description, R.drawable.ic_maintenance),
+)
