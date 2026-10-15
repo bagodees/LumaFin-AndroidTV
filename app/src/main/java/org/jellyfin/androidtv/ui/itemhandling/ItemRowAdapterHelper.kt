@@ -236,7 +236,7 @@ fun ItemRowAdapter.retrieveUserViews(api: ApiClient, userViewsRepository: UserVi
 
 			setItems(
 				items = filteredItems,
-				transform = { item, _ -> BaseItemDtoBaseRowItem(item, staticHeight = true) }
+				transform = { item, _ -> BaseItemDtoBaseRowItem(item, staticHeight = false) }
 			)
 
 			if (filteredItems.isEmpty()) removeRow()
@@ -562,6 +562,11 @@ fun ItemRowAdapter.retrieveItems(
 	startIndex: Int,
 	batchSize: Int
 ) {
+	if (runtimeController != null && filters?.runtimeMinutes != null) {
+		runtimeController.retrieve(query, startIndex, batchSize)
+		return
+	}
+	runtimeController?.clear()
 	ProcessLifecycleOwner.get().lifecycleScope.launch {
 		runCatching {
 			val response = withContext(Dispatchers.IO) {
@@ -573,6 +578,7 @@ fun ItemRowAdapter.retrieveItems(
 				).content
 			}
 
+			if (itemsRequest != query || filters?.runtimeMinutes != null) return@launch
 			// Home rows with an explicit cap must not grow from extra server results
 			// or keep cards from an earlier, larger response when refreshed.
 			val items = if (query.enableTotalRecordCount == false && batchSize > 0) {

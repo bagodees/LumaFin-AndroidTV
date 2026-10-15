@@ -10,6 +10,13 @@ class FilterOptions {
 	var year: Int? = null
 	var minimumRating: Int? = null
 	var resolution = LibraryResolution.ANY
+	var runtimeMinutes: Int? = null
+
+	fun copy() = FilterOptions().also {
+		it.isFavoriteOnly = isFavoriteOnly; it.isUnwatchedOnly = isUnwatchedOnly
+		it.genre = genre; it.year = year; it.minimumRating = minimumRating
+		it.resolution = resolution; it.runtimeMinutes = runtimeMinutes
+	}
 
 	val filters: Set<ItemFilter>
 		get() = buildSet {

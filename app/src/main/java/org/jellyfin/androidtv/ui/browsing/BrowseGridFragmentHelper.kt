@@ -55,10 +55,14 @@ fun BrowseGridFragment.loadAvailableLetters(
     val items = adapter.itemsRequest
     val artists = adapter.artistsRequest
     val albumArtists = adapter.albumArtistsRequest
-    return lifecycleScope.launch {
+    return viewLifecycleOwner.lifecycleScope.launch {
         val available = try {
+            kotlinx.coroutines.withTimeoutOrNull(180_000L) {
             org.jellyfin.androidtv.util.availableAlphabet(candidates) { letter ->
                 when {
+                    items != null && adapter.runtimeController != null && adapter.filters.runtimeMinutes != null ->
+                        adapter.runtimeController.hasRuntimeMatches(
+                            org.jellyfin.androidtv.ui.itemhandling.setItemsStartLetter(items, letter.toString()))
                     artists != null -> api.artistsApi.getArtists(
                         org.jellyfin.androidtv.ui.itemhandling.setArtistsStartLetter(artists, letter.toString())
                             .copy(startIndex = 0, limit = 1, enableTotalRecordCount = false)
@@ -73,6 +77,7 @@ fun BrowseGridFragment.loadAvailableLetters(
                     ).content.items.orEmpty().isNotEmpty()
                     else -> false
                 }
+            }
             }
         } catch (cancelled: kotlinx.coroutines.CancellationException) {
             throw cancelled
@@ -127,32 +132,13 @@ fun BrowseGridFragment.showCombinedFilters(
 private fun BrowseGridFragment.showLibraryFilterMenu(
     adapter: org.jellyfin.androidtv.ui.itemhandling.ItemRowAdapter,
     genres: List<String>, years: List<Int>, allowResolution: Boolean, onChanged: () -> Unit,
+    draft: org.jellyfin.androidtv.data.model.FilterOptions = adapter.filters.copy(),
+    focusItem: Int = 0,
 ) {
-    if (!isAdded) return
-    val options = adapter.filters
+    if (!isAdded || view == null) return
     val any = getString(org.jellyfin.androidtv.R.string.library_filter_any)
-    val labels = mutableListOf(
-        getString(org.jellyfin.androidtv.R.string.library_filter_genre, options.genre ?: any),
-        getString(org.jellyfin.androidtv.R.string.library_filter_year, options.year?.toString() ?: any),
-        getString(org.jellyfin.androidtv.R.string.library_filter_rating, options.minimumRating?.let { getString(org.jellyfin.androidtv.R.string.library_rating_minimum, it) } ?: any),
-        getString(org.jellyfin.androidtv.R.string.library_filter_watch, getString(if (options.isUnwatchedOnly) org.jellyfin.androidtv.R.string.lbl_unwatched else org.jellyfin.androidtv.R.string.library_filter_all)),
-        getString(org.jellyfin.androidtv.R.string.library_filter_favorites, getString(if (options.isFavoriteOnly) org.jellyfin.androidtv.R.string.library_filter_on else org.jellyfin.androidtv.R.string.library_filter_off)),
-        getString(org.jellyfin.androidtv.R.string.library_filter_reset),
-    )
-    val resolutions = org.jellyfin.androidtv.data.model.LibraryResolution.entries
-    if (allowResolution) labels.add(5, getString(org.jellyfin.androidtv.R.string.library_filter_resolution, getString(options.resolution.labelRes)))
-    if (allowResolution && org.jellyfin.androidtv.BuildConfig.DEBUG) labels.add(getString(org.jellyfin.androidtv.R.string.runtime_check_title))
-    fun apply() {
-        adapter.setFilters(options)
-        onChanged()
-        showLibraryFilterMenu(adapter, genres, years, allowResolution, onChanged)
-    }
-    fun reset() {
-        options.genre = null; options.year = null; options.minimumRating = null
-        options.isFavoriteOnly = false; options.isUnwatchedOnly = false
-        options.resolution = org.jellyfin.androidtv.data.model.LibraryResolution.ANY
-        apply()
-    }
+    var selectedFocus = focusItem
+    fun redisplay() = showLibraryFilterMenu(adapter, genres, years, allowResolution, onChanged, draft, selectedFocus)
     fun choose(title: Int, labels: List<String>, selected: Int, action: (Int) -> Unit) {
         var picked = false
         androidx.appcompat.app.AlertDialog.Builder(requireContext()).setTitle(title)
@@ -160,32 +146,86 @@ private fun BrowseGridFragment.showLibraryFilterMenu(
                 picked = true
                 dialog.dismiss()
                 action(index)
-                apply()
+                redisplay()
             }.setNegativeButton(android.R.string.cancel, null)
             .create().apply {
-                setOnDismissListener { if (!picked) showLibraryFilterMenu(adapter, genres, years, allowResolution, onChanged) }
+                setOnDismissListener { if (!picked) redisplay() }
                 show()
             }
     }
-    androidx.appcompat.app.AlertDialog.Builder(requireContext())
-        .setTitle(org.jellyfin.androidtv.R.string.library_filters_title)
-        .setItems(labels.toTypedArray()) { _, index ->
-            when (index) {
-                0 -> choose(org.jellyfin.androidtv.R.string.library_filter_genre_title, listOf(any) + genres,
-                    genres.indexOf(options.genre) + 1) { options.genre = if (it == 0) null else genres[it - 1] }
-                1 -> choose(org.jellyfin.androidtv.R.string.library_filter_year_title, listOf(any) + years.map(Int::toString),
-                    years.indexOf(options.year) + 1) { options.year = if (it == 0) null else years[it - 1] }
-                2 -> choose(org.jellyfin.androidtv.R.string.library_filter_rating_title,
-                    listOf(any) + (1..10).map { getString(org.jellyfin.androidtv.R.string.library_rating_minimum, it) },
-                    options.minimumRating ?: 0) { options.minimumRating = it.takeIf { it > 0 } }
-                3 -> { options.isUnwatchedOnly = !options.isUnwatchedOnly; apply() }
-                4 -> { options.isFavoriteOnly = !options.isFavoriteOnly; apply() }
-                5 -> if (allowResolution) choose(org.jellyfin.androidtv.R.string.library_resolution_title,
-                    resolutions.map { getString(it.labelRes) }, resolutions.indexOf(options.resolution)) {
-                        options.resolution = resolutions[it]
-                    } else reset()
-                6 -> reset()
-                7 -> showRuntimeCheckChoices(adapter)
+    val entries = mutableListOf<Pair<String, () -> Unit>>()
+    entries += getString(org.jellyfin.androidtv.R.string.library_filter_genre, draft.genre ?: any) to {
+        choose(org.jellyfin.androidtv.R.string.library_filter_genre_title, listOf(any) + genres, genres.indexOf(draft.genre) + 1) {
+            draft.genre = if (it == 0) null else genres[it - 1]
+        }
+    }
+    entries += getString(org.jellyfin.androidtv.R.string.library_filter_year, draft.year?.toString() ?: any) to {
+        choose(org.jellyfin.androidtv.R.string.library_filter_year_title, listOf(any) + years.map(Int::toString), years.indexOf(draft.year) + 1) {
+            draft.year = if (it == 0) null else years[it - 1]
+        }
+    }
+    entries += getString(org.jellyfin.androidtv.R.string.library_filter_rating, draft.minimumRating?.let {
+        getString(org.jellyfin.androidtv.R.string.library_rating_minimum, it)
+    } ?: any) to {
+        choose(org.jellyfin.androidtv.R.string.library_filter_rating_title,
+            listOf(any) + (1..10).map { getString(org.jellyfin.androidtv.R.string.library_rating_minimum, it) }, draft.minimumRating ?: 0) {
+            draft.minimumRating = it.takeIf { it > 0 }
+        }
+    }
+    entries += getString(org.jellyfin.androidtv.R.string.library_filter_watch, getString(if (draft.isUnwatchedOnly)
+        org.jellyfin.androidtv.R.string.lbl_unwatched else org.jellyfin.androidtv.R.string.library_filter_all)) to {
+        draft.isUnwatchedOnly = !draft.isUnwatchedOnly; redisplay()
+    }
+    entries += getString(org.jellyfin.androidtv.R.string.library_filter_favorites, getString(if (draft.isFavoriteOnly)
+        org.jellyfin.androidtv.R.string.library_filter_on else org.jellyfin.androidtv.R.string.library_filter_off)) to {
+        draft.isFavoriteOnly = !draft.isFavoriteOnly; redisplay()
+    }
+    if (allowResolution) {
+        val resolutions = org.jellyfin.androidtv.data.model.LibraryResolution.entries
+        entries += getString(org.jellyfin.androidtv.R.string.library_filter_resolution, getString(draft.resolution.labelRes)) to {
+            choose(org.jellyfin.androidtv.R.string.library_resolution_title, resolutions.map { getString(it.labelRes) }, resolutions.indexOf(draft.resolution)) {
+                draft.resolution = resolutions[it]
             }
-        }.setNegativeButton(android.R.string.ok, null).show()
+        }
+        val durations = listOf(null, 30, 60, 90, 120)
+        entries += getString(org.jellyfin.androidtv.R.string.runtime_filter_value, draft.runtimeMinutes?.let {
+            getString(org.jellyfin.androidtv.R.string.runtime_check_under, it)
+        } ?: any) to {
+            choose(org.jellyfin.androidtv.R.string.runtime_filter_title, durations.map { value -> value?.let {
+                getString(org.jellyfin.androidtv.R.string.runtime_check_under, it)
+            } ?: any }, durations.indexOf(draft.runtimeMinutes)) { draft.runtimeMinutes = durations[it] }
+        }
+    }
+    entries += getString(org.jellyfin.androidtv.R.string.library_filter_reset) to {
+        draft.genre = null; draft.year = null; draft.minimumRating = null
+        draft.isFavoriteOnly = false; draft.isUnwatchedOnly = false
+        draft.resolution = org.jellyfin.androidtv.data.model.LibraryResolution.ANY
+        draft.runtimeMinutes = null
+        redisplay()
+    }
+    val menu = androidx.appcompat.app.AlertDialog.Builder(requireContext())
+        .setTitle(org.jellyfin.androidtv.R.string.library_filters_title)
+        .setItems(entries.map { it.first }.toTypedArray()) { _, index -> selectedFocus = index; entries[index].second() }
+        .setPositiveButton(org.jellyfin.androidtv.R.string.runtime_filter_apply) { _, _ ->
+            val controller = adapter.runtimeController
+            if (allowResolution && controller != null) controller.applyDraft(draft, onChanged, ::redisplay)
+            else { adapter.setFilters(draft); onChanged() }
+        }.setNegativeButton(android.R.string.cancel, null).create()
+    menu.show()
+    menu.listView.setSelection(selectedFocus)
+}
+
+fun BrowseGridFragment.createRuntimeController(
+    adapter: org.jellyfin.androidtv.ui.itemhandling.ItemRowAdapter,
+    onRestored: () -> Unit,
+): org.jellyfin.androidtv.ui.itemhandling.RuntimeFilterController {
+    val api = org.koin.core.context.GlobalContext.get().get<org.jellyfin.sdk.api.client.ApiClient>()
+    return org.jellyfin.androidtv.ui.itemhandling.RuntimeFilterController(requireContext(), viewLifecycleOwner, adapter, api,
+        onRestored = onRestored,
+        onOpenFilters = {
+            if (isAdded && view != null) showCombinedFilters(adapter, api, true) {
+                onRestored()
+                adapter.Retrieve()
+            }
+        })
 }

@@ -333,6 +333,9 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
         if (filters != null && filters.getResolution() != org.jellyfin.androidtv.data.model.LibraryResolution.ANY) {
             text += " \u00b7 " + getString(filters.getResolution().getLabelRes());
         }
+        if (filters != null && filters.getRuntimeMinutes() != null) {
+            text += " \u00b7 " + getString(R.string.runtime_check_under, filters.getRuntimeMinutes());
+        }
         binding.statusText.setText(text);
     }
 
@@ -622,6 +625,7 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
     }
 
     private void buildAdapter() {
+        if (mAdapter != null && mAdapter.getRuntimeController() != null) mAdapter.getRuntimeController().clear();
         mCardPresenter = new CardPresenter(false, mImageType, mCardHeight, true);
 
         Timber.d("buildAdapter cardHeight <%s> getCardWidthBy <%s> chunks <%s> type <%s>", mCardHeight, (int) getCardWidthBy(mCardHeight, mImageType, mFolder), mRowDef.getChunkSize(), mRowDef.getQueryType().toString());
@@ -667,6 +671,16 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
                 break;
         }
         mDirty = false;
+        if (mFolder.getCollectionType() == CollectionType.MOVIES) {
+            mAdapter.setRuntimeController(BrowseGridFragmentHelperKt.createRuntimeController(this, mAdapter, () -> {
+                if (binding != null) {
+                    if (mUnwatchedButton != null) mUnwatchedButton.setActivated(mAdapter.getFilters().isUnwatchedOnly());
+                    if (mFavoriteButton != null) mFavoriteButton.setActivated(mAdapter.getFilters().isFavoriteOnly());
+                    updateDisplayPrefs();
+                }
+                return kotlin.Unit.INSTANCE;
+            }));
+        }
 
         FilterOptions filters = new FilterOptions();
         filters.setFavoriteOnly(libraryPreferences.get(LibraryPreferences.Companion.getFilterFavoritesOnly()));
@@ -679,6 +693,8 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
         filters.setMinimumRating(savedRating > 0 && savedRating <= 10 ? savedRating : null);
         if (mFolder.getCollectionType() == CollectionType.MOVIES) {
             filters.setResolution(libraryPreferences.get(LibraryPreferences.Companion.getFilterResolution()));
+            int duration = libraryPreferences.get(LibraryPreferences.Companion.getFilterRuntimeMinutes());
+            if (duration == 30 || duration == 60 || duration == 90 || duration == 120) filters.setRuntimeMinutes(duration);
         }
 
         mAdapter.setRetrieveFinishedListener(new EmptyResponse(getLifecycle()) {
@@ -733,6 +749,7 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
         libraryPreferences.set(LibraryPreferences.Companion.getFilterYear(), active.getYear() == null ? 0 : active.getYear());
         libraryPreferences.set(LibraryPreferences.Companion.getFilterMinimumRating(), active.getMinimumRating() == null ? 0 : active.getMinimumRating());
         libraryPreferences.set(LibraryPreferences.Companion.getFilterResolution(), active.getResolution());
+        libraryPreferences.set(LibraryPreferences.Companion.getFilterRuntimeMinutes(), active.getRuntimeMinutes() == null ? 0 : active.getRuntimeMinutes());
         libraryPreferences.saveBrowsingChoices(mAdapter.getFilters().isFavoriteOnly(),
                 mAdapter.getFilters().isUnwatchedOnly(), mAdapter.getSortBy(), mAdapter.getSortOrder());
         setStatusText(mFolder.getName());

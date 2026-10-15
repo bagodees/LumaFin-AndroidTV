@@ -952,4 +952,8 @@
     <string name="runtime_check_changed">The library changed while checking. Try again.</string>
     <string name="runtime_check_limit">This check is too large or took too long. Narrow the other filters and try again.</string>
     <string name="runtime_check_failed">Could not finish checking movie lengths. Your filters have not changed.</string>
+    <string name="runtime_filter_title">Movie Runtime</string>
+    <string name="runtime_filter_value">Runtime: %1$s</string>
+    <string name="runtime_filter_apply">Apply Filters</string>
+    <string name="runtime_filter_retry">Retry</string>
 </resources>

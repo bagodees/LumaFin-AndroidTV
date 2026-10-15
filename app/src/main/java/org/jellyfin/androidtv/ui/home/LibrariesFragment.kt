@@ -106,7 +106,7 @@ class LibrariesRowsFragment : RowsSupportFragment(), View.OnKeyListener {
 	val loadState = MutableStateFlow(LibrariesLoadState.Loading)
 	private var currentItem: BaseRowItem? = null
 	private var loadJob: Job? = null
-	private val cards = MutableObjectAdapter<Any>(CardPresenter(true, 126))
+	private val cards = MutableObjectAdapter<Any>(CardPresenter.homeRows())
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
@@ -131,7 +131,7 @@ class LibrariesRowsFragment : RowsSupportFragment(), View.OnKeyListener {
 			loadState.value = LibrariesLoadState.Loading
 			try {
 				val libraries = views.views.first()
-				cards.replaceAll(libraries.map(::BaseItemDtoBaseRowItem))
+				cards.replaceAll(libraries.map { BaseItemDtoBaseRowItem(it, staticHeight = false) })
 				loadState.value = if (libraries.isEmpty()) LibrariesLoadState.Empty else LibrariesLoadState.Ready
 			} catch (error: CancellationException) {
 				throw error

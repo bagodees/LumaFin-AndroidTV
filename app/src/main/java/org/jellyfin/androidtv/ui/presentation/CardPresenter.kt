@@ -62,16 +62,21 @@ import org.jellyfin.sdk.api.client.ApiClient
 import org.jellyfin.sdk.model.api.BaseItemKind
 import org.koin.compose.koinInject
 
-class CardPresenter(
+class CardPresenter @JvmOverloads constructor(
 	val showInfo: Boolean,
 	val imageType: ImageType,
 	val staticHeight: Int,
 	val uniformAspect: Boolean,
+	val homeRow: Boolean = false,
 ) : Presenter() {
 	constructor(showInfo: Boolean, imageType: ImageType, staticHeight: Int) : this(showInfo, imageType, staticHeight, false)
 	constructor(showInfo: Boolean, staticHeight: Int) : this(showInfo, ImageType.POSTER, staticHeight)
 	constructor(showInfo: Boolean) : this(showInfo, 150)
 	constructor() : this(true)
+
+	companion object {
+		fun homeRows() = CardPresenter(true, ImageType.THUMB, 150, true, homeRow = true)
+	}
 
 	override fun onCreateViewHolder(parent: ViewGroup): ViewHolder {
 		val view = ComposeView(parent.context).apply {
@@ -128,6 +133,7 @@ class CardPresenter(
 					imageType = imageType,
 					staticHeight = staticHeight,
 					uniformAspect = uniformAspect,
+					homeRow = homeRow,
 				)
 			}
 
@@ -286,6 +292,7 @@ private fun CardViewHolderContent(
 	imageType: ImageType,
 	staticHeight: Int,
 	uniformAspect: Boolean,
+	homeRow: Boolean,
 ) {
 	val context = LocalContext.current
 	val localDensity = LocalDensity.current
@@ -298,14 +305,15 @@ private fun CardViewHolderContent(
 	if (item == null || displayConfig == null) return
 
 	val image = displayConfig.image
-	val aspectRatio = displayConfig.aspectRatio.takeIf { it >= 0.1f }
+	val aspectRatio = if (homeRow) ImageHelper.ASPECT_RATIO_16_9.toFloat() else displayConfig.aspectRatio.takeIf { it >= 0.1f }
 		?: image?.aspectRatio?.takeIf { it >= 0.1f } ?: 1f
 
 	val cardSize by preferences.mediaCardSizeChanges.collectAsState(initial = preferences[UserPreferences.mediaCardSize])
 	val mediaTypes = setOf(BaseItemKind.MOVIE, BaseItemKind.SERIES, BaseItemKind.SEASON, BaseItemKind.EPISODE,
-		BaseItemKind.AUDIO, BaseItemKind.MUSIC_ALBUM, BaseItemKind.MUSIC_VIDEO, BaseItemKind.BOOK, BaseItemKind.AUDIO_BOOK)
-	val scale = if (item.baseItem?.type in mediaTypes) cardSize.scale else 1f
-	val baseSize = when (item.staticHeight) {
+		BaseItemKind.AUDIO, BaseItemKind.MUSIC_ALBUM, BaseItemKind.MUSIC_VIDEO, BaseItemKind.BOOK, BaseItemKind.AUDIO_BOOK,
+		BaseItemKind.USER_VIEW, BaseItemKind.COLLECTION_FOLDER)
+	val scale = if (homeRow || item.baseItem?.type in mediaTypes) cardSize.scale else 1f
+	val baseSize = if (homeRow) DpSize(150.dp * aspectRatio, 150.dp) else when (item.staticHeight) {
 		true -> DpSize(staticHeight.dp * aspectRatio, staticHeight.dp)
 		false if (aspectRatio > 1f) -> DpSize(130.dp * aspectRatio, 130.dp)
 		else -> DpSize(150.dp * aspectRatio, 150.dp)
@@ -415,7 +423,7 @@ private fun CardViewHolderContent(
 					)
 				}
 			},
-			subtitle = subtitle?.let { text ->
+			subtitle = (subtitle ?: if (homeRow) " " else null)?.let { text ->
 				{
 					Text(
 						text = text,

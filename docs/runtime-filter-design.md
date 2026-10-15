@@ -128,6 +128,16 @@ measurement, a memory profile, or a guarantee of performance on larger libraries
 
 Seven scanner regression tests pass, including a 100,000-item synthetic dataset,
 strict runtime boundaries, later-page matches, cancellation, changing/duplicate
-results and work-budget failures. The debug prototype does not apply or persist
-filters. Runtime Cancel still needs explicit user confirmation, and the full
-result-grid/pagination integration remains to be implemented and validated.
+results and work-budget failures.
+
+## Integrated validation (2026-10-15)
+
+The prototype has been replaced by staged runtime filters with Apply, complete
+metadata scanning, bounded ordered result pages, retry/cancel handling and saved
+filter preferences. The user verified 889 under-90-minute results, paging beyond
+the first page, Crime combined with runtime (76 results), A + Crime + runtime
+(6 results), Cancel preserving results and returning to filters, Reset restoring
+all 5,033 movies, and persistence after reopening. A lifecycle timing bug on
+reopening was fixed and manually retested. The 21 scanner, result-page, combined
+filter and alphabet tests pass. Network-failure recovery of the integrated dialog
+has not yet been manually verified.

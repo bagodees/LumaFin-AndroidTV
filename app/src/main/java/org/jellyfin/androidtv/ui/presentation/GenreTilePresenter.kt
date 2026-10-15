@@ -4,23 +4,28 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageView
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
+import org.jellyfin.androidtv.preference.UserPreferences
+import org.jellyfin.androidtv.ui.composable.item.ItemPreview
+import org.koin.compose.koinInject
 import androidx.leanback.widget.Presenter
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.jellyfin.androidtv.ui.base.Text
@@ -29,12 +34,9 @@ import org.jellyfin.androidtv.ui.home.GenreTile
 import org.jellyfin.design.Tokens
 
 /**
- * Renders a [GenreTile] as a 2x2 collage of the genre's top items with a caption below,
- * matching the LumaFin-Tizen genre tile design.
+ * A landscape genre card with readable text over its randomly selected artwork.
  */
-class GenreTilePresenter @JvmOverloads constructor(
-	private val width: Int = 210,
-) : Presenter() {
+class GenreTilePresenter : Presenter() {
 	private class ComposeViewWrapper(composeView: ComposeView) : FrameLayout(composeView.context) {
 		init {
 			isFocusable = true
@@ -56,57 +58,34 @@ class GenreTilePresenter @JvmOverloads constructor(
 		private val focused = MutableStateFlow(false)
 
 		init {
-			composeView.onFocusChangeListener = { _, hasFocus -> focused.value = hasFocus }
+			view.onFocusChangeListener = { _, hasFocus -> focused.value = hasFocus }
 		}
 
 		fun bind(value: GenreTile) = composeView.setContent {
+			val preferences = koinInject<UserPreferences>()
+			val cardSize by preferences.mediaCardSizeChanges.collectAsState(initial = preferences[UserPreferences.mediaCardSize])
+			val cardWidth = 150.dp * (16f / 9f) * cardSize.scale
 			val isFocused by focused.collectAsState()
-			val borderModifier = if (isFocused) {
-				Modifier.border(3.dp, Tokens.Color.colorRed500, RoundedCornerShape(8.dp))
-			} else {
-				Modifier
-			}
 
-			Column(modifier = Modifier.width(width.dp)) {
+			ItemPreview(card = {
 				Box(
 					modifier = Modifier
-						.fillMaxWidth()
-						.aspectRatio(1f)
+						.width(cardWidth)
+						.aspectRatio(16f / 9f)
 						.clip(RoundedCornerShape(8.dp))
 						.background(Tokens.Color.colorGrey800)
-						.then(borderModifier)
+						.graphicsLayer(alpha = if (isFocused) 1f else 0.7f)
 				) {
-					Column(modifier = Modifier.fillMaxSize()) {
-						Row(modifier = Modifier.weight(1f).fillMaxWidth()) {
-							GenreTileCell(value.imageUrls.getOrNull(0), Modifier.weight(1f).fillMaxSize())
-							GenreTileCell(value.imageUrls.getOrNull(1), Modifier.weight(1f).fillMaxSize())
-						}
-						Row(modifier = Modifier.weight(1f).fillMaxWidth()) {
-							GenreTileCell(value.imageUrls.getOrNull(2), Modifier.weight(1f).fillMaxSize())
-							GenreTileCell(value.imageUrls.getOrNull(3), Modifier.weight(1f).fillMaxSize())
-						}
-					}
+					AsyncImage(url = value.imageUrl, scaleType = ImageView.ScaleType.CENTER_CROP,
+						modifier = Modifier.fillMaxSize())
+					Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(
+						Color.Transparent, Color.Black.copy(alpha = 0.15f), Color.Black.copy(alpha = 0.9f)))))
+					Text(value.name, color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.SemiBold,
+						maxLines = 1, overflow = TextOverflow.Ellipsis,
+						modifier = Modifier.align(Alignment.BottomStart).padding(12.dp))
 				}
 
-				Text(
-					text = value.name,
-					color = Tokens.Color.colorGrey25,
-					modifier = Modifier.padding(top = 8.dp)
-				)
-			}
-		}
-	}
-
-	@Composable
-	private fun GenreTileCell(url: String?, modifier: Modifier) {
-		if (url != null) {
-			AsyncImage(
-				modifier = modifier,
-				url = url,
-				scaleType = ImageView.ScaleType.CENTER_CROP,
-			)
-		} else {
-			Box(modifier = modifier.background(Tokens.Color.colorGrey700))
+			}, title = { Text(" ") }, subtitle = { Text(" ") })
 		}
 	}
 

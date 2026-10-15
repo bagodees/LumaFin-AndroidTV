@@ -28,7 +28,7 @@ class HomeShortcutRowItem(item: BaseItemDto, val available: Boolean, val watchLa
 class HomeFragmentShortcutsRow(private val items: List<HomeShortcutRowItem>, private val title: Int = R.string.home_shortcuts) : HomeFragmentRow {
 	override suspend fun addToRowsAdapter(context: Context, cardPresenter: CardPresenter, rowsAdapter: MutableObjectAdapter<Row>) {
 		if (items.isEmpty()) return
-		val adapter = MutableObjectAdapter<BaseRowItem>(CardPresenter(true, 100))
+		val adapter = MutableObjectAdapter<BaseRowItem>(cardPresenter)
 		items.forEach(adapter::add)
 		rowsAdapter.add(ListRow(HeaderItem(context.getString(title)), adapter))
 	}

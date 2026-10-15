@@ -256,7 +256,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 				if (shortcutScope != shortcutPreferences.scope) return@withContext
 				@Suppress("UNCHECKED_CAST")
 				val rowsAdapter = adapter as MutableObjectAdapter<Row>
-				val cardPresenter = CardPresenter()
+				val cardPresenter = CardPresenter.homeRows()
 
 				// Clear any rows from a previous load (e.g. rebuilding after a home section preference change)
 				rowsAdapter.clear()

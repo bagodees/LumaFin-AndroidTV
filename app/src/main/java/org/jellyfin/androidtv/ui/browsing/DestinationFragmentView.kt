@@ -8,6 +8,8 @@ import android.os.Bundle
 import android.os.Parcel
 import android.os.Parcelable
 import android.util.AttributeSet
+import android.view.View
+import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.core.os.BundleCompat
 import androidx.core.os.ParcelCompat
@@ -20,6 +22,7 @@ import org.jellyfin.androidtv.ui.navigation.NavigationAction
 import org.jellyfin.androidtv.util.createBundle
 import timber.log.Timber
 import java.util.Stack
+import java.util.WeakHashMap
 
 private class HistoryEntry(
 	val name: Class<out Fragment>,
@@ -71,6 +74,7 @@ class DestinationFragmentView @JvmOverloads constructor(
 	}
 
 	private val history = Stack<HistoryEntry>()
+	private val outgoingFocus = WeakHashMap<View, Pair<Int?, Boolean>>()
 
 	fun navigate(action: NavigationAction.NavigateFragment) {
 		val entry = HistoryEntry(action.destination.fragment.java, action.destination.arguments)
@@ -131,6 +135,15 @@ class DestinationFragmentView @JvmOverloads constructor(
 		entry: HistoryEntry,
 		transaction: FragmentTransaction,
 	) {
+		// Fragment exit animations keep the old view attached after its composition
+		// has been disposed. It must not receive another D-pad focus search while
+		// the incoming screen is being created.
+		fragmentManager.findFragmentByTag(FRAGMENT_TAG_CONTENT)?.view?.let { outgoing ->
+			outgoingFocus.putIfAbsent(outgoing, (outgoing as? ViewGroup)?.descendantFocusability to outgoing.isFocusable)
+			(outgoing as? ViewGroup)?.descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
+			outgoing.isFocusable = false
+			outgoing.clearFocus()
+		}
 		if (entry.name != org.jellyfin.androidtv.ui.playback.CustomPlaybackOverlayFragment::class.java &&
 			entry.name != org.jellyfin.androidtv.ui.playback.nextup.NextUpFragment::class.java &&
 			entry.name != org.jellyfin.androidtv.ui.playback.stillwatching.StillWatchingFragment::class.java) {
@@ -163,6 +176,18 @@ class DestinationFragmentView @JvmOverloads constructor(
 			// Attach or add next fragment
 			if (fragment.isDetached) attach(fragment)
 			else replace(container.id, fragment, FRAGMENT_TAG_CONTENT)
+
+			// A retained fragment can reuse its view. Restore the focus policy that
+			// was temporarily blocked during its exit animation.
+			runOnCommit {
+				fragment.view?.let { incoming ->
+					outgoingFocus.remove(incoming)?.let { (descendants, focusable) ->
+						if (incoming is ViewGroup && descendants != null) incoming.descendantFocusability = descendants
+						incoming.isFocusable = focusable
+						incoming.requestFocus()
+					}
+				}
+			}
 		}
 
 		if (fragmentManager.isDestroyed) {

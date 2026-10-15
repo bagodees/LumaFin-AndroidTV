@@ -6,6 +6,7 @@ import androidx.leanback.widget.HeaderItem
 import androidx.leanback.widget.ListRow
 import androidx.leanback.widget.Row
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -20,13 +21,14 @@ import org.jellyfin.sdk.api.client.extensions.genresApi
 import org.jellyfin.sdk.api.client.extensions.itemsApi
 import org.jellyfin.sdk.model.api.BaseItemKind
 import org.jellyfin.sdk.model.api.ItemSortBy
-import org.jellyfin.sdk.model.api.SortOrder
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import java.util.UUID
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 
 /**
- * Adds a single "Genres" row containing one collage tile per genre (a 2x2 grid of that
- * genre's top-rated movies) for every genre present in the user's movie libraries.
+ * Adds one random landscape image per genre, stable for this Home row's lifetime.
  * Selecting a tile opens a full grid of that genre.
  */
 class HomeFragmentGenreRow(
@@ -41,31 +43,35 @@ class HomeFragmentGenreRow(
 					includeItemTypes = setOf(BaseItemKind.MOVIE),
 					sortBy = setOf(ItemSortBy.SORT_NAME),
 				).content.items
-			}.getOrDefault(emptyList())
+			}.onFailure { if (it is CancellationException) throw it }.getOrDefault(emptyList())
 				.mapNotNull { it.name }
 
-			coroutineScope {
+			val requests = Semaphore(4)
+			val candidates = coroutineScope {
 				genres.map { genre ->
-					async {
+					async { requests.withPermit {
 						val items = runCatching {
 							api.itemsApi.getItems(
 								includeItemTypes = setOf(BaseItemKind.MOVIE),
 								genres = setOf(genre),
 								recursive = true,
-								sortBy = setOf(ItemSortBy.COMMUNITY_RATING),
-								sortOrder = setOf(SortOrder.DESCENDING),
+								sortBy = setOf(ItemSortBy.RANDOM),
 								imageTypeLimit = 1,
-								limit = TILE_IMAGE_COUNT,
+								limit = 8,
 							).content.items
-						}.getOrDefault(emptyList())
+						}.onFailure { if (it is CancellationException) throw it }.getOrDefault(emptyList())
 
-						val imageUrls = items.mapNotNull { item ->
-							imageHelper.getPrimaryImageUrl(item, width = TILE_IMAGE_SIZE, height = TILE_IMAGE_SIZE)
+						genre to items.mapNotNull { item ->
+							imageHelper.getLandscapeImageUrl(item, fillWidth = 640, fillHeight = 360)?.let { item.id to it }
 						}
-
-						if (imageUrls.isEmpty()) null else GenreTile(genre, imageUrls)
-					}
-				}.awaitAll().filterNotNull()
+					} }
+				}.awaitAll()
+			}
+			val used = mutableSetOf<UUID>()
+			candidates.map { (genre, images) ->
+				val selected = images.firstOrNull { it.first !in used } ?: images.firstOrNull()
+				selected?.first?.let(used::add)
+				GenreTile(genre, selected?.second)
 			}
 		}
 
@@ -78,8 +84,4 @@ class HomeFragmentGenreRow(
 		rowsAdapter.add(row)
 	}
 
-	companion object {
-		private const val TILE_IMAGE_COUNT = 4
-		private const val TILE_IMAGE_SIZE = 300
-	}
 }

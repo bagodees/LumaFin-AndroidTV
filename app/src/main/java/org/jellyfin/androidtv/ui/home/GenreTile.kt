@@ -1,9 +1,9 @@
 package org.jellyfin.androidtv.ui.home
 
 /**
- * A single "genre" tile shown in the Genres home row: a collage of a genre's top movie images.
+ * Artwork is chosen once when the Home row loads, never during focus or recomposition.
  */
 data class GenreTile(
 	val name: String,
-	val imageUrls: List<String>,
+	val imageUrl: String?,
 )

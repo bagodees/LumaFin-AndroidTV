@@ -78,6 +78,7 @@ public class ItemRowAdapter extends MutableObjectAdapter<Object> {
     private SortOrder sortOrder;
     private FilterOptions mFilters;
     private GetItemsRequest mFilterBaseRequest;
+    private RuntimeFilterController runtimeController;
 
     private EmptyResponse mRetrieveFinishedListener;
 
@@ -131,6 +132,22 @@ public class ItemRowAdapter extends MutableObjectAdapter<Object> {
     }
 
     public GetItemsRequest getItemsRequest() { return mQuery; }
+    public int getRuntimePageSize() { return chunkSize > 0 ? chunkSize : 40; }
+    public GetItemsRequest getFilterBaseRequest() { return mFilterBaseRequest; }
+    public RuntimeFilterController getRuntimeController() { return runtimeController; }
+    public void setRuntimeController(RuntimeFilterController controller) { runtimeController = controller; }
+    public void beginRuntimeRetrieve() { notifyRetrieveStarted(); }
+    public void restoreRuntimeState(GetItemsRequest query, FilterOptions options, List<Object> rows, int total, int loaded) {
+        mQuery = query;
+        mFilters = options;
+        if (query.getSortBy() != null && !query.getSortBy().isEmpty()) mSortBy = query.getSortBy().iterator().next();
+        if (query.getSortOrder() != null && !query.getSortOrder().isEmpty()) sortOrder = query.getSortOrder().iterator().next();
+        totalItems = total;
+        clear();
+        for (Object row : rows) add(row);
+        setItemsLoaded(loaded);
+    }
+
     public GetArtistsRequest getArtistsRequest() { return mArtistsQuery; }
     public GetAlbumArtistsRequest getAlbumArtistsRequest() { return mAlbumArtistsQuery; }
 

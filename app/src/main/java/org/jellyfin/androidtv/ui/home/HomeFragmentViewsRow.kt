@@ -14,8 +14,8 @@ class HomeFragmentViewsRow(
 	val small: Boolean,
 ) : HomeFragmentRow {
 	override suspend fun addToRowsAdapter(context: Context, cardPresenter: CardPresenter, rowsAdapter: MutableObjectAdapter<Row>) {
-		// Fresh presenters keep recycled Compose cards tied to this Home view lifecycle.
-		val presenter = CardPresenter(true, if (small) 75 else 126)
+		// Normal libraries use the same presenter as Continue Watching and other Home rows.
+		val presenter = cardPresenter
 		val rowAdapter = ItemRowAdapter(context, GetUserViewsRequest, presenter, rowsAdapter)
 
 		val header = HeaderItem(context.getString(R.string.home_section_library))
