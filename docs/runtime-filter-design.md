@@ -2,9 +2,10 @@
 
 Tracking: [#20](https://github.com/bagodees/LumaFin-AndroidTV/issues/20).
 
-Status: implementation design with a debug-only metadata-check prototype. The
-prototype has a real-library timing result; the production result-grid filter
-is not implemented. Existing combined filters remain available.
+Status: implemented and validated. Runtime filtering is integrated into the movie
+filter dialog, with complete metadata scans, staged Apply, bounded result pages,
+saved selections and Retry/Cancel handling. Validation and test limits are
+recorded below; the early prototype measurement is retained as historical evidence.
 
 ## User experience
 
@@ -140,4 +141,21 @@ the first page, Crime combined with runtime (76 results), A + Crime + runtime
 all 5,033 movies, and persistence after reopening. A lifecycle timing bug on
 reopening was fixed and manually retested. The 21 scanner, result-page, combined
 filter and alphabet tests pass. Network-failure recovery of the integrated dialog
-has not yet been manually verified.
+was subsequently tested as described below.
+
+## Network timeout and Retry validation (2026-10-15)
+
+Recorded Crime + Under 90 minutes at 76 results (687 metadata candidates).
+Used emulator network shaping at 1 bit/s to stall the connection, then reopened
+the Movies library with those saved filters. The runtime check displayed an
+explicit failure with Cancel and Retry, rather than publishing zero matches.
+Restored unrestricted network shaping and selected Retry. The scan completed
+and the grid returned with the same Crime + Under 90 minutes filters, ascending
+name order and 76 results. No code fix was needed for this path.
+
+The initial mobile-data toggle did not interrupt this Ethernet-based TV emulator
+and is not counted as a failure test. Root access was rejected by automatic
+approval review; no privilege change was made. The successful test exercises a
+stalled-connection timeout and recovery on saved-filter retrieval, not a physical
+Ethernet disconnection midway through applying different staged filters.
+Emulator network speed/delay were restored and verified as unrestricted/zero.
