@@ -55,6 +55,7 @@ class ServerFragment : Fragment() {
 	private val authenticationRepository: AuthenticationRepository by inject()
 	private val serverUserRepository: ServerUserRepository by inject()
 	private val backgroundService: BackgroundService by inject()
+	private val sessionRepository: org.jellyfin.androidtv.auth.repository.SessionRepository by inject()
 	private var _binding: FragmentServerBinding? = null
 	private val binding get() = _binding!!
 
@@ -71,7 +72,12 @@ class ServerFragment : Fragment() {
 		_binding = FragmentServerBinding.inflate(inflater, container, false)
 
 		val userAdapter = UserAdapter(requireContext(), server, startupViewModel, authenticationRepository, serverUserRepository)
-		userAdapter.onItemPressed = { user ->
+		userAdapter.onItemPressed = selection@ { user ->
+			if (activity is org.jellyfin.androidtv.ui.startup.AccountSelectionActivity &&
+				sessionRepository.currentSession.value?.let { it.serverId == server.id && it.userId == user.id } == true) {
+				requireActivity().finish()
+				return@selection
+			}
 			startupViewModel.authenticate(server, user).onEach { state ->
 				when (state) {
 					// Ignored states

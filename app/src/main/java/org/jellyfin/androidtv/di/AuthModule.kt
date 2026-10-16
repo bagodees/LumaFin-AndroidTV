@@ -11,6 +11,8 @@ import org.jellyfin.androidtv.auth.repository.SessionRepositoryImpl
 import org.jellyfin.androidtv.auth.store.AuthenticationPreferences
 import org.jellyfin.androidtv.auth.store.AuthenticationStore
 import org.koin.dsl.module
+import org.jellyfin.sdk.Jellyfin
+import org.jellyfin.sdk.api.client.extensions.userApi
 
 val authModule = module {
 	single { AuthenticationStore(get()) }
@@ -22,8 +24,14 @@ val authModule = module {
 	single<ServerRepository> { ServerRepositoryImpl(get(), get()) }
 	single<ServerUserRepository> { ServerUserRepositoryImpl(get(), get()) }
 	single<SessionRepository> {
+		val jellyfin = get<Jellyfin>()
 		SessionRepositoryImpl(get(), get(), get(), get(), get(defaultDeviceInfo), get(), get(), get(), get(), get(),
-			{ get<org.jellyfin.androidtv.ui.playback.MediaManager>().clearAudioQueue() })
+			{ get<org.jellyfin.androidtv.ui.playback.MediaManager>().clearAudioQueue() },
+			{ server, session, device ->
+				val api = jellyfin.createApi(server.address, deviceInfo = device)
+				api.update(accessToken = session.accessToken)
+				api.userApi.getCurrentUser().content
+			})
 	}
 
 	factory {

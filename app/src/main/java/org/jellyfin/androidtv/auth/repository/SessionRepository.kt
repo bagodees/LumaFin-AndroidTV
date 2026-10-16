@@ -22,8 +22,8 @@ import org.jellyfin.androidtv.util.sdk.forUser
 import org.jellyfin.sdk.api.client.ApiClient
 import org.jellyfin.sdk.api.client.exception.ApiClientException
 import org.jellyfin.sdk.api.client.extensions.clientLogApi
-import org.jellyfin.sdk.api.client.extensions.userApi
 import org.jellyfin.sdk.model.DeviceInfo
+import org.jellyfin.sdk.model.api.UserDto
 import org.jellyfin.sdk.model.serializer.toUUIDOrNull
 import timber.log.Timber
 import java.util.UUID
@@ -61,6 +61,7 @@ class SessionRepositoryImpl(
 	private val accountPreferences: AccountPreferences,
 	private val videoQueue: VideoQueueManager,
 	private val clearAudioQueue: () -> Unit,
+	private val validateSession: suspend (Server, Session, DeviceInfo) -> UserDto,
 ) : SessionRepository {
 	private val currentSessionMutex = Mutex()
 	private val _currentSession = MutableStateFlow<Session?>(null)
@@ -92,11 +93,11 @@ class SessionRepositoryImpl(
 		}
 	}
 
-	override suspend fun switchCurrentSession(serverId: UUID, userId: UUID): Boolean {
+	override suspend fun switchCurrentSession(serverId: UUID, userId: UUID): Boolean = currentSessionMutex.withLock {
 		// No change in user - don't switch
 		if (currentSession.value?.let { it.userId == userId && it.serverId == serverId } == true) {
 			Timber.d("Current session user is the same as the requested user")
-			return false
+			return@withLock false
 		}
 
 		_state.value = SessionRepositoryState.SWITCHING_SESSION
@@ -106,12 +107,14 @@ class SessionRepositoryImpl(
 		if (session == null) {
 			Timber.w("Could not switch to non-existing session for user $userId")
 			_state.value = SessionRepositoryState.READY
-			return false
+			return@withLock false
 		}
 
-		val switched = setCurrentSession(session)
-		_state.value = SessionRepositoryState.READY
-		return switched
+		try {
+			setCurrentSession(session)
+		} finally {
+			_state.value = SessionRepositoryState.READY
+		}
 	}
 
 	override fun destroyCurrentSession() {
@@ -132,10 +135,6 @@ class SessionRepositoryImpl(
 			// No change in session - don't switch
 			if (currentSession.value?.let { it.userId == session.userId && it.serverId == session.serverId } == true) return true
 
-			// Update last active user
-			authenticationPreferences[AuthenticationPreferences.lastServerId] = session.serverId.toString()
-			authenticationPreferences[AuthenticationPreferences.lastUserId] = session.userId.toString()
-
 			// Check if server version is supported
 			server = serverRepository.getServer(session.serverId, true)
 			if (server == null || !server.versionSupported) return false
@@ -143,39 +142,50 @@ class SessionRepositoryImpl(
 
 		// Update session after binding the apiclient settings
 		val deviceInfo = session?.let { defaultDeviceInfo.forUser(it.userId) } ?: defaultDeviceInfo
+		// Validate on an isolated client. Failed authentication must leave the active
+		// account, its queues, API client and preferences untouched.
+		val user = try {
+			if (session != null && server != null) withContext(Dispatchers.IO) {
+				validateSession(server, session, deviceInfo)
+			} else null
+		} catch (err: ApiClientException) {
+			Timber.w(err, "Could not validate requested session")
+			return false
+		}
+		if (session != null && user?.id != session.userId) return false
 		Timber.i("Updating current session. userId=${session?.userId} server=${server?.serverVersion}")
 
-		clearSessionState()
-		accountPreferences.select(null, null)
-		userRepository.setCurrentUser(null)
-		serverRepository.setCurrentServer(null)
-		val applied = userApiClient.applySession(session, deviceInfo)
-		if (applied && session != null) {
-			try {
-				val user = withContext(Dispatchers.IO) {
-					userApiClient.userApi.getCurrentUser().content
-				}
+		return withContext(NonCancellable) {
+			clearSessionState()
+			accountPreferences.select(null, null)
+			userRepository.setCurrentUser(null)
+			serverRepository.setCurrentServer(null)
+			userApiClient.update(baseUrl = server?.address, accessToken = session?.accessToken, deviceInfo = deviceInfo)
+			if (session != null) {
+				authenticationPreferences[AuthenticationPreferences.lastServerId] = session.serverId.toString()
+				authenticationPreferences[AuthenticationPreferences.lastUserId] = session.userId.toString()
 				accountPreferences.select(session.serverId, session.userId)
 				serverRepository.setCurrentServer(server)
 				userRepository.setCurrentUser(user)
+
+				// Update crash reporting URL
+				val crashReportUrl = userApiClient.clientLogApi.logFileUrl()
+				telemetryPreferences[TelemetryPreferences.crashReportUrl] = crashReportUrl
+				telemetryPreferences[TelemetryPreferences.crashReportToken] = session.accessToken
+			} else {
+				userRepository.setCurrentUser(null)
+				serverRepository.setCurrentServer(null)
+			}
+			_currentSession.value = session
+			// Display preferences are optional; a failed refresh cannot undo a validated login.
+			try {
+				preferencesRepository.onSessionChanged()
 			} catch (err: ApiClientException) {
-				Timber.e(err, "Unable to authenticate: bad response when getting user info")
-				destroyCurrentSession()
-				return false
+				Timber.w(err, "Unable to refresh display preferences after switching user")
 			}
 
-			// Update crash reporting URL
-			val crashReportUrl = userApiClient.clientLogApi.logFileUrl()
-			telemetryPreferences[TelemetryPreferences.crashReportUrl] = crashReportUrl
-			telemetryPreferences[TelemetryPreferences.crashReportToken] = session.accessToken
-		} else {
-			userRepository.setCurrentUser(null)
-			serverRepository.setCurrentServer(null)
+			true
 		}
-		preferencesRepository.onSessionChanged()
-		_currentSession.value = session
-
-		return true
 	}
 
 	private fun clearSessionState() {
@@ -203,24 +213,4 @@ class SessionRepositoryImpl(
 		)
 	}
 
-	private fun ApiClient.applySession(session: Session?, newDeviceInfo: DeviceInfo = defaultDeviceInfo): Boolean {
-		if (session == null) {
-			update(
-				baseUrl = null,
-				accessToken = null,
-				deviceInfo = newDeviceInfo,
-			)
-		} else {
-			val server = authenticationStore.getServer(session.serverId)
-				?: return false
-
-			update(
-				baseUrl = server.address,
-				accessToken = session.accessToken,
-				deviceInfo = newDeviceInfo,
-			)
-		}
-
-		return true
-	}
 }

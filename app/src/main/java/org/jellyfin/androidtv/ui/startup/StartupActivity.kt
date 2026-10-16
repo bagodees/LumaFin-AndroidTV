@@ -53,11 +53,14 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 import timber.log.Timber
 import java.util.UUID
 
-class StartupActivity : FragmentActivity() {
+open class StartupActivity : FragmentActivity() {
+	protected open val retainCurrentAccount = false
+	private var retainedSession: org.jellyfin.androidtv.auth.repository.Session? = null
 	companion object {
 		const val EXTRA_ITEM_ID = "ItemId"
 		const val EXTRA_ITEM_IS_USER_VIEW = "ItemIsUserView"
 		const val EXTRA_HIDE_SPLASH = "HideSplash"
+		const val EXTRA_SELECT_SERVER = "SelectServer"
 	}
 
 	private val startupViewModel: StartupViewModel by viewModel()
@@ -90,6 +93,7 @@ class StartupActivity : FragmentActivity() {
 		applyTheme()
 
 		super.onCreate(savedInstanceState)
+		retainedSession = sessionRepository.currentSession.value
 
 		binding = ActivityStartupBinding.inflate(layoutInflater)
 		binding.background.setContent { AppBackground() }
@@ -114,6 +118,15 @@ class StartupActivity : FragmentActivity() {
 		.map { sessionRepository.currentSession.value }
 		.distinctUntilChanged()
 		.onEach { session ->
+			if (retainCurrentAccount && session == retainedSession) {
+				// Browsing accounts is reversible. Do not end the active session or
+				// redirect home until a different account has actually authenticated.
+				if (supportFragmentManager.findFragmentById(R.id.content_view) == null) {
+					val server = if (intent.getBooleanExtra(EXTRA_SELECT_SERVER, false)) null else startupViewModel.getLastServer()
+					if (server != null) showServer(server.id) else showServerSelection()
+				}
+				return@onEach
+			}
 			if (session != null) {
 				Timber.i("Found a session in the session repository, waiting for the currentUser in the application class.")
 
@@ -129,7 +142,7 @@ class StartupActivity : FragmentActivity() {
 				// Clear audio queue in case left over from last run
 				mediaManager.clearAudioQueue()
 
-				val server = startupViewModel.getLastServer()
+				val server = if (intent.getBooleanExtra(EXTRA_SELECT_SERVER, false)) null else startupViewModel.getLastServer()
 				if (server != null) showServer(server.id)
 				else showServerSelection()
 			}
@@ -184,6 +197,7 @@ class StartupActivity : FragmentActivity() {
 		val intent = Intent(this, MainActivity::class.java)
 		// Clear navigation history
 		intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_TASK_ON_HOME)
+		if (retainCurrentAccount) intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
 		Timber.i("Opening next activity $intent")
 		startActivity(intent)
 		finishAfterTransition()

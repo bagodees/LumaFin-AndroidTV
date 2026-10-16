@@ -124,6 +124,10 @@
 
         <!-- Main application -->
         <activity
+            android:name=".ui.startup.AccountSelectionActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustNothing" />
+        <activity
             android:name=".ui.browsing.MainActivity"
             android:configChanges="density|screenSize|smallestScreenSize|screenLayout|orientation|keyboard|keyboardHidden|navigation|uiMode"
             android:launchMode="singleTask"
