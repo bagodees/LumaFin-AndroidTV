@@ -3,6 +3,7 @@ package org.jellyfin.androidtv.ui.startup
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -32,6 +33,8 @@ class StartupViewModel(
 
 	private val _users = MutableStateFlow<List<User>>(emptyList())
 	val users = _users.asStateFlow()
+	private var usersJob: Job? = null
+	private var usersGeneration = 0
 
 	private val userComparator = compareByDescending<User> { user ->
 		if (
@@ -47,13 +50,16 @@ class StartupViewModel(
 		.find { it.id == id }
 
 	fun loadUsers(server: Server) {
-		viewModelScope.launch {
+		val generation = ++usersGeneration
+		usersJob?.cancel()
+		usersJob = viewModelScope.launch {
 			val storedUsers = serverUserRepository.getStoredServerUsers(server)
 			_users.value = storedUsers.sortedWith(userComparator)
 
 			val storedUserIds = storedUsers.map { it.id }
 			val publicUsers = serverUserRepository.getPublicServerUsers(server)
 				.filterNot { it.id in storedUserIds }
+			if (generation != usersGeneration) return@launch
 			_users.value = (storedUsers + publicUsers).sortedWith(userComparator)
 		}
 	}
@@ -85,8 +91,9 @@ class StartupViewModel(
 		viewModelScope.launch { serverRepository.loadStoredServers() }
 	}
 
-	suspend fun getLastServer(): Server? {
+	suspend fun getLastServer(preferredServerId: UUID? = null): Server? {
 		serverRepository.loadStoredServers()
+		if (preferredServerId != null) getServer(preferredServerId)?.let { return it }
 		return serverRepository.storedServers.value.maxByOrNull { it.dateLastAccessed }
 	}
 

@@ -55,7 +55,10 @@ class UserLoginFragment : Fragment() {
 	): View {
 		_binding = FragmentUserLoginBinding.inflate(inflater, container, false)
 
-		binding.cancel.setOnClickListener { parentFragmentManager.popBackStack() }
+		binding.cancel.setOnClickListener {
+			if (parentFragmentManager.backStackEntryCount > 0) parentFragmentManager.popBackStack()
+			else requireActivity().finish()
+		}
 		binding.useCredentials.setOnClickListener { setLoginMethod<UserLoginCredentialsFragment>() }
 		binding.useQuickconnect.setOnClickListener { setLoginMethod<UserLoginQuickConnectFragment>() }
 
@@ -92,6 +95,7 @@ class UserLoginFragment : Fragment() {
 	}
 
 	override fun onDestroyView() {
+		userLoginViewModel.clearLoginState()
 		super.onDestroyView()
 
 		_binding = null

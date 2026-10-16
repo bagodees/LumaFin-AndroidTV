@@ -18,6 +18,8 @@ import org.jellyfin.androidtv.auth.model.AuthenticatedState
 import org.jellyfin.androidtv.auth.model.AuthenticatingState
 import org.jellyfin.androidtv.auth.model.RequireSignInState
 import org.jellyfin.androidtv.auth.model.ServerUnavailableState
+import org.jellyfin.androidtv.auth.model.ConnectionFailure
+import org.jellyfin.androidtv.auth.model.classifyConnectionFailure
 import org.jellyfin.androidtv.auth.model.ServerVersionNotSupported
 import org.jellyfin.androidtv.auth.repository.ServerRepository
 import org.jellyfin.androidtv.databinding.FragmentUserLoginCredentialsBinding
@@ -76,6 +78,7 @@ class UserLoginCredentialsFragment : Fragment() {
 		lifecycleScope.launch {
 			viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
 				userLoginViewModel.loginState.onEach { state ->
+					binding.confirm.isEnabled = state != AuthenticatingState
 					when (state) {
 						is ServerVersionNotSupported -> binding.error.setText(
 							getString(
@@ -88,7 +91,14 @@ class UserLoginCredentialsFragment : Fragment() {
 						AuthenticatingState -> binding.error.setText(R.string.login_authenticating)
 						RequireSignInState -> binding.error.setText(R.string.login_invalid_credentials)
 						ServerUnavailableState,
-						is ApiClientErrorLoginState -> binding.error.setText(R.string.login_server_unavailable)
+						is ApiClientErrorLoginState -> {
+							val failure = if (state is ApiClientErrorLoginState) classifyConnectionFailure(state.error)
+								else ConnectionFailure.UNREACHABLE
+							binding.error.setText(failure.title)
+							showConnectionRecovery(failure, onRetry = { loginWithCredentials() },
+								onReviewSignIn = { binding.password.requestFocus() },
+								onSwitchServer = { userLoginViewModel.clearLoginState() })
+						}
 						// Do nothing because the activity will respond to the new session
 						AuthenticatedState -> Unit
 						// Not initialized
@@ -100,6 +110,7 @@ class UserLoginCredentialsFragment : Fragment() {
 	}
 
 	override fun onDestroyView() {
+		userLoginViewModel.cancelCredentialLogin()
 		super.onDestroyView()
 
 		_binding = null

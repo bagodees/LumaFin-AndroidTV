@@ -27,6 +27,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -52,6 +53,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.auth.model.PrivateUser
+import org.jellyfin.androidtv.auth.model.Server
+import org.jellyfin.androidtv.auth.model.User
+import org.jellyfin.androidtv.auth.model.ConnectionFailure
+import org.jellyfin.androidtv.auth.model.classifyConnectionFailure
 import org.jellyfin.androidtv.auth.repository.AuthenticationRepository
 import org.jellyfin.androidtv.auth.repository.ServerRepository
 import org.jellyfin.androidtv.auth.repository.ServerUserRepository
@@ -74,21 +79,37 @@ class QuickUserSwitchController(
 ) {
 	private val _result = MutableStateFlow(UserSwitchResult.IDLE)
 	val result = _result.asStateFlow()
+	private val _failure = MutableStateFlow<ConnectionFailure?>(null)
+	val failure = _failure.asStateFlow()
+	private var attemptedUser: PrivateUser? = null
+
+	suspend fun retry(): Boolean {
+		if (_failure.value?.retryable != true) return false
+		return attemptedUser?.let { switch(it) } ?: false
+	}
 
 	suspend fun switch(user: PrivateUser): Boolean {
 		if (_result.value == UserSwitchResult.SWITCHING || _result.value == UserSwitchResult.SWITCHED) return false
 		if (sessions.currentSession.value?.let { it.serverId == user.serverId && it.userId == user.id } == true) return false
+		attemptedUser = user
+		_failure.value = null
 		if (user.accessToken == null || authenticationPreferences[AuthenticationPreferences.alwaysAuthenticate]) {
+			_failure.value = ConnectionFailure.SIGN_IN
 			_result.value = UserSwitchResult.SIGN_IN_REQUIRED
 			return false
 		}
 		_result.value = UserSwitchResult.SWITCHING
 		try {
-			_result.value = if (sessions.switchCurrentSession(user.serverId, user.id)) UserSwitchResult.SWITCHED else UserSwitchResult.FAILED
+			if (sessions.switchCurrentSession(user.serverId, user.id)) _result.value = UserSwitchResult.SWITCHED
+			else {
+				_failure.value = classifyConnectionFailure(sessions.lastSwitchError)
+				_result.value = UserSwitchResult.FAILED
+			}
 		} catch (err: CancellationException) {
 			_result.value = UserSwitchResult.IDLE
 			throw err
-		} catch (_: Exception) {
+		} catch (err: Exception) {
+			_failure.value = classifyConnectionFailure(err)
 			_result.value = UserSwitchResult.FAILED
 		}
 		return _result.value == UserSwitchResult.SWITCHED
@@ -96,7 +117,18 @@ class QuickUserSwitchController(
 }
 
 @Composable
-fun QuickUserSwitcher(onDismissRequest: () -> Unit) {
+fun QuickUserSwitcher(
+	onDismissRequest: () -> Unit,
+	serverOverride: Server? = null,
+	usersOverride: List<User>? = null,
+	onSelectUser: ((User) -> Unit)? = null,
+	onAddUser: (() -> Unit)? = null,
+	onSelectServer: (() -> Unit)? = null,
+	onUserLongClick: ((User) -> Unit)? = null,
+	embedded: Boolean = false,
+	busyOverride: Boolean = false,
+	notice: String? = null,
+) {
 	val sessions = koinInject<SessionRepository>()
 	val servers = koinInject<ServerRepository>()
 	val users = koinInject<ServerUserRepository>()
@@ -106,20 +138,27 @@ fun QuickUserSwitcher(onDismissRequest: () -> Unit) {
 	val scope = rememberCoroutineScope()
 	val controller = remember { QuickUserSwitchController(sessions, preferences) }
 	val result by controller.result.collectAsState()
+	val failure by controller.failure.collectAsState()
 	// Snapshot the old account while it is still active; the new activity owns the next home.
-	val server = remember { servers.currentServer.value }
+	val server = serverOverride ?: remember { servers.currentServer.value }
 	val active = remember { sessions.currentSession.value }
-	val savedUsers = remember {
-		server?.let(users::getStoredServerUsers).orEmpty().sortedByDescending { it.id == active?.userId }
+	val savedUsers = usersOverride ?: remember(server) {
+		server?.let(users::getStoredServerUsers).orEmpty()
 	}
-	val busy = result == UserSwitchResult.SWITCHING || result == UserSwitchResult.SWITCHED
+	val orderedUsers = savedUsers.sortedByDescending { it.id == active?.userId && it.serverId == active.serverId }
+	val busy = busyOverride || result == UserSwitchResult.SWITCHING || result == UserSwitchResult.SWITCHED
 	val retryFocus = remember { FocusRequester() }
+	val initialFocus = remember { FocusRequester() }
+	LaunchedEffect(embedded, savedUsers.isEmpty()) {
+		if (embedded) { withFrameNanos { }; initialFocus.requestFocus() }
+	}
 	LaunchedEffect(result) {
 		if (result == UserSwitchResult.FAILED || result == UserSwitchResult.SIGN_IN_REQUIRED) retryFocus.requestFocus()
 	}
 	fun openStartup(signIn: Boolean, selectServer: Boolean = false) {
 		if (signIn) {
-			activity?.startActivity(ActivityDestinations.accountSelection(activity, selectServer))
+			activity?.startActivity(ActivityDestinations.accountSelection(activity, selectServer,
+				addUser = !selectServer, serverId = server?.id))
 			return
 		}
 		activity?.startActivity(ActivityDestinations.startup(activity, selectServer = selectServer))
@@ -127,7 +166,7 @@ fun QuickUserSwitcher(onDismissRequest: () -> Unit) {
 		// launch the next home, so no old view models or back stack can be reused.
 		activity?.finish()
 	}
-	DialogBase(visible = true, onDismissRequest = { if (!busy) onDismissRequest() }, scrimColor = Color(0xFF101419)) {
+	val content: @Composable () -> Unit = {
 		Column(
 			modifier = Modifier.fillMaxSize().background(Color(0xFF101419)).padding(vertical = 32.dp),
 			horizontalAlignment = Alignment.CenterHorizontally,
@@ -137,34 +176,48 @@ fun QuickUserSwitcher(onDismissRequest: () -> Unit) {
 			Spacer(Modifier.height(8.dp))
 			Text(server?.name.orEmpty(), fontSize = 14.sp, color = Color(0xFFADB5C0))
 			Spacer(Modifier.height(20.dp))
-			LazyRow(
+			if (failure == null) LazyRow(
 				modifier = Modifier.fillMaxWidth().focusRequester(retryFocus).focusGroup(),
 				contentPadding = PaddingValues(horizontal = 48.dp, vertical = 12.dp),
 				horizontalArrangement = Arrangement.spacedBy(28.dp, Alignment.CenterHorizontally),
 			) {
-				items(savedUsers.size, key = { savedUsers[it].id }) { index ->
-					val user = savedUsers[index]
-					val current = user.id == active?.userId
+				items(orderedUsers.size, key = { orderedUsers[it].id }) { index ->
+					val user = orderedUsers[index]
+					val current = user.id == active?.userId && user.serverId == active.serverId
 					UserProfileCard(
+						modifier = if (index == 0) Modifier.focusRequester(initialFocus) else Modifier,
 						name = user.name,
 						imageUrl = server?.let { authentication.getUserImageUrl(it, user) },
 						color = profileColors[Math.floorMod(user.id.hashCode(), profileColors.size)],
 						current = current,
 						enabled = !busy,
 						onClick = {
-							if (current) onDismissRequest()
-							else scope.launch { if (controller.switch(user)) openStartup(false) }
+							if (onSelectUser != null) onSelectUser(user)
+							else if (current) onDismissRequest()
+							else scope.launch { if (controller.switch(user as PrivateUser)) openStartup(false) }
 						},
+						onLongClick = onUserLongClick?.let { { it(user) } },
 					)
 				}
 				item(key = "other-users") {
 					UserProfileCard(name = stringResource(R.string.user_switch_other_users), imageUrl = null,
+						modifier = if (orderedUsers.isEmpty()) Modifier.focusRequester(initialFocus) else Modifier,
 						color = Color(0xFF28303B), current = false, enabled = !busy, otherUsers = true,
-						onClick = { openStartup(true) })
+						onClick = { if (onAddUser != null) onAddUser() else openStartup(true) })
 				}
 			}
+			else Column(
+				modifier = Modifier.fillMaxWidth().padding(horizontal = 100.dp, vertical = 20.dp),
+				horizontalAlignment = Alignment.CenterHorizontally,
+				verticalArrangement = Arrangement.spacedBy(12.dp),
+			) {
+				Text(stringResource(failure!!.title), color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.SemiBold)
+				Text(stringResource(failure!!.message), color = Color(0xFFBEC5CF), fontSize = 16.sp, textAlign = TextAlign.Center)
+				Text(stringResource(R.string.connection_account_preserved), color = Color(0xFFBEC5CF), fontSize = 14.sp)
+			}
 			Box(Modifier.height(54.dp).fillMaxWidth().padding(horizontal = 48.dp), contentAlignment = Alignment.Center) {
-				if (result != UserSwitchResult.IDLE) Text(
+				if (notice != null && !busy) Text(notice, color = Color(0xFFBEC5CF), fontSize = 13.sp, textAlign = TextAlign.Center)
+				else if (busy) Text(
 					stringResource(when (result) {
 						UserSwitchResult.SWITCHING, UserSwitchResult.SWITCHED -> R.string.user_switch_loading
 						UserSwitchResult.SIGN_IN_REQUIRED -> R.string.user_switch_sign_in_required
@@ -173,11 +226,25 @@ fun QuickUserSwitcher(onDismissRequest: () -> Unit) {
 				)
 			}
 			Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-				Button(onClick = { openStartup(true, selectServer = true) }, enabled = !busy) { Text(stringResource(R.string.user_switch_servers)) }
+				if (failure?.retryable == true) Button(onClick = {
+					scope.launch { if (controller.retry()) openStartup(false) }
+				}, modifier = Modifier.focusRequester(retryFocus), enabled = !busy) {
+					Text(stringResource(R.string.connection_retry))
+				}
+				if (failure == ConnectionFailure.SIGN_IN) Button(onClick = { openStartup(true) },
+					modifier = Modifier.focusRequester(retryFocus), enabled = !busy) {
+					Text(stringResource(R.string.connection_review_sign_in))
+				}
+				Button(onClick = { if (onSelectServer != null) onSelectServer() else openStartup(true, selectServer = true) },
+					modifier = if (failure != null && failure?.retryable == false && failure != ConnectionFailure.SIGN_IN)
+						Modifier.focusRequester(retryFocus) else Modifier,
+					enabled = !busy) { Text(stringResource(R.string.user_switch_servers)) }
 				Button(onClick = onDismissRequest, enabled = !busy) { Text(stringResource(android.R.string.cancel)) }
 			}
 		}
 	}
+	if (embedded) content() else DialogBase(visible = true, onDismissRequest = { if (!busy) onDismissRequest() },
+		scrimColor = Color(0xFF101419)) { content() }
 }
 
 private val profileColors = listOf(Color(0xFF2265A7), Color(0xFF7952A3), Color(0xFF257D78), Color(0xFFA65337), Color(0xFF9A6B1E))
@@ -185,11 +252,13 @@ private val profileColors = listOf(Color(0xFF2265A7), Color(0xFF7952A3), Color(0
 @Composable
 private fun UserProfileCard(
 	name: String,
+	modifier: Modifier = Modifier,
 	imageUrl: String?,
 	color: Color,
 	current: Boolean,
 	enabled: Boolean,
 	otherUsers: Boolean = false,
+	onLongClick: (() -> Unit)? = null,
 	onClick: () -> Unit,
 ) {
 	val interactions = remember { MutableInteractionSource() }
@@ -201,10 +270,10 @@ private fun UserProfileCard(
 	val currentLabel = stringResource(R.string.user_switch_current)
 	Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(136.dp)) {
 		ButtonBase(
-			onClick = onClick, enabled = enabled, interactionSource = interactions, shape = shape,
+			onClick = onClick, onLongClick = onLongClick, enabled = enabled, interactionSource = interactions, shape = shape,
 			colors = ButtonDefaults.colors(containerColor = color, focusedContainerColor = color, contentColor = Color.White,
 				focusedContentColor = Color.White, disabledContainerColor = color.copy(alpha = 0.5f)),
-			modifier = Modifier.size(128.dp).graphicsLayer { scaleX = scale; scaleY = scale }
+			modifier = modifier.size(128.dp).graphicsLayer { scaleX = scale; scaleY = scale }
 				.border(3.dp, if (focused) Color.White else Color.Transparent, shape)
 				.semantics { contentDescription = if (current) "$name, $currentLabel" else name },
 		) {

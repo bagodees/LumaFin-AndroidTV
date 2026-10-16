@@ -12,6 +12,7 @@ import org.jellyfin.androidtv.auth.model.Server
 import org.jellyfin.androidtv.auth.repository.ServerRepository
 import org.jellyfin.androidtv.auth.repository.SessionRepositoryImpl
 import org.jellyfin.androidtv.auth.repository.SessionRepositoryState
+import org.jellyfin.androidtv.auth.repository.SessionTarget
 import org.jellyfin.androidtv.auth.repository.UserRepositoryImpl
 import org.jellyfin.androidtv.auth.store.AuthenticationStore
 import org.jellyfin.androidtv.preference.AccountPreferences
@@ -53,6 +54,8 @@ class SessionSwitchTests : FunSpec({
 		clearMocks(accounts, video, display, api, answers = false)
 		fail = true
 		sessions.switchCurrentSession(server.id, second) shouldBe false
+		(sessions.lastSwitchError is TimeoutException) shouldBe true
+		sessions.lastSwitchTarget shouldBe SessionTarget(server.id, second)
 		sessions.state.value shouldBe SessionRepositoryState.READY
 		sessions.currentSession.value shouldBe originalSession
 		users.currentUser.value shouldBe originalUser
@@ -64,6 +67,8 @@ class SessionSwitchTests : FunSpec({
 		fail = false
 		coEvery { display.onSessionChanged() } throws TimeoutException()
 		sessions.switchCurrentSession(server.id, second) shouldBe true
+		sessions.lastSwitchError shouldBe null
+		sessions.lastSwitchTarget shouldBe null
 		sessions.currentSession.value?.userId shouldBe second
 		users.currentUser.value?.id shouldBe second
 		audioCleared shouldBe 1

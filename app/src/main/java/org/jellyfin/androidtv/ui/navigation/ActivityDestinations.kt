@@ -9,9 +9,12 @@ import org.jellyfin.androidtv.util.createBundle
 import kotlin.time.Duration
 
 object ActivityDestinations {
-	fun accountSelection(context: Context, selectServer: Boolean) = Intent(context, AccountSelectionActivity::class.java).apply {
+	fun accountSelection(context: Context, selectServer: Boolean, addUser: Boolean = false, serverId: java.util.UUID? = null) =
+		Intent(context, AccountSelectionActivity::class.java).apply {
 		putExtra(StartupActivity.EXTRA_HIDE_SPLASH, true)
 		putExtra(StartupActivity.EXTRA_SELECT_SERVER, selectServer)
+		putExtra(StartupActivity.EXTRA_ADD_USER, addUser)
+		putExtra(StartupActivity.EXTRA_SERVER_ID, serverId?.toString())
 	}
 	fun externalPlayer(context: Context, position: Duration = Duration.ZERO) = Intent(context, ExternalPlayerActivity::class.java).apply {
 		putExtras(

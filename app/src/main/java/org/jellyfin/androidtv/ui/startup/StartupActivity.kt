@@ -41,6 +41,7 @@ import org.jellyfin.androidtv.ui.navigation.NavigationRepository
 import org.jellyfin.androidtv.ui.playback.MediaManager
 import org.jellyfin.androidtv.ui.startup.fragment.SelectServerFragment
 import org.jellyfin.androidtv.ui.startup.fragment.ServerFragment
+import org.jellyfin.androidtv.ui.startup.fragment.UserLoginFragment
 import org.jellyfin.androidtv.ui.startup.fragment.SplashFragment
 import org.jellyfin.androidtv.ui.startup.fragment.StartupToolbarFragment
 import org.jellyfin.androidtv.util.applyTheme
@@ -61,6 +62,8 @@ open class StartupActivity : FragmentActivity() {
 		const val EXTRA_ITEM_IS_USER_VIEW = "ItemIsUserView"
 		const val EXTRA_HIDE_SPLASH = "HideSplash"
 		const val EXTRA_SELECT_SERVER = "SelectServer"
+		const val EXTRA_ADD_USER = "AddUser"
+		const val EXTRA_SERVER_ID = "ServerId"
 	}
 
 	private val startupViewModel: StartupViewModel by viewModel()
@@ -122,8 +125,15 @@ open class StartupActivity : FragmentActivity() {
 				// Browsing accounts is reversible. Do not end the active session or
 				// redirect home until a different account has actually authenticated.
 				if (supportFragmentManager.findFragmentById(R.id.content_view) == null) {
-					val server = if (intent.getBooleanExtra(EXTRA_SELECT_SERVER, false)) null else startupViewModel.getLastServer()
-					if (server != null) showServer(server.id) else showServerSelection()
+					val server = if (intent.getBooleanExtra(EXTRA_SELECT_SERVER, false)) null
+						else startupViewModel.getLastServer(intent.getStringExtra(EXTRA_SERVER_ID)?.toUUIDOrNull())
+					if (server != null && intent.getBooleanExtra(EXTRA_ADD_USER, false)) {
+						supportFragmentManager.commit {
+							replace<UserLoginFragment>(R.id.content_view, args = createBundle {
+								putString(UserLoginFragment.ARG_SERVER_ID, server.id.toString())
+							})
+						}
+					} else if (server != null) showServer(server.id) else showServerSelection()
 				}
 				return@onEach
 			}
@@ -142,7 +152,8 @@ open class StartupActivity : FragmentActivity() {
 				// Clear audio queue in case left over from last run
 				mediaManager.clearAudioQueue()
 
-				val server = if (intent.getBooleanExtra(EXTRA_SELECT_SERVER, false)) null else startupViewModel.getLastServer()
+				val server = if (intent.getBooleanExtra(EXTRA_SELECT_SERVER, false)) null
+					else startupViewModel.getLastServer(sessionRepository.lastSwitchTarget?.serverId)
 				if (server != null) showServer(server.id)
 				else showServerSelection()
 			}

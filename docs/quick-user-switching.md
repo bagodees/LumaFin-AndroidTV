@@ -6,10 +6,13 @@ full-screen picker. Server-selection Back regression is fixed and verified.
 The home toolbar profile button opens a full-screen "Who's watching?" picker for the
 current server. The active user is first and labelled Current user. Selecting
 that user, Cancel, or Back closes the picker without ending the session.
+The same profile screen is used after selecting a server, including startup,
+account selection and connection recovery. Add User opens sign-in for the chosen
+server directly. Long-press user actions retain saved-user sign-out/removal.
 Cards show Jellyfin pictures or stable colored initials, with names beneath and a
 white border and slight enlargement on focus. The row scrolls for larger lists.
 Saved users can switch directly when a usable token is available and Always
-authenticate is off. Other users opens the existing login flow; Servers opens
+authenticate is off. Add User opens the existing login flow; Servers opens
 server selection directly. Both run above Home without ending the active session;
 Back cancels selection and returns to the profile picker. Selecting the already
 active user returns without authenticating again. A different authenticated
@@ -50,6 +53,12 @@ remains separate work in #22.
 - Server-selection regression: opening Servers and pressing Back returns to the
   full-screen profile picker with Servers focused. Another Back returns to Home
   with the same active account. Updated build and all 8 switch/session tests pass.
+- Shared-screen follow-up: choosing Jarvis from Servers opens the same square
+  profile cards, title, current-user marker and Add User tile. Initial profile
+  focus and Back to server selection were visually verified on the emulator.
+  Add User opens login directly; its Cancel handles root and nested navigation.
+  User-list loads cancel older requests and reject stale generations on switching
+  servers. Build and 18 switch/authentication/recovery tests pass.
 
 ## Accepted manual checks
 

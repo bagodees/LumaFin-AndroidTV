@@ -34,6 +34,8 @@ data class Session(
 	val accessToken: String,
 )
 
+data class SessionTarget(val serverId: UUID, val userId: UUID)
+
 enum class SessionRepositoryState {
 	READY,
 	RESTORING_SESSION,
@@ -41,6 +43,8 @@ enum class SessionRepositoryState {
 }
 
 interface SessionRepository {
+	val lastSwitchError: ApiClientException?
+	val lastSwitchTarget: SessionTarget?
 	val currentSession: StateFlow<Session?>
 	val state: StateFlow<SessionRepositoryState>
 
@@ -63,6 +67,12 @@ class SessionRepositoryImpl(
 	private val clearAudioQueue: () -> Unit,
 	private val validateSession: suspend (Server, Session, DeviceInfo) -> UserDto,
 ) : SessionRepository {
+	@Volatile
+	override var lastSwitchError: ApiClientException? = null
+		private set
+	@Volatile
+	override var lastSwitchTarget: SessionTarget? = null
+		private set
 	private val currentSessionMutex = Mutex()
 	private val _currentSession = MutableStateFlow<Session?>(null)
 	override val currentSession = _currentSession.asStateFlow()
@@ -71,6 +81,8 @@ class SessionRepositoryImpl(
 
 	override suspend fun restoreSession(destroyOnly: Boolean): Unit = withContext(NonCancellable) {
 		currentSessionMutex.withLock {
+			lastSwitchError = null
+			lastSwitchTarget = null
 			Timber.i("Restoring session")
 
 			_state.value = SessionRepositoryState.RESTORING_SESSION
@@ -94,6 +106,8 @@ class SessionRepositoryImpl(
 	}
 
 	override suspend fun switchCurrentSession(serverId: UUID, userId: UUID): Boolean = currentSessionMutex.withLock {
+		lastSwitchError = null
+		lastSwitchTarget = null
 		// No change in user - don't switch
 		if (currentSession.value?.let { it.userId == userId && it.serverId == serverId } == true) {
 			Timber.d("Current session user is the same as the requested user")
@@ -118,6 +132,8 @@ class SessionRepositoryImpl(
 	}
 
 	override fun destroyCurrentSession() {
+		lastSwitchError = null
+		lastSwitchTarget = null
 		Timber.i("Destroying current session")
 
 		clearSessionState()
@@ -149,6 +165,8 @@ class SessionRepositoryImpl(
 				validateSession(server, session, deviceInfo)
 			} else null
 		} catch (err: ApiClientException) {
+			lastSwitchError = err
+			lastSwitchTarget = session?.let { SessionTarget(it.serverId, it.userId) }
 			Timber.w(err, "Could not validate requested session")
 			return false
 		}

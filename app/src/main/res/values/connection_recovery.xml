@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item type="id" name="connection_recovery_dialog" />
+    <string name="connection_unreachable_title">Can’t reach the server</string>
+    <string name="connection_unreachable_message">Check that your TV is connected to the network and your Jellyfin server is running. If you are away from home, check that the server address works from this network. Then try again or choose another server.</string>
+    <string name="connection_sign_in_title">Sign-in needed</string>
+    <string name="connection_sign_in_message">The server rejected this sign-in. Check your username and password, or sign in again if your saved login has expired.</string>
+    <string name="connection_permission_title">Access denied</string>
+    <string name="connection_permission_message">The server refused access. Ask the server administrator to check this user’s permissions and remote-access rules. Retrying the same request may not help.</string>
+    <string name="connection_secure_title">Secure connection failed</string>
+    <string name="connection_secure_message">The TV could not establish a trusted secure connection. Check the TV’s date and time and the server’s HTTPS certificate. You can also choose a different configured server address.</string>
+    <string name="connection_address_title">Check the server address</string>
+    <string name="connection_address_message">The server address did not provide the expected Jellyfin endpoint. Check the address and any reverse-proxy path, or choose another server.</string>
+    <string name="connection_server_title">Server temporarily unavailable</string>
+    <string name="connection_server_message">The server or its proxy reported a problem. Wait a moment and try again. If it continues, ask the server administrator to check the server.</string>
+    <string name="connection_rate_title">Too many requests</string>
+    <string name="connection_rate_message">The server asked this TV to slow down. Wait before pressing Retry. LumaFin will not keep retrying automatically.</string>
+    <string name="connection_unknown_title">Couldn’t complete the connection</string>
+    <string name="connection_unknown_message">The server’s response could not be used. Try again, or choose another server. Your saved settings have been kept.</string>
+    <string name="connection_retry">Retry</string>
+    <string name="connection_switch_server">Switch server</string>
+    <string name="connection_review_sign_in">Review sign-in</string>
+    <string name="connection_account_preserved">Your current account is still active.</string>
+</resources>

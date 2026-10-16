@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="user_switch_heading">Who’s watching?</string>
-    <string name="user_switch_other_users">Other users</string>
+    <string name="user_switch_other_users">Add User</string>
     <string name="user_switch_servers">Servers</string>
     <string name="user_switch_current">Current user</string>
     <string name="user_switch_saved">Saved user</string>
     <string name="user_switch_loading">Switching user…</string>
-    <string name="user_switch_sign_in_required">This user needs to sign in. Choose Other users to continue.</string>
-    <string name="user_switch_failed">Could not switch users. Your current account is still active. Try again, or choose Other users to sign in.</string>
+    <string name="user_switch_sign_in_required">This user needs to sign in. Choose Add User to continue.</string>
+    <string name="user_switch_failed">Could not switch users. Your current account is still active. Try again, or choose Add User to sign in.</string>
     <string name="user_switch_sign_in">Sign in / other users and servers</string>
     <string name="user_switch_sign_in_description">Leave this account and open the sign-in screen.</string>
 </resources>

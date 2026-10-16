@@ -20,6 +20,8 @@ import org.jellyfin.androidtv.auth.model.ConnectedQuickConnectState
 import org.jellyfin.androidtv.auth.model.PendingQuickConnectState
 import org.jellyfin.androidtv.auth.model.RequireSignInState
 import org.jellyfin.androidtv.auth.model.ServerUnavailableState
+import org.jellyfin.androidtv.auth.model.ConnectionFailure
+import org.jellyfin.androidtv.auth.model.classifyConnectionFailure
 import org.jellyfin.androidtv.auth.model.ServerVersionNotSupported
 import org.jellyfin.androidtv.auth.model.UnavailableQuickConnectState
 import org.jellyfin.androidtv.auth.model.UnknownQuickConnectState
@@ -79,7 +81,15 @@ class UserLoginQuickConnectFragment : Fragment() {
 						AuthenticatingState -> binding.error.setText(R.string.login_authenticating)
 						RequireSignInState -> binding.error.setText(R.string.login_invalid_credentials)
 						ServerUnavailableState,
-						is ApiClientErrorLoginState -> binding.error.setText(R.string.login_server_unavailable)
+						is ApiClientErrorLoginState -> {
+							val failure = if (state is ApiClientErrorLoginState) classifyConnectionFailure(state.error)
+								else ConnectionFailure.UNREACHABLE
+							binding.error.setText(failure.title)
+							showConnectionRecovery(failure, onRetry = {
+								userLoginViewModel.clearLoginState()
+								viewLifecycleOwner.lifecycleScope.launch { userLoginViewModel.initiateQuickconnect() }
+							}, onSwitchServer = { userLoginViewModel.clearLoginState() })
+						}
 						// Do nothing because the activity will respond to the new session
 						AuthenticatedState -> Unit
 						// Not initialized
@@ -91,6 +101,7 @@ class UserLoginQuickConnectFragment : Fragment() {
 	}
 
 	override fun onDestroyView() {
+		userLoginViewModel.stopQuickConnect()
 		super.onDestroyView()
 
 		_binding = null

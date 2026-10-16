@@ -29,7 +29,6 @@ import org.jellyfin.androidtv.util.apiclient.getUrl
 import org.jellyfin.androidtv.util.apiclient.primaryImage
 import org.jellyfin.androidtv.util.sdk.forUser
 import org.jellyfin.sdk.Jellyfin
-import org.jellyfin.sdk.api.client.ApiClient
 import org.jellyfin.sdk.api.client.exception.ApiClientException
 import org.jellyfin.sdk.api.client.exception.TimeoutException
 import org.jellyfin.sdk.api.client.extensions.authenticateUserByName
@@ -55,7 +54,7 @@ class AuthenticationRepositoryImpl(
 	private val jellyfin: Jellyfin,
 	private val sessionRepository: SessionRepository,
 	private val authenticationStore: AuthenticationStore,
-	private val userApiClient: ApiClient,
+	private val userRepository: UserRepository,
 	private val authenticationPreferences: AuthenticationPreferences,
 	private val defaultDeviceInfo: DeviceInfo,
 ) : AuthenticationRepository {
@@ -134,7 +133,9 @@ class AuthenticationRepositoryImpl(
 			emit(AuthenticatedState)
 		} else {
 			Timber.w("Failed to set active session after authenticating")
-			if (!server.versionSupported) emit(ServerVersionNotSupported(server))
+			val error = sessionRepository.lastSwitchError
+			if (error != null) emit(ApiClientErrorLoginState(error))
+			else if (!server.versionSupported) emit(ServerVersionNotSupported(server))
 			else emit(RequireSignInState)
 		}
 	}.flowOn(Dispatchers.IO)
@@ -144,12 +145,16 @@ class AuthenticationRepositoryImpl(
 
 		val success = setActiveSession(user, server)
 		if (!success) {
-			if (!server.versionSupported) emit(ServerVersionNotSupported(server))
+			val error = sessionRepository.lastSwitchError
+			if (error != null) emit(ApiClientErrorLoginState(error))
+			else if (!server.versionSupported) emit(ServerVersionNotSupported(server))
 			else emit(RequireSignInState)
 		} else try {
 			// Update user info
-			val userInfo by userApiClient.userApi.getCurrentUser()
-			authenticateFinish(server, userInfo, user.accessToken.orEmpty())
+			// The session preflight already validated this identity. A second network
+			// request here could report failure after the account had already changed.
+			val userInfo = userRepository.currentUser.value
+			if (userInfo?.id == user.id) authenticateFinish(server, userInfo, user.accessToken.orEmpty())
 			emit(AuthenticatedState)
 		} catch (err: TimeoutException) {
 			Timber.e(err, "Failed to connect to server")

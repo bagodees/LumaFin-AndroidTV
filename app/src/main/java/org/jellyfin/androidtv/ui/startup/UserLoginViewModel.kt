@@ -3,6 +3,7 @@ package org.jellyfin.androidtv.ui.startup
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,6 +14,9 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jellyfin.androidtv.auth.model.AuthenticatingState
+import org.jellyfin.androidtv.auth.model.ApiClientErrorLoginState
+import org.jellyfin.androidtv.auth.model.ConnectionFailure
+import org.jellyfin.androidtv.auth.model.classifyConnectionFailure
 import org.jellyfin.androidtv.auth.model.AutomaticAuthenticateMethod
 import org.jellyfin.androidtv.auth.model.ConnectedQuickConnectState
 import org.jellyfin.androidtv.auth.model.CredentialAuthenticateMethod
@@ -43,6 +47,9 @@ class UserLoginViewModel(
 ) : ViewModel() {
 	private val _loginState = MutableStateFlow<LoginState?>(null)
 	val loginState = _loginState.asStateFlow()
+	private var loginJob: Job? = null
+	private var quickConnectJob: Job? = null
+	private var quickConnectGeneration = 0
 
 	var forcedUsername: String? = null
 
@@ -57,16 +64,30 @@ class UserLoginViewModel(
 		authenticationRepository.authenticate(server, AutomaticAuthenticateMethod(user))
 
 	fun login(username: String, password: String) {
+		if (_loginState.value == AuthenticatingState) return
 		val server = server.value ?: return
 		_loginState.value = AuthenticatingState
-		authenticationRepository.authenticate(server, CredentialAuthenticateMethod(username, password)).onEach {
+		loginJob = authenticationRepository.authenticate(server, CredentialAuthenticateMethod(username, password)).onEach {
 			_loginState.value = it
 		}.launchIn(viewModelScope)
 	}
 
 	fun clearLoginState() {
+		cancelCredentialLogin()
+		stopQuickConnect()
 		_loginState.value = null
 		_quickConnectState.value = UnknownQuickConnectState
+	}
+
+	fun cancelCredentialLogin() {
+		loginJob?.cancel()
+		if (_loginState.value == AuthenticatingState) _loginState.value = null
+	}
+
+	fun stopQuickConnect() {
+		quickConnectJob?.cancel()
+		quickConnectGeneration++
+		quickConnectSecret = null
 	}
 
 	/**
@@ -77,6 +98,8 @@ class UserLoginViewModel(
 		if (quickConnectState.value != UnknownQuickConnectState) return
 
 		val server = server.value ?: return
+		val generation = ++quickConnectGeneration
+		quickConnectJob?.cancel()
 		_quickConnectState.emit(UnknownQuickConnectState)
 		quickConnectSecret = null
 
@@ -90,16 +113,20 @@ class UserLoginViewModel(
 				quickConnectApi.quickConnectApi.initiateQuickConnect().content
 			}
 
+			if (generation != quickConnectGeneration) return
 			quickConnectSecret = response.secret
 			_quickConnectState.emit(PendingQuickConnectState(response.code))
 		} catch (err: ApiClientException) {
+			if (generation != quickConnectGeneration) return
 			Timber.e(err, "Unable to initiate QuickConnect")
+			if (classifyConnectionFailure(err) in listOf(ConnectionFailure.UNREACHABLE, ConnectionFailure.SERVER,
+				ConnectionFailure.SECURE_CONNECTION, ConnectionFailure.RATE_LIMIT)) _loginState.value = ApiClientErrorLoginState(err)
 			_quickConnectState.emit(UnavailableQuickConnectState)
 		}
 
 		// Update every 5 seconds until QuickConnect is inactive or the view model is cancelled
-		viewModelScope.launch {
-			while (isActive) {
+		quickConnectJob = viewModelScope.launch {
+			while (isActive && generation == quickConnectGeneration) {
 				delay(5.seconds)
 				if (!updateQuickConnectState()) break
 			}
@@ -134,12 +161,14 @@ class UserLoginViewModel(
 			}
 		} catch (err: ApiClientException) {
 			Timber.e(err, "Unable to initiate QuickConnect")
+			_loginState.value = ApiClientErrorLoginState(err)
 			_quickConnectState.emit(UnavailableQuickConnectState)
 			return false
 		}
 	}
 
 	fun setServer(id: UUID?) {
+		if (_server.value?.id != id) clearLoginState()
 		_server.value = serverRepository.storedServers.value
 			.firstOrNull { it.id == id }
 	}

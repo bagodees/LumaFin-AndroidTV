@@ -17,6 +17,9 @@ import org.jellyfin.androidtv.auth.store.AuthenticationPreferences
 import org.jellyfin.androidtv.ui.shared.toolbar.QuickUserSwitchController
 import org.jellyfin.androidtv.ui.shared.toolbar.UserSwitchResult
 import java.util.UUID
+import org.jellyfin.androidtv.auth.model.ConnectionFailure
+import org.jellyfin.sdk.api.client.exception.TimeoutException
+import org.jellyfin.sdk.api.client.exception.InvalidStatusException
 
 class QuickUserSwitchTests : FunSpec({
 	val server = UUID(0, 1)
@@ -26,6 +29,7 @@ class QuickUserSwitchTests : FunSpec({
 	fun fixture(alwaysAuthenticate: Boolean = false): Pair<SessionRepository, QuickUserSwitchController> {
 		val sessions = mockk<SessionRepository>()
 		every { sessions.currentSession } returns MutableStateFlow(Session(first, server, "first-token"))
+		every { sessions.lastSwitchError } returns null
 		val preferences = mockk<AuthenticationPreferences>()
 		every { preferences[AuthenticationPreferences.alwaysAuthenticate] } returns alwaysAuthenticate
 		return sessions to QuickUserSwitchController(sessions, preferences)
@@ -86,5 +90,26 @@ class QuickUserSwitchTests : FunSpec({
 			job.join()
 		}
 		coVerify(exactly = 1) { sessions.switchCurrentSession(server, second.id) }
+	}
+	test("network failure is retained until an explicit retry and no automatic requests are made") {
+		val (sessions, controller) = fixture()
+		every { sessions.lastSwitchError } returns TimeoutException()
+		coEvery { sessions.switchCurrentSession(server, second.id) } returnsMany listOf(false, true)
+		controller.switch(second) shouldBe false
+		controller.failure.value shouldBe ConnectionFailure.UNREACHABLE
+		coVerify(exactly = 1) { sessions.switchCurrentSession(server, second.id) }
+		controller.retry() shouldBe true
+		controller.failure.value shouldBe null
+		coVerify(exactly = 2) { sessions.switchCurrentSession(server, second.id) }
+	}
+	test("permission and expired login failures cannot repeatedly retry stored credentials") {
+		for (status in listOf(401, 403)) {
+			val (sessions, controller) = fixture()
+			every { sessions.lastSwitchError } returns InvalidStatusException(status)
+			coEvery { sessions.switchCurrentSession(server, second.id) } returns false
+			controller.switch(second) shouldBe false
+			controller.retry() shouldBe false
+			coVerify(exactly = 1) { sessions.switchCurrentSession(server, second.id) }
+		}
 	}
 })
