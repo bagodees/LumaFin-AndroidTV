@@ -25,6 +25,7 @@ interface PlayerBackend {
 
 	fun setListener(eventListener: PlayerBackendEventListener?)
 	fun getPositionInfo(): PositionInfo
+	fun getDiagnostics(): org.jellyfin.playback.core.model.PlaybackDiagnostics = org.jellyfin.playback.core.model.PlaybackDiagnostics()
 
 	// Mutation
 

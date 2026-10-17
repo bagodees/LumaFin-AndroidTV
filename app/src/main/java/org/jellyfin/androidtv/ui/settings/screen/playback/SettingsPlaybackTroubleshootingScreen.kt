@@ -12,6 +12,9 @@ import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.preference.UserPreferences
 import org.jellyfin.androidtv.ui.base.Text
 import org.jellyfin.androidtv.ui.base.list.ListSection
+import org.jellyfin.androidtv.ui.base.list.ListButton
+import org.jellyfin.androidtv.ui.navigation.LocalRouter
+import org.jellyfin.androidtv.ui.settings.Routes
 import org.jellyfin.androidtv.ui.navigation.focus.focusKey
 import org.jellyfin.androidtv.ui.settings.composable.SettingsAsyncActionListButton
 import org.jellyfin.androidtv.ui.settings.composable.SettingsColumn
@@ -25,6 +28,7 @@ import org.koin.compose.koinInject
 fun SettingsPlaybackTroubleshootingScreen() {
 	val context = LocalContext.current
 	val userPreferences = koinInject<UserPreferences>()
+	val router = LocalRouter.current
 
 	SettingsColumn {
 		item {
@@ -35,6 +39,11 @@ fun SettingsPlaybackTroubleshootingScreen() {
 			)
 		}
 
+		item {
+			ListButton(headingContent = { Text(stringResource(R.string.speed_test_title)) },
+				captionContent = { Text(stringResource(R.string.speed_test_description)) },
+				onClick = { router.push(Routes.STREAMING_SPEED) }, modifier = Modifier.focusKey("streaming_speed"))
+		}
 		item {
 			val api = koinInject<ApiClient>()
 			val serverVersion = koinInject<ServerVersion>()

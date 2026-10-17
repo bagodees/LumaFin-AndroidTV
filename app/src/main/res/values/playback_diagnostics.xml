@@ -1,0 +1,15 @@
+<resources>
+	<string name="diagnostics_title">Live player diagnostics</string>
+	<string name="diagnostics_unavailable">Unavailable from this player</string>
+	<string name="diagnostics_seconds">%1$.1f s</string>
+	<string name="diagnostics_buffered">Buffered ahead: %1$s</string>
+	<string name="diagnostics_dropped">Dropped video frames: %1$s</string>
+	<string name="diagnostics_rendered">Rendered video frames: %1$s</string>
+	<string name="diagnostics_buffering">Waiting for buffer: %1$s</string>
+	<string name="diagnostics_yes">Yes</string>
+	<string name="diagnostics_no">No</string>
+	<string name="diagnostics_policy">Buffer targets: %1$s minimum / %2$s maximum</string>
+	<string name="diagnostics_startup">Start threshold: %1$s / after buffering: %2$s</string>
+	<string name="diagnostics_note">Frame counts are for the current video decoder and may reset when it changes. Buffer targets are limits, not guaranteed preload. Larger buffers can use more memory and delay startup.</string>
+	<string name="diagnostics_speed_hint">For a connection sample, stop playback and open Settings → Help &amp; Maintenance → Test streaming speed.</string>
+</resources>

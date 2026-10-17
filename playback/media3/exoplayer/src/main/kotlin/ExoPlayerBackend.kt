@@ -333,6 +333,23 @@ class ExoPlayerBackend(
 		duration = lastKnownDuration ?: Duration.ZERO,
 	)
 
+	override fun getDiagnostics(): org.jellyfin.playback.core.model.PlaybackDiagnostics {
+		val counters = exoPlayer.videoDecoderCounters
+		counters?.ensureUpdated()
+		return org.jellyfin.playback.core.model.PlaybackDiagnostics(
+			bufferedDurationMs = exoPlayer.totalBufferedDuration.takeIf { it >= 0 },
+			droppedVideoFrames = counters?.droppedBufferCount,
+			renderedVideoFrames = counters?.renderedOutputBufferCount,
+			buffering = exoPlayer.playbackState == Player.STATE_BUFFERING,
+			minBufferMs = exoPlayerOptions.minBufferDuration?.inWholeMilliseconds ?: DefaultLoadControl.DEFAULT_MIN_BUFFER_MS.toLong(),
+			maxBufferMs = exoPlayerOptions.maxBufferDuration?.inWholeMilliseconds ?: DefaultLoadControl.DEFAULT_MAX_BUFFER_MS.toLong(),
+			startupBufferMs = exoPlayerOptions.bufferForPlaybackDuration?.inWholeMilliseconds
+				?: DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_MS.toLong(),
+			rebufferMs = exoPlayerOptions.bufferForPlaybackAfterRebufferDuration?.inWholeMilliseconds
+				?: DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS.toLong(),
+		)
+	}
+
 	override fun setTimedEvents(timedEvents: List<TimedEvent>) {
 		timedEventState.setTimedEvents(exoPlayer, timedEvents)
 	}

@@ -1,5 +1,6 @@
 package org.jellyfin.androidtv.ui.player.video
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -30,6 +31,7 @@ fun VideoPlayerOverlay(
 ) {
 	val visibilityState = rememberPlayerOverlayVisibility()
 	var showPlaybackInfo by remember { mutableStateOf(false) }
+	BackHandler(enabled = showPlaybackInfo) { showPlaybackInfo = false }
 
 	val entry by rememberQueueEntry(playbackManager)
 	val item = entry?.run { baseItemFlow.collectAsState(baseItem) }?.value

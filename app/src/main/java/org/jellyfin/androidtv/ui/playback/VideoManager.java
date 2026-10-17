@@ -81,6 +81,7 @@ public class VideoManager {
     private PlaybackControllerNotifiable mPlaybackControllerNotifiable;
     private PlaybackOverlayFragmentHelper _helper;
     public ExoPlayer mExoPlayer;
+    public BufferLength configuredBufferLength = BufferLength.AUTO;
     private PlayerView mExoPlayerView;
     private Handler mHandler = new Handler();
 
@@ -287,6 +288,7 @@ public class VideoManager {
         });
 
         BufferLength bufferLength = userPreferences.get(UserPreferences.Companion.getBufferLength());
+        configuredBufferLength = bufferLength;
         DefaultLoadControl loadControl;
         if (bufferLength == BufferLength.LARGE) {
             loadControl = new DefaultLoadControl.Builder()
