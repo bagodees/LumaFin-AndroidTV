@@ -17,6 +17,7 @@ data class Server(
 	val splashscreenEnabled: Boolean = false,
 	val setupCompleted: Boolean = true,
 	var dateLastAccessed: Instant = Instant.MIN,
+	val backupAddress: String? = null,
 ) {
 	val serverVersion = version?.let(ServerVersion::fromString)
 	val versionSupported = serverVersion != null && serverVersion >= ServerRepository.minimumServerVersion
@@ -26,10 +27,12 @@ data class Server(
 	override fun equals(other: Any?) = other is Server
 		&& id == other.id
 		&& address == other.address
+		&& backupAddress == other.backupAddress
 
 	override fun hashCode(): Int {
 		var result = id.hashCode()
 		result = 31 * result + address.hashCode()
+		result = 31 * result + (backupAddress?.hashCode() ?: 0)
 		return result
 	}
 }

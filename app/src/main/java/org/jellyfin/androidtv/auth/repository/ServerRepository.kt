@@ -231,9 +231,14 @@ class ServerRepositoryImpl(
 				lastRefreshed = now
 			)
 		}
-		authenticationStore.putServer(id, newServer)
-
-		return newServer
+		// A slow metadata refresh must not undo an address change or account edit.
+		val latest = authenticationStore.getServer(id) ?: return null
+		if (latest.address != server.address) return latest
+		val merged = latest.copy(name = newServer.name, version = newServer.version,
+			loginDisclaimer = newServer.loginDisclaimer, splashscreenEnabled = newServer.splashscreenEnabled,
+			setupCompleted = newServer.setupCompleted, lastRefreshed = newServer.lastRefreshed)
+		authenticationStore.putServer(id, merged)
+		return merged
 	}
 
 	override suspend fun deleteServer(server: UUID): Boolean {
@@ -252,6 +257,7 @@ class ServerRepositoryImpl(
 		splashscreenEnabled = splashscreenEnabled,
 		setupCompleted = setupCompleted,
 		dateLastAccessed = Instant.ofEpochMilli(lastUsed),
+		backupAddress = backupAddress,
 	)
 
 	/**

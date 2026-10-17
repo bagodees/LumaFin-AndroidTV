@@ -47,16 +47,20 @@ Issue remains open. Optional verified home/remote address fallback depends on
 - The emulator was restored to unlimited speed and zero latency. Installing the
   final build and restarting returned to the original user's Home successfully.
 
-## Manual acceptance and remaining scope
+## Final scope and acceptance
 
-Pending: exercise the visible Retry and Switch server actions, check the
-quick-user failure presentation, and confirm leaving credentials/Quick Connect
-does not continue an unwanted request. Real permission and certificate rejection
-UI paths have classifier coverage but have not been induced against the user's
-working server; do not invalidate credentials or certificates to test them.
+Completed with #22's verified backup recovery and primary return. The final
+address/session/picker suite passes 28 focused tests. Emulator acceptance covers
+the reachability dialog, Try backup address, successful recovery, restart, and
+return to the configured primary on launch. Failure preservation and cancellation
+have automated coverage. Individual Retry/Switch server and credentials/Quick
+Connect cancellation UI paths were not all manually replayed in this final pass.
+Permission and certificate rejection have classifier coverage and were not induced
+against the working server.
 
 This foundation covers startup and account selection/sign-in. Existing playback
 and individual library-row failure handling is unchanged. Verified same-server
-address fallback remains #22; speed tests and diagnostic export remain #53/#26.
+address fallback is documented in server-addresses.md; speed tests and diagnostic
+export remain #53/#26.
 No repeat of the already accepted video-playback or preference-value tests is
 required for this change.

@@ -88,6 +88,32 @@ class QuickUserSwitchController(
 		return attemptedUser?.let { switch(it) } ?: false
 	}
 
+	suspend fun tryBackup(): Boolean {
+		if (_failure.value != ConnectionFailure.UNREACHABLE || _result.value != UserSwitchResult.FAILED) return false
+		val user = attemptedUser ?: return false
+		_result.value = UserSwitchResult.SWITCHING
+		try {
+			when (val result = sessions.tryBackupAddress(user.serverId, user.id)) {
+				is org.jellyfin.androidtv.auth.repository.BackupAddressResult.Saved -> {
+					_failure.value = null
+					_result.value = UserSwitchResult.SWITCHED
+				}
+				else -> {
+					_failure.value = (result as? org.jellyfin.androidtv.auth.repository.BackupAddressResult.Unavailable)?.failure
+						?: ConnectionFailure.ADDRESS
+					_result.value = UserSwitchResult.FAILED
+				}
+			}
+		} catch (err: CancellationException) {
+			_result.value = UserSwitchResult.IDLE
+			throw err
+		} catch (err: Exception) {
+			_failure.value = classifyConnectionFailure(err)
+			_result.value = UserSwitchResult.FAILED
+		}
+		return _result.value == UserSwitchResult.SWITCHED
+	}
+
 	suspend fun switch(user: PrivateUser): Boolean {
 		if (_result.value == UserSwitchResult.SWITCHING || _result.value == UserSwitchResult.SWITCHED) return false
 		if (sessions.currentSession.value?.let { it.serverId == user.serverId && it.userId == user.id } == true) return false
@@ -226,6 +252,9 @@ fun QuickUserSwitcher(
 				)
 			}
 			Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+				if (failure == ConnectionFailure.UNREACHABLE && server?.backupAddress != null) Button(onClick = {
+					scope.launch { if (controller.tryBackup()) openStartup(false) }
+				}, enabled = !busy) { Text(stringResource(R.string.connection_try_backup)) }
 				if (failure?.retryable == true) Button(onClick = {
 					scope.launch { if (controller.retry()) openStartup(false) }
 				}, modifier = Modifier.focusRequester(retryFocus), enabled = !busy) {

@@ -23,4 +23,6 @@ data class AuthenticationStoreServer(
 	@SerialName("last_used") val lastUsed: Long = Instant.now().toEpochMilli(),
 	@SerialName("last_refreshed") val lastRefreshed: Long = Instant.now().toEpochMilli(),
 	val users: Map<UUID, AuthenticationStoreUser> = emptyMap(),
+	@SerialName("backup_address") val backupAddress: String? = null,
+	@SerialName("using_backup") val usingBackup: Boolean = false,
 )

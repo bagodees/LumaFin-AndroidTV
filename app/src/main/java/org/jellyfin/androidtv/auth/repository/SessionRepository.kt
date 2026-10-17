@@ -50,6 +50,7 @@ interface SessionRepository {
 
 	suspend fun restoreSession(destroyOnly: Boolean)
 	suspend fun switchCurrentSession(serverId: UUID, userId: UUID): Boolean
+	suspend fun tryBackupAddress(serverId: UUID, userId: UUID): BackupAddressResult
 	fun destroyCurrentSession()
 }
 
@@ -66,6 +67,7 @@ class SessionRepositoryImpl(
 	private val videoQueue: VideoQueueManager,
 	private val clearAudioQueue: () -> Unit,
 	private val validateSession: suspend (Server, Session, DeviceInfo) -> UserDto,
+	private val addresses: ServerAddressRepository? = null,
 ) : SessionRepository {
 	@Volatile
 	override var lastSwitchError: ApiClientException? = null
@@ -93,11 +95,11 @@ class SessionRepositoryImpl(
 			when {
 				alwaysAuthenticate -> destroyCurrentSession()
 				autoLoginBehavior == DISABLED -> destroyCurrentSession()
-				autoLoginBehavior == LAST_USER && !destroyOnly -> setCurrentSession(createLastUserSession())
+				autoLoginBehavior == LAST_USER && !destroyOnly -> restorePreferredSession(createLastUserSession())
 				autoLoginBehavior == SPECIFIC_USER && !destroyOnly -> {
 					val serverId = authenticationPreferences[AuthenticationPreferences.autoLoginServerId].toUUIDOrNull()
 					val userId = authenticationPreferences[AuthenticationPreferences.autoLoginUserId].toUUIDOrNull()
-					if (serverId != null && userId != null) setCurrentSession(createUserSession(serverId, userId))
+					if (serverId != null && userId != null) restorePreferredSession(createUserSession(serverId, userId))
 				}
 			}
 
@@ -144,15 +146,53 @@ class SessionRepositoryImpl(
 		_state.value = SessionRepositoryState.READY
 	}
 
-	private suspend fun setCurrentSession(session: Session?): Boolean {
-		var server: Server? = null
+	override suspend fun tryBackupAddress(serverId: UUID, userId: UUID): BackupAddressResult = currentSessionMutex.withLock {
+		_state.value = SessionRepositoryState.SWITCHING_SESSION
+		try {
+			tryBackupInternal(serverId, userId)
+		} finally {
+			_state.value = SessionRepositoryState.READY
+		}
+	}
+
+	private suspend fun restorePreferredSession(session: Session?) {
+		// Address preference is stable: always try the configured primary on launch.
+		if (setCurrentSession(session) || session == null) return
+		if (authenticationStore.getServer(session.serverId)?.usingBackup == true &&
+			org.jellyfin.androidtv.auth.model.classifyConnectionFailure(lastSwitchError) ==
+			org.jellyfin.androidtv.auth.model.ConnectionFailure.UNREACHABLE) {
+			tryBackupInternal(session.serverId, session.userId)
+		}
+	}
+
+	private suspend fun tryBackupInternal(serverId: UUID, userId: UUID): BackupAddressResult {
+			if (authenticationPreferences[AuthenticationPreferences.alwaysAuthenticate]) {
+				return BackupAddressResult.Unavailable(org.jellyfin.androidtv.auth.model.ConnectionFailure.SIGN_IN)
+			}
+			val verified = addresses?.verifyBackup(serverId) ?: return BackupAddressResult.InvalidAddress
+			if (verified !is BackupAddressResult.Saved) return verified
+			val stored = authenticationStore.getServer(serverId) ?: return BackupAddressResult.ServerNotFound
+			if (stored.backupAddress != verified.address) return BackupAddressResult.InvalidAddress
+			val session = createUserSession(serverId, userId) ?: return BackupAddressResult.Unavailable(
+				org.jellyfin.androidtv.auth.model.ConnectionFailure.SIGN_IN)
+			val server = Server(serverId, stored.name, verified.address, stored.version, stored.loginDisclaimer,
+				stored.splashscreenEnabled, stored.setupCompleted, backupAddress = stored.backupAddress)
+			lastSwitchError = null
+			return if (setCurrentSession(session, server, stored.address)) verified
+			else BackupAddressResult.Unavailable(lastSwitchError?.let {
+				org.jellyfin.androidtv.auth.model.classifyConnectionFailure(it)
+			} ?: org.jellyfin.androidtv.auth.model.ConnectionFailure.UNKNOWN)
+	}
+
+	private suspend fun setCurrentSession(session: Session?, replacement: Server? = null, expectedPrimary: String? = null): Boolean {
+		var server: Server? = replacement
 
 		if (session != null) {
 			// No change in session - don't switch
-			if (currentSession.value?.let { it.userId == session.userId && it.serverId == session.serverId } == true) return true
+			if (replacement == null && currentSession.value?.let { it.userId == session.userId && it.serverId == session.serverId } == true) return true
 
 			// Check if server version is supported
-			server = serverRepository.getServer(session.serverId, true)
+			server = replacement ?: serverRepository.getServer(session.serverId, true)
 			if (server == null || !server.versionSupported) return false
 		}
 
@@ -174,6 +214,17 @@ class SessionRepositoryImpl(
 		Timber.i("Updating current session. userId=${session?.userId} server=${server?.serverVersion}")
 
 		return withContext(NonCancellable) {
+			if (replacement != null && session != null) {
+				val latest = authenticationStore.getServer(session.serverId) ?: return@withContext false
+				if (latest.backupAddress != replacement.address || latest.address != expectedPrimary) return@withContext false
+				if (latest.users[session.userId]?.accessToken != session.accessToken) return@withContext false
+				if (!authenticationStore.putServer(session.serverId,
+					latest.copy(usingBackup = true))) return@withContext false
+				serverRepository.loadStoredServers()
+			} else if (session != null) {
+				val latest = authenticationStore.getServer(session.serverId)
+				if (latest?.usingBackup == true) authenticationStore.putServer(session.serverId, latest.copy(usingBackup = false))
+			}
 			clearSessionState()
 			accountPreferences.select(null, null)
 			userRepository.setCurrentUser(null)

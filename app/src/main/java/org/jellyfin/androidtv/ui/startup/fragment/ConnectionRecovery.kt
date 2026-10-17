@@ -16,6 +16,7 @@ fun Fragment.showConnectionRecovery(
 	onRetry: (() -> Unit)? = null,
 	onReviewSignIn: (() -> Unit)? = null,
 	onSwitchServer: (() -> Unit)? = null,
+	onTryBackup: (() -> Unit)? = null,
 ) {
 	if (!isAdded || view == null || parentFragmentManager.isStateSaved) return
 	val root = requireView()
@@ -32,6 +33,9 @@ fun Fragment.showConnectionRecovery(
 			}
 		}
 		.setNeutralButton(android.R.string.cancel, null)
+	if (failure == ConnectionFailure.UNREACHABLE && onTryBackup != null) {
+		builder.setNeutralButton(R.string.connection_try_backup) { _, _ -> onTryBackup() }
+	}
 	when {
 		failure.retryable && onRetry != null -> builder.setPositiveButton(R.string.connection_retry) { _, _ -> onRetry() }
 		failure == ConnectionFailure.SIGN_IN && onReviewSignIn != null ->

@@ -13,10 +13,20 @@ import org.jellyfin.androidtv.auth.store.AuthenticationStore
 import org.koin.dsl.module
 import org.jellyfin.sdk.Jellyfin
 import org.jellyfin.sdk.api.client.extensions.userApi
+import org.jellyfin.sdk.api.client.extensions.systemApi
+import org.jellyfin.sdk.model.serializer.toUUIDOrNull
+import org.jellyfin.androidtv.auth.repository.ServerAddressRepository
 
 val authModule = module {
 	single { AuthenticationStore(get()) }
 	single { AuthenticationPreferences(get()) }
+	single {
+		val jellyfin = get<Jellyfin>()
+		ServerAddressRepository(get()) { address ->
+			// Do not use the shared authenticated API or supply an access token.
+			jellyfin.createApi(address).systemApi.getPublicSystemInfo().content.id?.toUUIDOrNull()
+		}
+	}
 
 	single<AuthenticationRepository> {
 		AuthenticationRepositoryImpl(get(), get(), get(), get(), get(), get(defaultDeviceInfo))
@@ -31,7 +41,7 @@ val authModule = module {
 				val api = jellyfin.createApi(server.address, deviceInfo = device)
 				api.update(accessToken = session.accessToken)
 				api.userApi.getCurrentUser().content
-			})
+			}, get())
 	}
 
 	factory {

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="connection_try_backup">Try backup address</string>
+    <string name="server_backup_title">Backup server address</string>
+    <string name="server_backup_description">Optional second address for the same server. LumaFin checks the server identity before saving.</string>
+    <string name="server_backup_empty">Not set</string>
+    <string name="server_backup_verify">Verify and save</string>
+    <string name="server_backup_checking">Checking server identity…</string>
+    <string name="server_backup_invalid">Enter a full http:// or https:// address without a username, password, query string or fragment.</string>
+    <string name="server_backup_same">This is already the main server address. Enter a different address for the same server.</string>
+    <string name="server_backup_different">This address belongs to a different Jellyfin server. It has not been saved.</string>
+    <string name="server_backup_no_identity">This address did not report a Jellyfin server identity. It has not been saved.</string>
+    <string name="server_backup_missing">This saved server no longer exists.</string>
+    <string name="server_backup_remove">Remove backup address</string>
+</resources>

@@ -112,6 +112,7 @@ class ServerFragment : Fragment() {
 				view.post {
 					if (this.view != null && isAdded) showConnectionRecovery(classifyConnectionFailure(error),
 						onRetry = user?.let { { selectUser(server, it) } },
+						onTryBackup = user?.takeIf { server.backupAddress != null }?.let { { tryBackup(server, it) } },
 						onReviewSignIn = user?.let { { openLogin(server, it.name) } })
 				}
 			}
@@ -133,12 +134,43 @@ class ServerFragment : Fragment() {
 				RequireSignInState -> openLogin(server, user.name)
 				ServerUnavailableState, is ApiClientErrorLoginState -> showConnectionRecovery(
 					if (state is ApiClientErrorLoginState) classifyConnectionFailure(state.error) else ConnectionFailure.UNREACHABLE,
-					onRetry = { selectUser(server, user) }, onReviewSignIn = { openLogin(server, user.name) })
+					onRetry = { selectUser(server, user) }, onReviewSignIn = { openLogin(server, user.name) },
+					onTryBackup = if (server.backupAddress != null) ({ tryBackup(server, user) }) else null)
 				is ServerVersionNotSupported -> AlertDialog.Builder(requireContext())
 					.setMessage(serverNotice(state.server)).setPositiveButton(android.R.string.ok, null).show()
 			}
 		}.launchIn(viewLifecycleOwner.lifecycleScope)
 		authenticationJob?.invokeOnCompletion { authenticating = false }
+	}
+
+	private fun tryBackup(server: Server, user: User) {
+		if (authenticationJob?.isActive == true) return
+		val progress = AlertDialog.Builder(requireContext()).setMessage(R.string.server_backup_checking)
+			.setNegativeButton(android.R.string.cancel, null).create()
+		progress.setOnDismissListener { authenticationJob?.cancel() }
+		progress.show()
+		authenticationJob = viewLifecycleOwner.lifecycleScope.launch {
+			authenticating = true
+			try {
+				val result = sessionRepository.tryBackupAddress(server.id, user.id)
+				progress.setOnDismissListener(null)
+				progress.dismiss()
+				if (result !is org.jellyfin.androidtv.auth.repository.BackupAddressResult.Saved) {
+					val message = when (result) {
+						org.jellyfin.androidtv.auth.repository.BackupAddressResult.DifferentServer -> R.string.server_backup_different
+						org.jellyfin.androidtv.auth.repository.BackupAddressResult.MissingServerIdentity -> R.string.server_backup_no_identity
+						is org.jellyfin.androidtv.auth.repository.BackupAddressResult.Unavailable -> result.failure.message
+						else -> R.string.server_backup_invalid
+					}
+					AlertDialog.Builder(requireContext()).setTitle(R.string.connection_try_backup)
+						.setMessage(message).setPositiveButton(android.R.string.ok, null).show()
+				}
+			} finally {
+				progress.setOnDismissListener(null)
+				progress.dismiss()
+				authenticating = false
+			}
+		}
 	}
 
 	private fun openLogin(server: Server, name: String?) = navigateFragment<UserLoginFragment>(createBundle {

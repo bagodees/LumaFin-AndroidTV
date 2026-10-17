@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.lifecycleScope
@@ -20,6 +21,7 @@ import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.auth.repository.AuthenticationRepository
 import org.jellyfin.androidtv.auth.repository.ServerRepository
 import org.jellyfin.androidtv.auth.repository.ServerUserRepository
+import org.jellyfin.androidtv.auth.repository.ServerAddressRepository
 import org.jellyfin.androidtv.ui.base.Icon
 import org.jellyfin.androidtv.ui.base.ProfilePicture
 import org.jellyfin.androidtv.ui.base.Text
@@ -41,6 +43,8 @@ import java.util.UUID
 @Composable
 fun SettingsAuthenticationServerScreen(serverId: UUID) {
 	val router = LocalRouter.current
+	val context = LocalContext.current
+	val addresses = koinInject<ServerAddressRepository>()
 	val lifecycleScope = LocalLifecycleOwner.current.lifecycleScope
 	val serverRepository = koinInject<ServerRepository>()
 	val serverUserRepository = koinInject<ServerUserRepository>()
@@ -105,6 +109,15 @@ fun SettingsAuthenticationServerScreen(serverId: UUID) {
 		}
 
 		item { ListSection(headingContent = { Text(stringResource(R.string.lbl_server)) }) }
+		item {
+			ListButton(headingContent = { Text(stringResource(R.string.server_backup_title)) },
+				captionContent = { Text(server?.backupAddress ?: stringResource(R.string.server_backup_empty)) },
+				onClick = {
+					showServerAddressEditor(context, lifecycleScope, addresses, serverId, server?.backupAddress) {
+						serverRepository.loadStoredServers()
+					}
+				}, modifier = Modifier.focusKey("backup_address"))
+		}
 
 		item {
 			ListButton(
