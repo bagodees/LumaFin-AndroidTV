@@ -27,6 +27,11 @@ fun SettingsHelpScreen() {
 				onClick = { router.push(Routes.MAINTENANCE) }, modifier = Modifier.focusKey(Routes.MAINTENANCE))
 		}
 		item {
+			ListButton(headingContent = { Text(stringResource(R.string.speed_test_title)) },
+				captionContent = { Text(stringResource(R.string.speed_test_description)) },
+				onClick = { router.push(Routes.STREAMING_SPEED) }, modifier = Modifier.focusKey(Routes.STREAMING_SPEED))
+		}
+		item {
 			ListButton(headingContent = { Text(stringResource(R.string.pref_telemetry_category)) },
 				captionContent = { Text(stringResource(R.string.settings_search_telemetry)) },
 				onClick = { router.push(Routes.TELEMETRY) }, modifier = Modifier.focusKey(Routes.TELEMETRY))

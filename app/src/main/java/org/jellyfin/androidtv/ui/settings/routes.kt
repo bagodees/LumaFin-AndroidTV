@@ -79,6 +79,7 @@ object Routes {
 	const val MAIN = "/"
 	const val SEARCH = "/search"
 	const val HELP = "/help"
+	const val STREAMING_SPEED = "/help/streaming-speed"
 	const val AUTHENTICATION = "/authentication"
 	const val AUTHENTICATION_FROM_LOGIN = "/authentication+login"
 	const val AUTHENTICATION_SERVER = "/authentication/server/{serverId}"
@@ -146,6 +147,7 @@ object Routes {
 
 val routes = mapOf<String, RouteComposable>(
 	Routes.HELP to { SettingsHelpScreen() },
+	Routes.STREAMING_SPEED to { org.jellyfin.androidtv.ui.settings.screen.SettingsStreamingSpeedScreen() },
 	Routes.SEARCH to { SettingsSearchScreen() },
 	Routes.HOME_SHORTCUTS to { SettingsHomeShortcutsScreen() },
 	Routes.HOME_RECOMMENDATIONS to { SettingsHomeRecommendationsScreen() },

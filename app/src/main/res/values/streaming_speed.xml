@@ -1,0 +1,25 @@
+<resources>
+	<string name="speed_test_title">Test streaming speed</string>
+	<string name="speed_test_description">Measure a short transfer from your Jellyfin server to this TV.</string>
+	<string name="speed_test_scope">Uses a library video without playing it or changing watched progress. This measures the selected server connection, not general internet speed.</string>
+	<string name="speed_test_start">Start test</string>
+	<string name="speed_test_bounds">Reads up to 64 MiB for up to 10 seconds. May use mobile or metered data.</string>
+	<string name="speed_test_running">Testing… Cancel or go back to stop the transfer.</string>
+	<string name="speed_test_cancelled">Test cancelled.</string>
+	<string name="speed_test_failed">The test could not finish. Check your connection and server access, then try again.</string>
+	<string name="speed_test_no_media">No suitable local video was found in the sampled library items. Remote streams and live TV cannot be used.</string>
+	<string name="speed_test_no_session">Sign in to a server to run this test.</string>
+	<string name="speed_test_average">Average: %1$s Mbit/s</string>
+	<string name="speed_test_sample">%1$s • %2$s MiB in %3$s seconds</string>
+	<string name="speed_test_short">Short sample: the transfer finished in under two seconds. This estimate may not represent sustained speed.</string>
+	<string name="speed_test_variation">One-second samples ranged from %1$s to %2$s Mbit/s.</string>
+	<string name="speed_test_source_bitrate">Sampled video bitrate: %1$s Mbit/s</string>
+	<string name="speed_test_headroom">The average has headroom above this video’s reported bitrate. Brief peaks or changing network conditions may still cause buffering.</string>
+	<string name="speed_test_limited">There is limited headroom for this video. A lower streaming-quality limit may help if the server can convert it.</string>
+	<string name="speed_test_quality">Your streaming quality</string>
+	<string name="speed_test_quality_headroom">The average is comfortably above your configured bitrate limit. Actual playback may use less bandwidth.</string>
+	<string name="speed_test_quality_limited">The average has limited headroom above your configured bitrate limit. Videos near that limit may buffer; lower-bitrate videos may still play well.</string>
+	<string name="speed_test_original">Original quality: bandwidth depends on each video’s actual bitrate.</string>
+	<string name="speed_test_limit">Configured limit: %1$s Mbit/s. Actual stream bitrate depends on the video and server conversion.</string>
+	<string name="speed_test_caveat">This is a short connection sample, not a playback guarantee. Video bitrate peaks, Wi-Fi changes, server conversion speed and device support also matter. Settings are not changed by this test.</string>
+</resources>
