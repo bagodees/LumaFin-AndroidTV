@@ -25,6 +25,7 @@ import androidx.compose.ui.input.key.type
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.jellyfin.androidtv.util.SeekAcceleration
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.times
@@ -66,6 +67,7 @@ fun Seekbar(
 	onSeek: ((progress: Duration) -> Unit)? = null,
 	enabled: Boolean = true,
 	colors: SeekbarColors = SeekbarDefaults.colors(),
+	accelerateOnHold: Boolean = false,
 ) {
 	val durationMs = duration.inWholeMilliseconds.toFloat().coerceAtLeast(1f)
 	val progressPercentage = progress.inWholeMilliseconds.toFloat() / durationMs
@@ -84,6 +86,7 @@ fun Seekbar(
 		onSeek = if (onSeek == null) null else { progress -> onSeek(progress.toDouble() * duration) },
 		enabled = enabled,
 		colors = colors,
+		accelerateOnHold = accelerateOnHold,
 	)
 }
 
@@ -99,6 +102,7 @@ fun Seekbar(
 	onSeek: ((progress: Float) -> Unit)? = null,
 	enabled: Boolean = true,
 	colors: SeekbarColors = SeekbarDefaults.colors(),
+	accelerateOnHold: Boolean = false,
 ) {
 	val coroutineScope = rememberCoroutineScope()
 	val focused by interactionSource.collectIsFocusedAsState()
@@ -117,10 +121,14 @@ fun Seekbar(
 				val isScrubbing = isForward || isRewind
 				val isKeyUp = it.type == KeyEventType.KeyUp
 				val isKeyDown = it.type == KeyEventType.KeyDown
+				val multiplier = if (accelerateOnHold) SeekAcceleration.multiplier(
+					it.nativeKeyEvent.repeatCount,
+					it.nativeKeyEvent.eventTime - it.nativeKeyEvent.downTime,
+				) else 1
 
 				val newProgress = when {
-					isKeyDown && isForward -> (visibleProgress + seekForwardAmount).coerceAtMost(1f)
-					isKeyDown && isRewind -> (visibleProgress - seekRewindAmount).coerceAtLeast(0f)
+					isKeyDown && isForward -> (visibleProgress + seekForwardAmount * multiplier).coerceAtMost(1f)
+					isKeyDown && isRewind -> (visibleProgress - seekRewindAmount * multiplier).coerceAtLeast(0f)
 					else -> visibleProgress
 				}
 

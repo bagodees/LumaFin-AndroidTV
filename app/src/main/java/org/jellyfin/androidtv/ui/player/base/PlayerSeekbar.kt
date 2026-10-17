@@ -37,6 +37,7 @@ fun PlayerSeekbar(
 		duration = positionInfo.duration,
 		seekForwardAmount = seekForwardAmount,
 		seekRewindAmount = seekRewindAmount,
+		accelerateOnHold = true,
 		onScrubbing = { scrubbing -> playbackManager.state.setScrubbing(scrubbing) },
 		onSeek = { progress -> playbackManager.state.seek(progress) },
 		modifier = modifier,

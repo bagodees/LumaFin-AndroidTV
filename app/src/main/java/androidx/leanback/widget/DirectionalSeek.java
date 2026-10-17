@@ -1,6 +1,7 @@
 package androidx.leanback.widget;
 
 import android.view.KeyEvent;
+import org.jellyfin.androidtv.util.SeekAcceleration;
 
 import java.util.Arrays;
 import java.util.function.LongSupplier;
@@ -53,7 +54,9 @@ public final class DirectionalSeek {
                         boolean forward = keyCode == KeyEvent.KEYCODE_DPAD_RIGHT
                                 || keyCode == KeyEvent.KEYCODE_PLUS
                                 || keyCode == KeyEvent.KEYCODE_MEDIA_FAST_FORWARD;
-                        seek(vh, forward, forward ? forwardInterval.getAsLong() : backwardInterval.getAsLong());
+                        long interval = forward ? forwardInterval.getAsLong() : backwardInterval.getAsLong();
+                        int multiplier = SeekAcceleration.multiplier(event.getRepeatCount(), event.getEventTime() - event.getDownTime());
+                        seek(vh, forward, interval * multiplier);
                     }
                     return true;
                 case KeyEvent.KEYCODE_DPAD_CENTER:
