@@ -129,7 +129,8 @@ class AccountPreferencesTests : FunSpec({
 })
 
 /** Android-compatible buffered editor semantics, including listener notification after apply. */
-private class MemoryPreferences : SharedPreferences {
+internal class MemoryPreferences : SharedPreferences {
+	var failNextCommit = false
 	private val values = mutableMapOf<String, Any?>()
 	private val listeners = mutableSetOf<SharedPreferences.OnSharedPreferenceChangeListener>()
 	override fun getAll(): Map<String, *> = values.toMap()
@@ -160,6 +161,7 @@ private class MemoryPreferences : SharedPreferences {
 			pending.forEach { (key, value) -> if (value == null) values.remove(key) else values[key] = value }
 			pending.keys.forEach { key -> listeners.toList().forEach { it.onSharedPreferenceChanged(this@MemoryPreferences, key) } }
 			pending.clear()
+			if (failNextCommit) { failNextCommit = false; return false }
 			return true
 		}
 		override fun apply() { commit() }

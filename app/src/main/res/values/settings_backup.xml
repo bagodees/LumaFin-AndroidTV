@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="backup_title">Back up and restore settings</string>
+    <string name="backup_scope">Save Home row order and limits, browsing appearance, subtitle appearance, autoplay, prerolls and seek lengths.</string>
+    <string name="backup_destination">Current account: %1$s on %2$s</string>
+    <string name="backup_exclusions">Restores apply only to the current account on this TV. Backups contain no account identifiers, server addresses, passwords or tokens. Library settings, pinned shortcuts, recommendations, watch history, playlists, other playback settings and device capability overrides are excluded.</string>
+    <string name="backup_save">Save settings backup</string>
+    <string name="backup_downloads">Save a JSON backup in Downloads/LumaFin on this TV. Use a file manager to retrieve it.</string>
+    <string name="backup_restore_saved">Restore a saved backup</string>
+    <string name="backup_import">Import a backup file</string>
+    <string name="backup_no_picker">This TV has no system file picker. Use Restore a saved backup for files saved by LumaFin, or install a document-provider app to import a file from elsewhere.</string>
+    <string name="backup_import_cancelled">No file selected. No settings changed. If this TV has no file picker, use Restore a saved backup for files saved by LumaFin.</string>
+    <string name="backup_working">Working…</string>
+    <string name="backup_review">Review restore</string>
+    <string name="backup_review_count">%1$d changes • %2$d already match • %3$d unsupported entries skipped. Settings missing from the backup stay as they are.</string>
+    <string name="backup_change">%1$s → %2$s</string>
+    <string name="backup_apply">Apply restore</string>
+    <string name="backup_confirm">Apply %3$d changes to %1$s on %2$s? Other accounts keep their settings.</string>
+    <string name="backup_saved_downloads">Backup saved in Downloads/LumaFin. Copy this JSON file somewhere safe for use on another TV or after reinstalling.</string>
+    <string name="backup_saved_file">Backup saved to the selected file.</string>
+    <string name="backup_none">No saved backups found. Import a backup file or save one first.</string>
+    <string name="backup_invalid">Unable to review this backup. It may be invalid, too large, from an unsupported version, or the current account may have changed. No settings were changed.</string>
+    <string name="backup_failed">Unable to save or read settings. Check that you are signed in and the file location is available.</string>
+    <string name="backup_sign_in">Sign in before restoring settings.</string>
+    <string name="backup_restore_failed">Restore could not be completed. Reopen the backup if the account or settings changed during review.</string>
+    <string name="backup_restored">Settings restored. Close settings and reopen Home to see your layout.</string>
+    <string name="backup_back">Back</string>
+    <string name="backup_latest_movies">Latest movies: item limit</string>
+    <string name="backup_latest_shows">Latest shows: item limit</string>
+    <string name="backup_recent_movies">Recently added movies: item limit</string>
+    <string name="backup_recent_shows">Recently added shows: item limit</string>
+    <string name="backup_hide_latest">Latest movies: hide watched</string>
+    <string name="backup_hide_recent">Recently added movies: hide watched</string>
+</resources>

@@ -32,6 +32,11 @@ fun SettingsHelpScreen() {
 				onClick = { router.push(Routes.MAINTENANCE) }, modifier = Modifier.focusKey(Routes.MAINTENANCE))
 		}
 		item {
+			ListButton(headingContent = { Text(stringResource(R.string.backup_title)) },
+				captionContent = { Text(stringResource(R.string.backup_scope)) },
+				onClick = { router.push(Routes.SETTINGS_BACKUP) }, modifier = Modifier.focusKey(Routes.SETTINGS_BACKUP))
+		}
+		item {
 			ListButton(headingContent = { Text(stringResource(R.string.speed_test_title)) },
 				captionContent = { Text(stringResource(R.string.speed_test_description)) },
 				onClick = { router.push(Routes.STREAMING_SPEED) }, modifier = Modifier.focusKey(Routes.STREAMING_SPEED))

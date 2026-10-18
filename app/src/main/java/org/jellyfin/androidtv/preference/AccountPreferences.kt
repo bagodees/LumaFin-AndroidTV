@@ -28,6 +28,26 @@ class AccountPreferences internal constructor(
 	internal val preferences = SwitchingAccountPreferences(legacy, open("account_guest"), deviceKeys)
 	private var identity: String? = null
 
+	internal data class BackupTarget(val identity: String, val revision: Int, val values: Map<String, Any>)
+
+	@Synchronized
+	internal fun backupTarget(): BackupTarget {
+		val selected = checkNotNull(identity) { "Sign in before backing up settings" }
+		val values = preferences.all
+		return BackupTarget(selected, preferences.revision, SettingsBackup.snapshot { values[it] })
+	}
+
+	/** A review belongs to one account revision and one unchanged set of supported preferences. */
+	@Synchronized
+	internal fun restoreBackup(target: BackupTarget, review: SettingsBackup.Review) {
+		check(identity == target.identity && preferences.revision == target.revision) { "Account changed" }
+		check(backupTarget().values == target.values) { "Settings changed since review" }
+		// Revalidate at the write boundary; never let an arbitrary key reach the store.
+		val validated = SettingsBackup.review(SettingsBackup.encode(review.values)).values
+		check(validated.size == review.values.size) { "Unsupported settings" }
+		preferences.restoreLocal(validated)
+	}
+
 	@Synchronized
 	fun select(serverId: UUID?, userId: UUID?) {
 		val next = if (serverId != null && userId != null) "${serverId}_$userId" else null
@@ -168,6 +188,19 @@ internal class SwitchingAccountPreferences(
 	initial: SharedPreferences,
 	private val deviceKeys: Set<String>,
 ) : SharedPreferences {
+	@Synchronized internal fun restoreLocal(values: Map<String, Any>) {
+		require(values.keys.none { it in deviceKeys })
+		val before = account.all
+		val editor = account.edit()
+		values.forEach { (key, value) -> editor.putValue(key, value) }
+		if (!editor.commit()) {
+			// SharedPreferences updates memory even when its disk write fails. Restore that memory too.
+			val rollback = account.edit()
+			values.keys.forEach { key -> if (before.containsKey(key)) rollback.putValue(key, before[key]) else rollback.remove(key) }
+			rollback.commit()
+			error("Unable to save settings")
+		}
+	}
 	var revision by mutableIntStateOf(0)
 		private set
 	@Volatile private var account = initial

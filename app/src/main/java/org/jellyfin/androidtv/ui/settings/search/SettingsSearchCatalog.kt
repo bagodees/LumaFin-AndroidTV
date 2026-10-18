@@ -120,6 +120,7 @@ fun settingsSearchCatalog(context: Context, prefs: UserPreferences, liveTvEnable
 	addSetting(Routes.HELP, R.string.settings_group_help, R.string.settings, R.string.settings_group_help_description)
 	addSetting(Routes.STREAMING_SPEED, R.string.speed_test_title, R.string.settings_group_help, R.string.speed_test_description)
 	addSetting(Routes.DIAGNOSTIC_EXPORT, R.string.export_title, R.string.settings_group_help, R.string.export_scope)
+	addSetting(Routes.SETTINGS_BACKUP, R.string.backup_title, R.string.settings_group_help, R.string.backup_scope)
 	addSetting(Routes.MAINTENANCE, R.string.maintenance_title, R.string.settings, R.string.settings_search_cache)
 	addSetting(Routes.TELEMETRY, R.string.pref_telemetry_category, R.string.settings, R.string.settings_search_telemetry)
 	addSetting(Routes.ABOUT, R.string.pref_about_title, R.string.settings, R.string.settings_search_about)
