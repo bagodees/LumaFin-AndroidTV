@@ -131,10 +131,37 @@ class QueueService internal constructor() : PlayerService(), Queue {
 		_entries.value = fetchedEntries.toList()
 	}
 
+	override fun editUpcoming(expectedEntries: List<QueueEntry>, expectedCurrent: QueueEntry, fromIndex: Int, toIndex: Int?): Boolean {
+		if (state.playbackOrder.value != PlaybackOrder.DEFAULT || _entry.value !== expectedCurrent || fetchedEntries != expectedEntries) return false
+		val edited = editUpcomingItems(fetchedEntries, _entryIndex.value, fromIndex, toIndex) ?: return false
+		fetchedEntries.clear()
+		fetchedEntries.addAll(edited)
+		if (toIndex == null) {
+			removedEntries++
+			currentQueueIndicesPlayed.removeAll { it == fromIndex }
+			currentQueueIndicesPlayed.replaceAll { if (it > fromIndex) it - 1 else it }
+			orderIndexProvider.notifyRemoved(fromIndex)
+		} else {
+			currentQueueIndicesPlayed.replaceAll {
+				when {
+					it == fromIndex -> toIndex
+					fromIndex < toIndex && it in (fromIndex + 1)..toIndex -> it - 1
+					toIndex < fromIndex && it in toIndex until fromIndex -> it + 1
+					else -> it
+				}
+			}
+			orderIndexProvider.reset()
+		}
+		_entries.value = fetchedEntries.toList()
+		return true
+	}
+
 	override fun clear() {
 		suppliers.clear()
 		currentSupplierIndex = 0
 		currentSupplierEntryIndex = 0
+		removedEntries = 0
+		orderIndexProvider.reset()
 		fetchedEntries.clear()
 		_entries.value = emptyList()
 		_entry.value = null

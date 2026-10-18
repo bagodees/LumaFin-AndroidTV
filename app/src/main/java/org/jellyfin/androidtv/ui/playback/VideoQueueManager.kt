@@ -17,6 +17,12 @@ class VideoQueueManager {
 
 	fun getCurrentVideoQueue(): List<BaseItemDto> = _currentVideoQueue
 
+	/** Keep the edited session for Next Up without resetting remembered track languages. */
+	fun updateCurrentVideoQueue(items: List<BaseItemDto>, currentIndex: Int) {
+		_currentVideoQueue = items.toList()
+		_currentMediaPosition = currentIndex
+	}
+
 	fun setCurrentMediaPosition(currentMediaPosition: Int) {
 		if (currentMediaPosition !in 0.._currentVideoQueue.size) return
 

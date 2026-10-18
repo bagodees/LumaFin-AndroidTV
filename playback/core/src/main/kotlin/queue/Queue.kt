@@ -80,6 +80,9 @@ interface Queue {
 	 */
 	suspend fun removeEntry(entry: QueueEntry)
 
+	/** Atomically edit a reviewed snapshot's upcoming entries in default order. Null destination removes the source. */
+	fun editUpcoming(expectedEntries: List<QueueEntry>, expectedCurrent: QueueEntry, fromIndex: Int, toIndex: Int?): Boolean
+
 	/**
 	 * Get the previously playing entry or null if none.
 	 */

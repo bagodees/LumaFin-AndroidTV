@@ -189,6 +189,21 @@ public class PlaybackController implements PlaybackControllerNotifiable {
         return mItems.size() > mCurrentIndex ? mItems.get(mCurrentIndex) : null;
     }
 
+    public List<BaseItemDto> getVideoQueueSnapshot() {
+        return new java.util.ArrayList<>(mItems);
+    }
+
+    public int getCurrentQueueIndex() { return mCurrentIndex; }
+
+    public boolean editUpcomingQueue(List<BaseItemDto> expectedItems, int expectedIndex, int source, Integer destination) {
+        if (mCurrentIndex != expectedIndex || !mItems.equals(expectedItems)) return false;
+        List<BaseItemDto> edited = org.jellyfin.playback.core.queue.EditUpcomingItemsKt.editUpcomingItems(mItems, mCurrentIndex, source, destination);
+        if (edited == null) return false;
+        mItems = edited;
+        videoQueueManager.getValue().updateCurrentVideoQueue(edited, mCurrentIndex);
+        return true;
+    }
+
     public boolean hasInitializedVideoManager() {
         return mVideoManager != null && mVideoManager.isInitialized();
     }

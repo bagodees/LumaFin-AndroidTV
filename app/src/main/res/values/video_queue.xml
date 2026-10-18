@@ -1,0 +1,19 @@
+<resources>
+	<string name="video_queue_title">Video queue</string>
+	<string name="video_queue_scope">Changes affect this playback session only. Saved playlists and Watch Later stay unchanged.</string>
+	<string name="video_queue_current">Now playing: %1$s</string>
+	<string name="video_queue_upcoming">Upcoming — select a video to move or remove it.</string>
+	<string name="video_queue_empty">No upcoming videos</string>
+	<string name="video_queue_none">Nothing</string>
+	<string name="video_queue_untitled">Untitled video</string>
+	<string name="video_queue_earlier">Move earlier</string>
+	<string name="video_queue_later">Move later</string>
+	<string name="video_queue_remove">Remove from this queue</string>
+	<string name="video_queue_close">Close</string>
+	<string name="video_queue_more">Load more</string>
+	<string name="video_queue_loading">Loading video queue…</string>
+	<string name="video_queue_failed">Could not load the video queue. Choose Retry.</string>
+	<string name="video_queue_retry">Retry</string>
+	<string name="video_queue_changed">Playback or the queue changed. Review the updated queue and try again.</string>
+	<string name="video_queue_order_note">Queue order shown. Editing is available in normal playback order, outside shuffle or random mode.</string>
+</resources>

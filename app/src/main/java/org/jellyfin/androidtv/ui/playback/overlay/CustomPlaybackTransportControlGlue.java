@@ -66,6 +66,7 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
     private PlaybackSpeedAction playbackSpeedAction;
     private ZoomAction zoomAction;
     private SleepTimerAction sleepTimerAction;
+    private org.jellyfin.androidtv.ui.playback.overlay.action.VideoQueueAction videoQueueAction;
     private org.jellyfin.androidtv.ui.playback.overlay.action.PlaybackInformationAction playbackInformationAction;
     private ChapterAction chapterAction;
 
@@ -136,6 +137,7 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
         zoomAction.dismissPopup();
         sleepTimerAction.dismissPopup();
         playbackInformationAction.dismissDialog();
+        videoQueueAction.dismissDialog();
 
         super.onDetachedFromHost();
     }
@@ -245,6 +247,8 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
         sleepTimerAction.setLabels(new String[]{context.getString(R.string.sleep_timer)});
         playbackInformationAction = new org.jellyfin.androidtv.ui.playback.overlay.action.PlaybackInformationAction(context, this);
         playbackInformationAction.setLabels(new String[]{context.getString(R.string.playback_information)});
+        videoQueueAction = new org.jellyfin.androidtv.ui.playback.overlay.action.VideoQueueAction(context, this);
+        videoQueueAction.setLabels(new String[]{context.getString(R.string.video_queue_title)});
         playbackSpeedAction = new PlaybackSpeedAction(context, this, playbackController);
         playbackSpeedAction.setLabels(new String[]{context.getString(R.string.lbl_playback_speed)});
         zoomAction = new ZoomAction(context, this);
@@ -328,6 +332,7 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
         if (!playerAdapter.isLiveTv()) {
             secondaryActionsAdapter.add(playbackSpeedAction);
             secondaryActionsAdapter.add(selectQualityAction);
+            secondaryActionsAdapter.add(videoQueueAction);
         }
 
         secondaryActionsAdapter.add(zoomAction);
@@ -343,6 +348,13 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
             primaryActionsAdapter.add(overflow);
         }
         updateChapterTicks();
+    }
+
+    public void refreshQueueActions() {
+        // Only the next button can change when upcoming items are edited; keep the other controls and focus intact.
+        if (primaryActionsAdapter == null) return;
+        boolean shown = primaryActionsAdapter.indexOf(skipNextAction) >= 0;
+        if (!getPlayerAdapter().hasNextItem() && shown) primaryActionsAdapter.remove(skipNextAction);
     }
 
     @Override

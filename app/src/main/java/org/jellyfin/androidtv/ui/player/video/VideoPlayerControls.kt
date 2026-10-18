@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -27,6 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.onVisibilityChanged
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
@@ -39,6 +41,8 @@ import org.jellyfin.androidtv.ui.base.button.IconButton
 import org.jellyfin.androidtv.ui.base.popover.Popover
 import org.jellyfin.androidtv.ui.composable.rememberPlayerPositionInfo
 import org.jellyfin.androidtv.ui.player.base.PlayerSeekbar
+import org.jellyfin.androidtv.ui.playback.VideoQueueDialog
+import org.jellyfin.androidtv.ui.playback.playerVideoQueueEditor
 import org.jellyfin.playback.core.PlaybackManager
 import org.jellyfin.playback.core.model.PlayState
 import org.jellyfin.playback.core.queue.queue
@@ -74,6 +78,7 @@ fun VideoPlayerControls(
 			MoreOptionsButton {
 				PreviousEntryButton(playbackManager)
 				NextEntryButton(playbackManager)
+				VideoQueueButton(playbackManager)
 			}
 		}
 
@@ -93,6 +98,19 @@ fun VideoPlayerControls(
 			Spacer(Modifier.weight(1f))
 			PositionText(playbackManager)
 		}
+	}
+}
+
+@Composable
+private fun VideoQueueButton(playbackManager: PlaybackManager) {
+	val context = LocalContext.current
+	var dialog by remember { mutableStateOf<VideoQueueDialog?>(null) }
+	DisposableEffect(Unit) { onDispose { dialog?.dismiss() } }
+	IconButton(onClick = {
+		dialog?.dismiss()
+		dialog = VideoQueueDialog(context, playerVideoQueueEditor(playbackManager)) { dialog = null }.also { it.show() }
+	}) {
+		Icon(imageVector = ImageVector.vectorResource(R.drawable.ic_next_up), contentDescription = stringResource(R.string.video_queue_title))
 	}
 }
 
@@ -191,10 +209,11 @@ private fun NextEntryButton(
 	playbackManager: PlaybackManager,
 ) {
 	val entryIndex by playbackManager.queue.entryIndex.collectAsState()
+	val entries by playbackManager.queue.entries.collectAsState()
 	val coroutineScope = rememberCoroutineScope()
 
 	IconButton(
-		enabled = entryIndex < playbackManager.queue.estimatedSize - 1,
+		enabled = entryIndex < maxOf(entries.size, playbackManager.queue.estimatedSize) - 1,
 		onClick = {
 			coroutineScope.launch {
 				playbackManager.queue.next()
