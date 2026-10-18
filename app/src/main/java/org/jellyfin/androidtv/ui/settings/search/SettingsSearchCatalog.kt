@@ -26,6 +26,7 @@ fun settingsSearchCatalog(context: Context, prefs: UserPreferences, liveTvEnable
 	val appearance = R.string.settings_group_appearance
 	val playback = R.string.pref_playback
 	val subtitles = R.string.pref_subtitles
+	addSetting(Routes.SETUP_GUIDE, R.string.setup_guide_title, R.string.settings_group_help, R.string.setup_guide_revisit)
 	addSetting(Routes.AUTHENTICATION, R.string.settings_group_accounts, R.string.settings, R.string.settings_search_login)
 	addSetting(Routes.CUSTOMIZATION, appearance, R.string.settings, R.string.settings_search_appearance)
 	addSetting(Routes.CUSTOMIZATION_THEME, R.string.pref_app_theme, appearance, R.string.settings_search_appearance, name(prefs[UserPreferences.appTheme]))
@@ -118,6 +119,7 @@ fun settingsSearchCatalog(context: Context, prefs: UserPreferences, liveTvEnable
 	}
 	addSetting(Routes.HELP, R.string.settings_group_help, R.string.settings, R.string.settings_group_help_description)
 	addSetting(Routes.STREAMING_SPEED, R.string.speed_test_title, R.string.settings_group_help, R.string.speed_test_description)
+	addSetting(Routes.DIAGNOSTIC_EXPORT, R.string.export_title, R.string.settings_group_help, R.string.export_scope)
 	addSetting(Routes.MAINTENANCE, R.string.maintenance_title, R.string.settings, R.string.settings_search_cache)
 	addSetting(Routes.TELEMETRY, R.string.pref_telemetry_category, R.string.settings, R.string.settings_search_telemetry)
 	addSetting(Routes.ABOUT, R.string.pref_about_title, R.string.settings, R.string.settings_search_about)

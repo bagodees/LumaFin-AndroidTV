@@ -1,0 +1,27 @@
+<resources>
+	<string name="export_title">Export diagnostics</string>
+	<string name="export_scope">Prepare a technical report for connection or playback problems. Review it before saving. Names, addresses, identifiers, credentials, tokens and raw logs are excluded. Nothing is uploaded.</string>
+	<string name="export_review">Review the exact report below, then choose Save at the end. Add detailed reproduction steps to the saved text file before sharing it yourself.</string>
+	<string name="export_problem">What went wrong?</string>
+	<string name="export_trigger">When does it happen?</string>
+	<string name="export_problem_connection">Connection or sign-in</string>
+	<string name="export_problem_buffering">Buffering</string>
+	<string name="export_problem_video">Video or picture</string>
+	<string name="export_problem_audio">Audio</string>
+	<string name="export_problem_other">Something else</string>
+	<string name="export_trigger_start">Starting a video</string>
+	<string name="export_trigger_playing">During playback</string>
+	<string name="export_trigger_seek">After seeking</string>
+	<string name="export_trigger_resume">After resuming</string>
+	<string name="export_trigger_browsing">Browsing or connecting</string>
+	<string name="export_prepare">Prepare report for review</string>
+	<string name="export_save">Save reviewed report</string>
+	<string name="export_saving">Working…</string>
+	<string name="export_downloads">Save a text file in Downloads/LumaFin on this TV. Use a file manager to retrieve it.</string>
+	<string name="export_choose_file">Choose where to save using Android’s file picker.</string>
+	<string name="export_saved_downloads">Saved in Downloads/LumaFin. Nothing was uploaded.</string>
+	<string name="export_saved_document">Report saved. Nothing was uploaded.</string>
+	<string name="export_cancelled">Save cancelled. The report is still available to review.</string>
+	<string name="export_failed">Could not prepare or save the report. Check available storage and try again. No upload was attempted.</string>
+	<string name="export_no_picker">This TV has no file picker. Install a compatible document provider to save a report on this Android version.</string>
+</resources>

@@ -14,6 +14,35 @@ class AccountPreferencesTests : FunSpec({
 	val userA = UUID(0, 3)
 	val userB = UUID(0, 4)
 
+	test("setup presentation survives restart separately for each user and server") {
+		val legacy = MemoryPreferences()
+		val files = mutableMapOf<String, MemoryPreferences>()
+		fun create() = AccountPreferences(legacy, { files.getOrPut(it) { MemoryPreferences() } })
+		val accounts = create()
+		val prefs = UserPreferences(mockk<Context>(), accounts.preferences)
+		accounts.select(serverA, userA)
+		prefs[UserPreferences.setupGuideSeen] shouldBe false
+		prefs[UserPreferences.setupGuideSeen] = true
+		accounts.select(serverA, userB)
+		prefs[UserPreferences.setupGuideSeen] shouldBe false
+		accounts.select(serverB, userA)
+		prefs[UserPreferences.setupGuideSeen] shouldBe false
+		val recreated = create()
+		recreated.select(serverA, userA)
+		UserPreferences(mockk<Context>(), recreated.preferences)[UserPreferences.setupGuideSeen] shouldBe true
+	}
+
+	test("presenting or skipping setup changes only its local seen flag") {
+		val accounts = AccountPreferences(MemoryPreferences(), { MemoryPreferences() })
+		accounts.select(serverA, userA)
+		val prefs = UserPreferences(mockk<Context>(), accounts.preferences)
+		prefs[UserPreferences.subtitleBrightness] = 60
+		prefs[UserPreferences.mediaQueuingEnabled] = false
+		val before = accounts.preferences.all
+		prefs[UserPreferences.setupGuideSeen] = true
+		accounts.preferences.all shouldBe before + (UserPreferences.setupGuideSeen.key to true)
+	}
+
 	test("legacy preferences migrate once and user/server settings survive recreation independently") {
 		val legacy = MemoryPreferences()
 		legacy.edit().putString("homeSectionOrder", "resume,nextup").putInt("skipBackLength", 15000)

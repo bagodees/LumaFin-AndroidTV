@@ -79,7 +79,10 @@ object Routes {
 	const val MAIN = "/"
 	const val SEARCH = "/search"
 	const val HELP = "/help"
+	const val SETUP_GUIDE = "/help/setup"
+	const val SETUP_SUBTITLES = "/help/setup/subtitles"
 	const val STREAMING_SPEED = "/help/streaming-speed"
+	const val DIAGNOSTIC_EXPORT = "/help/diagnostics-export"
 	const val AUTHENTICATION = "/authentication"
 	const val AUTHENTICATION_FROM_LOGIN = "/authentication+login"
 	const val AUTHENTICATION_SERVER = "/authentication/server/{serverId}"
@@ -146,8 +149,11 @@ object Routes {
 }
 
 val routes = mapOf<String, RouteComposable>(
+	Routes.SETUP_GUIDE to { context -> org.jellyfin.androidtv.ui.settings.screen.SettingsSetupGuideScreen(context.parameters["firstRun"] == "true") },
+	Routes.SETUP_SUBTITLES to { org.jellyfin.androidtv.ui.settings.screen.SettingsSetupSubtitlesScreen() },
 	Routes.HELP to { SettingsHelpScreen() },
 	Routes.STREAMING_SPEED to { org.jellyfin.androidtv.ui.settings.screen.SettingsStreamingSpeedScreen() },
+	Routes.DIAGNOSTIC_EXPORT to { org.jellyfin.androidtv.ui.settings.screen.SettingsDiagnosticExportScreen() },
 	Routes.SEARCH to { SettingsSearchScreen() },
 	Routes.HOME_SHORTCUTS to { SettingsHomeShortcutsScreen() },
 	Routes.HOME_RECOMMENDATIONS to { SettingsHomeRecommendationsScreen() },

@@ -21,6 +21,7 @@ class SearchFragmentDelegate(
 	private val itemLauncher: ItemLauncher,
 ) {
 	val rowsAdapter = MutableObjectAdapter<Row>(CustomListRowPresenter())
+	var onSelectionChanged: (Int, Int) -> Unit = { _, _ -> }
 
 	fun showResults(searchResultGroups: Collection<SearchResultGroup>) {
 		rowsAdapter.clear()
@@ -47,7 +48,11 @@ class SearchFragmentDelegate(
 		itemLauncher.launch(item as BaseRowItem?, adapter, context)
 	}
 
-	val onItemViewSelectedListener = OnItemViewSelectedListener { _, item, _, _ ->
+	val onItemViewSelectedListener = OnItemViewSelectedListener { _, item, _, row ->
+		if (row is ListRow && item != null) {
+			val adapter = row.adapter as? ItemRowAdapter
+			if (adapter != null) onSelectionChanged(rowsAdapter.indexOf(row).coerceAtLeast(0), adapter.indexOf(item).coerceAtLeast(0))
+		}
 		val baseItem = item?.let { (item as BaseRowItem).baseItem }
 		if (baseItem != null) {
 			backgroundService.setBackground(baseItem)

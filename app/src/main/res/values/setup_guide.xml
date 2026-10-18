@@ -1,0 +1,18 @@
+<resources>
+    <string name="setup_guide_title">Quick setup guide</string>
+    <string name="setup_guide_intro">Make LumaFin your own. These steps are optional. Open a setting, then press Back to return here. You can revisit this guide in Help &amp; Maintenance.</string>
+    <string name="setup_guide_revisit">Optional guidance for Home layout, subtitle language and appearance, and autoplay.</string>
+    <string name="setup_guide_skip">Skip for now</string>
+    <string name="setup_guide_close">Close guide</string>
+    <string name="setup_guide_done">Done</string>
+    <string name="setup_guide_back">Back to guide</string>
+    <string name="setup_guide_layout">1. Home layout</string>
+    <string name="setup_guide_layout_description">Choose a layout preset, the rows you see and their order. Your current layout stays until you change it.</string>
+    <string name="setup_guide_subtitles">2. Subtitles</string>
+    <string name="setup_guide_subtitles_description">Find language choices and adjust how subtitles look.</string>
+    <string name="setup_guide_autoplay">3. Autoplay</string>
+    <string name="setup_guide_autoplay_description">Choose whether the next episode or queued item plays automatically, and review Next Up.</string>
+    <string name="setup_subtitle_language">Choose an available subtitle language from a title’s audio/subtitle choices or the player’s subtitle menu. For your account’s default language, use Jellyfin’s user playback settings. Available tracks depend on the title.</string>
+    <string name="setup_subtitle_appearance">Subtitle appearance</string>
+    <string name="setup_subtitle_appearance_description">Preview text size, color, position and brightness for subtitles drawn by LumaFin. Burned-in subtitles and external players may use their own appearance.</string>
+</resources>

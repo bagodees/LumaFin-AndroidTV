@@ -22,6 +22,11 @@ fun SettingsHelpScreen() {
 				captionContent = { Text(stringResource(R.string.settings_group_help_description)) })
 		}
 		item {
+			ListButton(headingContent = { Text(stringResource(R.string.setup_guide_title)) },
+				captionContent = { Text(stringResource(R.string.setup_guide_revisit)) },
+				onClick = { router.push(Routes.SETUP_GUIDE) }, modifier = Modifier.focusKey(Routes.SETUP_GUIDE))
+		}
+		item {
 			ListButton(headingContent = { Text(stringResource(R.string.maintenance_title)) },
 				captionContent = { Text(stringResource(R.string.settings_search_cache)) },
 				onClick = { router.push(Routes.MAINTENANCE) }, modifier = Modifier.focusKey(Routes.MAINTENANCE))
@@ -35,6 +40,11 @@ fun SettingsHelpScreen() {
 			ListButton(headingContent = { Text(stringResource(R.string.pref_telemetry_category)) },
 				captionContent = { Text(stringResource(R.string.settings_search_telemetry)) },
 				onClick = { router.push(Routes.TELEMETRY) }, modifier = Modifier.focusKey(Routes.TELEMETRY))
+		}
+		item {
+			ListButton(headingContent = { Text(stringResource(R.string.export_title)) },
+				captionContent = { Text(stringResource(R.string.export_scope)) },
+				onClick = { router.push(Routes.DIAGNOSTIC_EXPORT) }, modifier = Modifier.focusKey(Routes.DIAGNOSTIC_EXPORT))
 		}
 		item {
 			ListButton(headingContent = { Text(stringResource(R.string.pref_about_title)) },

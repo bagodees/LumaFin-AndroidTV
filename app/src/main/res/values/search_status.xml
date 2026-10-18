@@ -1,0 +1,8 @@
+<resources>
+    <string name="search_guidance">Search for titles, collections or people.</string>
+    <string name="search_loading">Searching your libraries…</string>
+    <string name="search_empty">No results found. Try another title or person’s name.</string>
+    <string name="search_failed">Search could not finish. Check your server connection and try again.</string>
+    <string name="search_partial_failure">Could not search: %1$s. Other results are shown below.</string>
+    <string name="search_retry">Retry search</string>
+</resources>

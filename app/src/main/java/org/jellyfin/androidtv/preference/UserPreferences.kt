@@ -90,6 +90,7 @@ class UserPreferences(context: Context, storage: SharedPreferences = PreferenceM
 	}.distinctUntilChanged()
 
 	companion object {
+		val setupGuideSeen = booleanPreference("setup_guide_seen_v1", false)
 		/* Display */
 		/**
 		 * Select the app theme
