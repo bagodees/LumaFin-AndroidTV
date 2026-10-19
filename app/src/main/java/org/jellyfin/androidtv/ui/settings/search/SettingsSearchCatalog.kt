@@ -69,6 +69,7 @@ fun settingsSearchCatalog(context: Context, prefs: UserPreferences, liveTvEnable
 	addSetting(Routes.PLAYBACK_INACTIVITY_PROMPT, R.string.pref_playback_inactivity_prompt, playback, R.string.settings_search_inactivity, name(prefs[UserPreferences.stillWatchingBehavior]))
 	addSetting(Routes.PLAYBACK_PREROLLS, R.string.pref_playback_prerolls, playback, R.string.settings_search_prerolls, enabled(prefs[UserPreferences.cinemaModeEnabled]))
 	addSetting(Routes.PLAYBACK_MEDIA_SEGMENTS, R.string.settings_intro_recap_credits, playback, R.string.settings_search_segments)
+	addSetting(Routes.PLAYBACK, R.string.playback_choices_clear, playback, R.string.playback_choices_clear_description)
 	MediaSegmentRepository.SupportedTypes.forEach { type ->
 		addSetting(Routes.PLAYBACK_MEDIA_SEGMENT, type.nameRes, R.string.settings_intro_recap_credits, R.string.settings_segment_requirement,
 			name(segments.getDefaultSegmentTypeAction(type)), mapOf("segmentType" to type.toString()))

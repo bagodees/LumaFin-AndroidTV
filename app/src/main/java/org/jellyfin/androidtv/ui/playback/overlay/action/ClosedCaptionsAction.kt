@@ -19,6 +19,8 @@ import java.util.Locale
 import org.jellyfin.sdk.model.api.MediaStreamType
 import timber.log.Timber
 import org.jellyfin.androidtv.ui.playback.SubtitleLookupDialog
+import org.jellyfin.androidtv.ui.playback.PlaybackChoiceRecorder
+import org.jellyfin.androidtv.ui.playback.PlaybackChoiceScopeDialog
 import org.jellyfin.androidtv.ui.playback.canGetMoreSubtitles
 
 class ClosedCaptionsAction(
@@ -28,6 +30,7 @@ class ClosedCaptionsAction(
 	private var popup: PopupMenu? = null
 	private var timingDialog: AlertDialog? = null
 	private var lookupDialog: SubtitleLookupDialog? = null
+	private var choicesDialog: AlertDialog? = null
 
 	init {
 		initializeWithIcon(R.drawable.ic_select_subtitle)
@@ -67,6 +70,9 @@ class ClosedCaptionsAction(
 				add(1, -2, order, context.getString(R.string.subtitle_timing)).isEnabled = playbackController.subtitleTimingAvailable()
 				if (canGetMoreSubtitles(playbackController.currentlyPlayingItem))
 					add(1, -3, order + 1, context.getString(R.string.subtitle_lookup_more))
+				playbackController.currentlyPlayingItem?.takeIf(PlaybackChoiceScopeDialog::available)?.let {
+					add(1, -4, order + 2, PlaybackChoiceScopeDialog.menuLabel(context, it))
+				}
 			}
 			setOnDismissListener {
 				videoPlayerAdapter.leanbackOverlayFragment.setFading(true)
@@ -84,9 +90,14 @@ class ClosedCaptionsAction(
 							playback = true, onRefreshed = { playbackController.refreshStream() },
 							onDismiss = { videoPlayerAdapter.leanbackOverlayFragment.setFading(true); lookupDialog = null }).also { it.show() }
 					}
+				} else if (item.itemId == -4) {
+					view.post { showChoices(playbackController, videoPlayerAdapter, context) }
 				} else if (item.itemId == -2) {
 					view.post { showTiming(playbackController, videoPlayerAdapter, context) }
-				} else playbackController.setSubtitleIndex(item.itemId)
+				} else {
+					PlaybackChoiceRecorder.subtitle(playbackController.currentlyPlayingItem, playbackController.currentMediaSource?.mediaStreams, item.itemId)
+					playbackController.setSubtitleIndex(item.itemId)
+				}
 				true
 			}
 		}
@@ -97,6 +108,16 @@ class ClosedCaptionsAction(
 		popup?.dismiss()
 		timingDialog?.dismiss()
 		lookupDialog?.dismiss()
+		choicesDialog?.dismiss()
+	}
+
+	private fun showChoices(controller: PlaybackController, adapter: VideoPlayerAdapter, context: Context) {
+		val item = controller.currentlyPlayingItem ?: return
+		adapter.leanbackOverlayFragment.setFading(false)
+		choicesDialog = PlaybackChoiceScopeDialog.show(context, item, onDismiss = {
+			adapter.leanbackOverlayFragment.setFading(true)
+			choicesDialog = null
+		})
 	}
 
 	private fun showTiming(controller: PlaybackController, adapter: VideoPlayerAdapter, context: Context) {

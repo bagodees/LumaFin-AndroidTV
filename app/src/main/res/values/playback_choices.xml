@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="playback_choices_menu">Remembered for: %1$s</string>
+    <string name="playback_choices_title">Remember these choices for</string>
+    <string name="playback_choices_series">This series</string>
+    <string name="playback_choices_season">This season</string>
+    <string name="playback_choices_episode">This episode only</string>
+    <string name="playback_choices_movie">This movie</string>
+    <string name="playback_choices_forget">Forget</string>
+    <string name="playback_choices_help">Audio, subtitle and version choices are remembered automatically. They are used when a track with the same language and type is available; otherwise your normal defaults apply.</string>
+    <string name="playback_choices_clear">Clear remembered track choices</string>
+    <string name="playback_choices_clear_description">Forget the audio, subtitle and version choices remembered for movies and shows on this account.</string>
+    <string name="playback_choices_clear_confirm">Forget all remembered audio, subtitle and version choices for this account? Your general playback settings are not changed.</string>
+    <string name="playback_choices_cleared">Remembered choices cleared</string>
+</resources>

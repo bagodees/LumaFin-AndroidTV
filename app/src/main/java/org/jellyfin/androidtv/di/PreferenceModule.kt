@@ -20,6 +20,7 @@ val preferenceModule = module {
 	single { RecommendationPreferences(get(), get(), get()) }
 	single { HomeShortcutPreferences(get<android.content.Context>(), get(), get()) }
 	single { org.jellyfin.androidtv.preference.WatchLaterPreferences(get<android.content.Context>(), get(), get()) }
+	single { org.jellyfin.androidtv.preference.PlaybackChoicePreferences(get<android.content.Context>(), get(), get()) }
 	single { UserPreferences(get(), get<AccountPreferences>().preferences) }
 	single { SystemPreferences(get()) }
 	single { TelemetryPreferences(get()) }

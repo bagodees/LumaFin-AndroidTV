@@ -896,6 +896,12 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
                 }
             });
             mDetailsOverviewRow.addAction(mVersionsButton);
+            // Open on the remembered version so the track chips describe what will play
+            Integer rememberedVersion = org.jellyfin.androidtv.ui.playback.PlaybackChoiceSupportKt.rememberedVersionIndex(mDetailsOverviewRow.getItem(), mBaseItem.getMediaSources());
+            if (rememberedVersion != null && rememberedVersion != mDetailsOverviewRow.getSelectedMediaSourceIndex()) {
+                if (versions == null) versions = new ArrayList<>(mBaseItem.getMediaSources());
+                selectVersion(rememberedVersion, null);
+            }
         }
 
         org.jellyfin.androidtv.preference.WatchLaterPreferences watchLater = KoinJavaComponent.get(org.jellyfin.androidtv.preference.WatchLaterPreferences.class);
@@ -1161,30 +1167,38 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
         new AlertDialog.Builder(requireContext())
                 .setTitle(R.string.select_version)
                 .setSingleChoiceItems(adapter, mDetailsOverviewRow.getSelectedMediaSourceIndex(), (dialog, index) -> {
-                    java.util.UUID versionId = UUIDSerializerKt.toUUIDOrNull(versions.get(index).getId());
-                    if (versionId == null) {
-                        Utils.showToast(requireContext(), R.string.video_version_unavailable);
-                        return;
-                    }
-                    FullDetailsFragmentHelperKt.getItem(FullDetailsFragment.this, versionId, item -> {
-                        if (!isAdded()) return null;
-                        if (item == null) {
-                            Utils.showToast(requireContext(), R.string.video_version_unavailable);
-                            return null;
-                        }
-                        mDetailsOverviewRow.setSelectedMediaSourceIndex(index);
-                        mBaseItem = item;
-                        // A stream index from another version may refer to a different track.
-                        org.jellyfin.androidtv.ui.playback.PlaybackTrackSelection.INSTANCE.consume(mDetailsOverviewRow.getPlaybackItemId());
-                        mDetailsOverviewRow.setPlaybackItemId(item.getId());
-                        mDorPresenter.getViewHolder().setItem(mDetailsOverviewRow);
-                        dialog.dismiss();
-                        if (mVersionsButton != null) mVersionsButton.requestFocus();
-                        return null;
-                    });
+                    org.jellyfin.androidtv.ui.playback.PlaybackChoiceRecorder.version(mDetailsOverviewRow.getItem(), versions.get(index));
+                    selectVersion(index, dialog);
                 })
                 .setNegativeButton(android.R.string.cancel, null)
                 .show();
+    }
+
+    /** Switches the details screen to another version; [dialog] is null when restoring a remembered version. */
+    private void selectVersion(int index, @Nullable DialogInterface dialog) {
+        java.util.UUID versionId = UUIDSerializerKt.toUUIDOrNull(versions.get(index).getId());
+        if (versionId == null) {
+            if (dialog != null) Utils.showToast(requireContext(), R.string.video_version_unavailable);
+            return;
+        }
+        FullDetailsFragmentHelperKt.getItem(FullDetailsFragment.this, versionId, item -> {
+            if (!isAdded()) return null;
+            if (item == null) {
+                if (dialog != null) Utils.showToast(requireContext(), R.string.video_version_unavailable);
+                return null;
+            }
+            mDetailsOverviewRow.setSelectedMediaSourceIndex(index);
+            mBaseItem = item;
+            // A stream index from another version may refer to a different track.
+            org.jellyfin.androidtv.ui.playback.PlaybackTrackSelection.INSTANCE.consume(mDetailsOverviewRow.getPlaybackItemId());
+            mDetailsOverviewRow.setPlaybackItemId(item.getId());
+            if (mDorPresenter.getViewHolder() != null) mDorPresenter.getViewHolder().setItem(mDetailsOverviewRow);
+            if (dialog != null) {
+                dialog.dismiss();
+                if (mVersionsButton != null) mVersionsButton.requestFocus();
+            }
+            return null;
+        });
     }
 
     int collapsedOptions = 0;

@@ -16,6 +16,8 @@ import coil3.compose.rememberAsyncImagePainter
 import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.data.repository.ExternalAppRepository
 import org.jellyfin.androidtv.preference.UserPreferences
+import org.jellyfin.androidtv.preference.PlaybackChoicePreferences
+import androidx.compose.runtime.mutableStateOf
 import org.jellyfin.androidtv.ui.base.Icon
 import org.jellyfin.androidtv.ui.base.LocalShapes
 import org.jellyfin.androidtv.ui.base.Text
@@ -138,6 +140,29 @@ fun SettingsPlaybackScreen() {
 				captionContent = { Text(stringResource(R.string.settings_search_segments)) },
 				onClick = { router.push(Routes.PLAYBACK_MEDIA_SEGMENTS) },
 				modifier = Modifier.focusKey(Routes.PLAYBACK_MEDIA_SEGMENTS)
+			)
+		}
+
+		item {
+			val playbackChoices = koinInject<PlaybackChoicePreferences>()
+			var hasChoices by remember { mutableStateOf(!playbackChoices.isEmpty()) }
+
+			ListButton(
+				headingContent = { Text(stringResource(R.string.playback_choices_clear)) },
+				captionContent = { Text(stringResource(R.string.playback_choices_clear_description)) },
+				enabled = hasChoices,
+				onClick = {
+					androidx.appcompat.app.AlertDialog.Builder(context)
+						.setMessage(R.string.playback_choices_clear_confirm)
+						.setNegativeButton(android.R.string.cancel, null)
+						.setPositiveButton(R.string.playback_choices_forget) { _, _ ->
+							playbackChoices.clearAll()
+							hasChoices = false
+							android.widget.Toast.makeText(context, R.string.playback_choices_cleared, android.widget.Toast.LENGTH_SHORT).show()
+						}
+						.show()
+				},
+				modifier = Modifier.focusKey("playback_choices_clear")
 			)
 		}
 

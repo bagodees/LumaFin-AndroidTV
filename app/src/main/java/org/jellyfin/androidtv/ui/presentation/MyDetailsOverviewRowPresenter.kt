@@ -28,6 +28,11 @@ import org.jellyfin.sdk.model.api.BaseItemKind
 import androidx.lifecycle.findViewTreeLifecycleOwner
 import org.jellyfin.androidtv.ui.playback.SubtitleLookupDialog
 import org.jellyfin.androidtv.ui.playback.canGetMoreSubtitles
+import android.app.AlertDialog
+import org.jellyfin.androidtv.ui.playback.PlaybackChoiceRecorder
+import org.jellyfin.androidtv.ui.playback.PlaybackChoiceScopeDialog
+import org.jellyfin.androidtv.ui.playback.rememberedTracks
+import org.jellyfin.androidtv.util.MenuBuilder
 
 class MyDetailsOverviewRowPresenter(
 	private val markdownRenderer: MarkdownRenderer,
@@ -39,7 +44,19 @@ class MyDetailsOverviewRowPresenter(
 		private val binding get() = detailRowView.binding
 		private var currentRow: MyDetailsOverviewRow? = null
 		private var lookupDialog: SubtitleLookupDialog? = null
-		fun dismissLookup() { lookupDialog?.dismiss(); lookupDialog = null }
+		private var choicesDialog: AlertDialog? = null
+		fun dismissLookup() {
+			lookupDialog?.dismiss(); lookupDialog = null
+			choicesDialog?.dismiss(); choicesDialog = null
+		}
+
+		private fun MenuBuilder.choicesItem(row: MyDetailsOverviewRow, refresh: () -> Unit) {
+			if (!PlaybackChoiceScopeDialog.available(row.item)) return
+			item(PlaybackChoiceScopeDialog.menuLabel(view.context, row.item)) {
+				choicesDialog?.dismiss()
+				choicesDialog = PlaybackChoiceScopeDialog.show(view.context, row.item, onChanged = refresh, onDismiss = { choicesDialog = null })
+			}
+		}
 
 		fun setItem(row: MyDetailsOverviewRow) {
 			if (currentRow !== row) dismissLookup()
@@ -145,11 +162,14 @@ class MyDetailsOverviewRowPresenter(
 			val context = view.context
 			val labels = audioStreams.trackLabels(context) + subtitleStreams.trackLabels(context)
 			val queueManager = GlobalContext.get().get<VideoQueueManager>()
+			// Same precedence as playback: details pick, remembered choice, session language, server default.
+			fun remembered() = rememberedTracks(row.item, source)
 
 			fun currentAudio(): MediaStream? {
 				val chosen = PlaybackTrackSelection.get(row.playbackItemId)?.audioIndex
 				val lastLanguage = queueManager.getLastPlayedAudioLanguageIsoCode()
 				return audioStreams.firstOrNull { it.index == chosen }
+					?: audioStreams.firstOrNull { it.index == remembered()?.audioIndex }
 					?: audioStreams.firstOrNull { lastLanguage != null && it.language == lastLanguage }
 					?: audioStreams.firstOrNull { it.index == source.defaultAudioStreamIndex }
 					?: audioStreams.firstOrNull()
@@ -159,6 +179,8 @@ class MyDetailsOverviewRowPresenter(
 			fun currentSubtitleLabel(): String {
 				val chosen = PlaybackTrackSelection.get(row.playbackItemId)?.subtitleIndex
 				if (chosen != null) return subtitleStreams.firstOrNull { it.index == chosen }?.let { labels[it.index] } ?: context.getString(R.string.lbl_track_off)
+				val rememberedIndex = remembered()?.subtitleIndex
+				if (rememberedIndex != null) return subtitleStreams.firstOrNull { it.index == rememberedIndex }?.let { labels[it.index] } ?: context.getString(R.string.lbl_track_off)
 
 				val lastLanguage = queueManager.getLastPlayedSubtitleLanguageIsoCode()
 				val stream = when {
@@ -179,8 +201,10 @@ class MyDetailsOverviewRowPresenter(
 				popupMenu(context, chip) {
 					for (stream in audioStreams) item(labels.getValue(stream.index)) {
 						PlaybackTrackSelection.setAudio(row.playbackItemId, stream.index)
+						PlaybackChoiceRecorder.audio(row.item, audioStreams, stream.index)
 						refreshLabels()
 					}
+					choicesItem(row, ::refreshLabels)
 				}.showIfNotEmpty()
 			}
 
@@ -188,10 +212,12 @@ class MyDetailsOverviewRowPresenter(
 				popupMenu(context, chip) {
 					item(context.getString(R.string.lbl_track_off)) {
 						PlaybackTrackSelection.setSubtitle(row.playbackItemId, PlaybackTrackSelection.SUBTITLES_OFF)
+						PlaybackChoiceRecorder.subtitle(row.item, subtitleStreams, PlaybackTrackSelection.SUBTITLES_OFF)
 						refreshLabels()
 					}
 					for (stream in subtitleStreams) item(labels.getValue(stream.index)) {
 						PlaybackTrackSelection.setSubtitle(row.playbackItemId, stream.index)
+						PlaybackChoiceRecorder.subtitle(row.item, subtitleStreams, stream.index)
 						refreshLabels()
 					}
 					if (lookupAllowed) item(context.getString(R.string.subtitle_lookup_more)) {
@@ -209,6 +235,7 @@ class MyDetailsOverviewRowPresenter(
 								if (selectedSource != null) bindTrackChips(row, enabled, item.copy(mediaSources = item.mediaSources.orEmpty().map { if (it.id == source.id) selectedSource else it }))
 							}, onDismiss = { lookupDialog = null }).also { it.show() }
 					}
+					choicesItem(row, ::refreshLabels)
 				}.showIfNotEmpty()
 			}
 		}

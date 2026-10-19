@@ -12,6 +12,8 @@ import org.jellyfin.androidtv.ui.playback.audioTimingAvailable
 import org.jellyfin.androidtv.ui.playback.audioDelayMs
 import org.jellyfin.androidtv.ui.playback.adjustAudioTiming
 import org.jellyfin.androidtv.ui.playback.PlaybackController
+import org.jellyfin.androidtv.ui.playback.PlaybackChoiceRecorder
+import org.jellyfin.androidtv.ui.playback.PlaybackChoiceScopeDialog
 import org.jellyfin.androidtv.ui.playback.overlay.CustomPlaybackTransportControlGlue
 import org.jellyfin.androidtv.ui.playback.overlay.VideoPlayerAdapter
 
@@ -21,6 +23,7 @@ class SelectAudioAction(
 ) : CustomAction(context, customPlaybackTransportControlGlue) {
 	private var popup: PopupMenu? = null
 	private var timingDialog: AlertDialog? = null
+	private var choicesDialog: AlertDialog? = null
 
 	init {
 		initializeWithIcon(R.drawable.ic_select_audio)
@@ -47,6 +50,9 @@ class SelectAudioAction(
 				}
 				setGroupCheckable(0, true, false)
 				add(1, -2, audioTracks.size, context.getString(R.string.audio_timing)).isEnabled = playbackController.audioTimingAvailable()
+				playbackController.currentlyPlayingItem?.takeIf(PlaybackChoiceScopeDialog::available)?.let {
+					add(1, -4, audioTracks.size + 1, PlaybackChoiceScopeDialog.menuLabel(context, it))
+				}
 			}
 
 			setOnDismissListener {
@@ -55,7 +61,11 @@ class SelectAudioAction(
 			}
 			setOnMenuItemClickListener { item ->
 				if (item.itemId == -2) view.post { showTiming(playbackController, videoPlayerAdapter, context) }
-				else playbackController.switchAudioStream(item.itemId)
+				else if (item.itemId == -4) view.post { showChoices(playbackController, videoPlayerAdapter, context) }
+				else {
+					PlaybackChoiceRecorder.audio(playbackController.currentlyPlayingItem, playbackController.currentMediaSource?.mediaStreams, item.itemId)
+					playbackController.switchAudioStream(item.itemId)
+				}
 				true
 			}
 		}
@@ -65,6 +75,16 @@ class SelectAudioAction(
 	fun dismissPopup() {
 		popup?.dismiss()
 		timingDialog?.dismiss()
+		choicesDialog?.dismiss()
+	}
+
+	private fun showChoices(controller: PlaybackController, adapter: VideoPlayerAdapter, context: Context) {
+		val item = controller.currentlyPlayingItem ?: return
+		adapter.leanbackOverlayFragment.setFading(false)
+		choicesDialog = PlaybackChoiceScopeDialog.show(context, item, onDismiss = {
+			adapter.leanbackOverlayFragment.setFading(true)
+			choicesDialog = null
+		})
 	}
     private fun showTiming(controller: PlaybackController, adapter: VideoPlayerAdapter, context: Context) {
         adapter.leanbackOverlayFragment.setFading(false)

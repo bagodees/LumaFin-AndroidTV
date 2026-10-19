@@ -84,6 +84,8 @@ public class PlaybackController implements PlaybackControllerNotifiable {
 
     protected VideoOptions mCurrentOptions;
     private final PlaybackTrackStartup trackStartup = new PlaybackTrackStartup();
+    @Nullable
+    private Integer mForcedSubtitleIndex;
     private int mDefaultAudioIndex = -1;
     protected boolean burningSubs = false;
 
@@ -542,14 +544,6 @@ public class PlaybackController implements PlaybackControllerNotifiable {
             internalOptions.setSubtitleStreamIndex(mCurrentOptions.getSubtitleStreamIndex());
             internalOptions.setAudioStreamIndex(mCurrentOptions.getAudioStreamIndex());
         }
-        PlaybackTrackSelection.Selection chosenTracks = trackStartup.get(item.getId());
-        if (chosenTracks != null) {
-            if (chosenTracks.getAudioIndex() != null) internalOptions.setAudioStreamIndex(chosenTracks.getAudioIndex());
-            if (chosenTracks.getSubtitleIndex() != null) internalOptions.setSubtitleStreamIndex(chosenTracks.getSubtitleIndex());
-        }
-        if (forcedSubtitleIndex != null) {
-            internalOptions.setSubtitleStreamIndex(forcedSubtitleIndex);
-        }
         MediaSourceInfo currentMediaSource = getCurrentMediaSource();
         if (forcedAudioLanguage != null) {
             // find the first audio stream with the requested language
@@ -560,7 +554,25 @@ public class PlaybackController implements PlaybackControllerNotifiable {
                 }
             }
         }
-        if (!isLiveTv && currentMediaSource != null) {
+        // Remembered choices beat session carry-over; a details-screen pick and forced subtitles beat both
+        PlaybackTrackSelection.Selection chosenTracks = trackStartup.get(item.getId());
+        mForcedSubtitleIndex = forcedSubtitleIndex;
+        RememberedPlayback remembered = isLiveTv ? null : PlaybackChoiceSupportKt.rememberedPlayback(item, chosenTracks == null);
+        if (remembered != null) {
+            if (remembered.getAudioIndex() != null) internalOptions.setAudioStreamIndex(remembered.getAudioIndex());
+            if (remembered.getSubtitleIndex() != null) internalOptions.setSubtitleStreamIndex(remembered.getSubtitleIndex());
+        }
+        if (chosenTracks != null) {
+            if (chosenTracks.getAudioIndex() != null) internalOptions.setAudioStreamIndex(chosenTracks.getAudioIndex());
+            if (chosenTracks.getSubtitleIndex() != null) internalOptions.setSubtitleStreamIndex(chosenTracks.getSubtitleIndex());
+        }
+        if (forcedSubtitleIndex != null) {
+            internalOptions.setSubtitleStreamIndex(forcedSubtitleIndex);
+        }
+        // A details-screen pick already refers to the version being played
+        if (!isLiveTv && remembered != null && remembered.getSourceId() != null && chosenTracks == null) {
+            internalOptions.setMediaSourceId(remembered.getSourceId());
+        } else if (!isLiveTv && currentMediaSource != null) {
             internalOptions.setMediaSourceId(currentMediaSource.getId());
         }
         DeviceProfile internalProfile = DeviceProfileKt.createDeviceProfile(
@@ -686,6 +698,13 @@ public class PlaybackController implements PlaybackControllerNotifiable {
             mCurrentOptions.setSubtitleStreamIndex(response.getMediaSource().getDefaultSubtitleStreamIndex());
         }
         setDefaultAudioIndex(response);
+
+        // Remembered choices beat saved-language and server defaults, but never undo forced subtitles
+        RememberedPlayback remembered = isLiveTv ? null : PlaybackChoiceSupportKt.rememberedTracks(item, response.getMediaSource());
+        if (remembered != null) {
+            if (remembered.getAudioIndex() != null) mCurrentOptions.setAudioStreamIndex(remembered.getAudioIndex());
+            if (remembered.getSubtitleIndex() != null && mForcedSubtitleIndex == null) mCurrentOptions.setSubtitleStreamIndex(remembered.getSubtitleIndex());
+        }
 
         // Tracks picked on the details screen take priority over saved-language and server defaults
         PlaybackTrackSelection.Selection chosenTracks = trackStartup.get(item.getId());
