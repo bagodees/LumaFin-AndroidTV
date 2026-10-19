@@ -23,16 +23,21 @@ fun getSubtitleMediaStreamCodec(stream: MediaStream): String {
 	return urlExtensionMediaType ?: codecMediaType ?: urlSubtitleExtension ?: codec
 }
 
-private var audioEffect: AudioEffect? = null
+class AudioNightModeEffect : AutoCloseable {
+	private val owner = SessionAudioEffect { id ->
+		val effect = createAudioNightMode(id)
+		AutoCloseable { effect.release() }
+	}
+	fun attach(audioSessionId: Int) = owner.attach(audioSessionId)
+	override fun close() = owner.close()
+}
 
-fun applyAudioNightmode(audioSessionId: Int) {
+private fun createAudioNightMode(audioSessionId: Int): AudioEffect {
 	Timber.i("Enabling audio night mode for session $audioSessionId")
 
-	audioEffect?.release()
-
-	audioEffect = when {
-		// Use dynamics processinc on Android 9 (API 28) and newer
-		AndroidVersion.isAtLeastP -> DynamicsProcessing(0, audioSessionId, null).apply {
+	return when {
+		// Use dynamics processing on Android 9 (API 28) and newer
+		AndroidVersion.isAtLeastP -> DynamicsProcessing(0, audioSessionId, null).configureSafely {
 			setLimiterAllChannelsTo(
 				DynamicsProcessing.Limiter(
 					true,
@@ -58,7 +63,7 @@ fun applyAudioNightmode(audioSessionId: Int) {
 		}
 
 		// Use more simple equalizer implementation on older versions
-		else -> Equalizer(0, audioSessionId).apply {
+		else -> Equalizer(0, audioSessionId).configureSafely {
 			setBandLevel(0, 0)
 			setBandLevel(1, 2)
 			setBandLevel(2, 3)
@@ -66,5 +71,13 @@ fun applyAudioNightmode(audioSessionId: Int) {
 			setBandLevel(4, 0)
 			enabled = true
 		}
+	}
+}
+
+private inline fun <T : AudioEffect> T.configureSafely(configure: T.() -> Unit): T {
+	try { configure(); return this } catch (failure: Exception) {
+		runCatching { release() }
+		Timber.w(failure, "Audio night mode is unavailable for this session")
+		throw failure
 	}
 }

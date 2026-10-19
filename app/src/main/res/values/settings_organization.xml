@@ -10,7 +10,7 @@
     <string name="settings_resume_rewind">Rewind when resuming</string>
     <string name="settings_intro_recap_credits">Intro, recap &amp; credits</string>
     <string name="settings_video_delay_description">Wait before starting video so the display has time to finish changing modes.</string>
-    <string name="settings_night_audio_description">Reduce loud and quiet differences when supported by the audio format and player.</string>
+    <string name="settings_night_audio_description">Standard built-in player only; applies when playback starts. On Android 9+, compress loud peaks when the device supports the effect. Older Android uses a small equalizer adjustment. Does not isolate dialogue; passthrough and external players may bypass it.</string>
     <string name="settings_live_direct_description">Allow supported Live TV streams to play without server conversion. Turn off if channels fail to play reliably.</string>
     <string name="settings_display_matching_description">Let the TV match the video frame rate for smoother motion. Mode changes may briefly blank the screen; support depends on the device and display.</string>
     <string name="settings_zoom_description">Choose how video fits the screen by default. Filling the screen can crop the picture or change its proportions.</string>

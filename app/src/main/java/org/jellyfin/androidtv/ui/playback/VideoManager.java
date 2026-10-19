@@ -4,9 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Typeface;
-import android.media.audiofx.DynamicsProcessing;
-import android.media.audiofx.DynamicsProcessing.Limiter;
-import android.media.audiofx.Equalizer;
+
 import android.net.Uri;
 import android.os.Handler;
 import android.util.TypedValue;
@@ -75,9 +73,8 @@ import timber.log.Timber;
 public class VideoManager {
     private ZoomMode mZoomMode;
     private Activity mActivity;
-    private Equalizer mEqualizer;
-    private DynamicsProcessing mDynamicsProcessing;
-    private Limiter mLimiter;
+    private final AudioNightModeEffect nightModeEffect = new AudioNightModeEffect();
+
     private PlaybackControllerNotifiable mPlaybackControllerNotifiable;
     private PlaybackOverlayFragmentHelper _helper;
     public ExoPlayer mExoPlayer;
@@ -138,7 +135,7 @@ public class VideoManager {
             mExoPlayer.addAnalyticsListener(new AnalyticsListener() {
                 @Override
                 public void onAudioSessionIdChanged(AnalyticsListener.EventTime eventTime, int audioSessionId) {
-                    VideoManagerHelperKt.applyAudioNightmode(audioSessionId);
+                    nightModeEffect.attach(audioSessionId);
                 }
             });
         }
@@ -646,6 +643,7 @@ public class VideoManager {
     }
 
     private void releasePlayer() {
+        nightModeEffect.close();
         _helper.setScreensaverLock(false);
         if (mExoPlayer != null) {
             mExoPlayerView.setPlayer(null);
