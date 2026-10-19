@@ -45,6 +45,7 @@ fun settingsSearchCatalog(context: Context, prefs: UserPreferences, liveTvEnable
 	addSetting(Routes.HOME_SHORTCUTS, R.string.home_shortcuts, R.string.home_prefs, R.string.settings_search_shortcuts)
 	addSetting(Routes.HOME_RECOMMENDATIONS, R.string.recommendation_settings, R.string.home_prefs, R.string.settings_search_recommendations)
 	addSetting(Routes.LIBRARIES, R.string.pref_libraries, appearance, R.string.settings_search_libraries)
+	addSetting(Routes.LIBRARIES, R.string.library_compact_list, appearance, R.string.library_compact_list_description)
 	addSetting(Routes.CUSTOMIZATION_SCREENSAVER, R.string.pref_screensaver, appearance, R.string.settings_search_screensaver, enabled(prefs[UserPreferences.screensaverInAppEnabled]))
 	addSetting(Routes.CUSTOMIZATION_SCREENSAVER_TIMEOUT, R.string.pref_screensaver_inapp_timeout, R.string.pref_screensaver, R.string.settings_search_screensaver, seconds(prefs[UserPreferences.screensaverInAppTimeout]))
 	addSetting(Routes.CUSTOMIZATION_SCREENSAVER_AGE_RATING, R.string.pref_screensaver_ageratingmax, R.string.pref_screensaver, R.string.settings_search_screensaver, when (val age = prefs[UserPreferences.screensaverAgeRatingMax]) { -1 -> text(R.string.pref_screensaver_ageratingmax_unlimited); 0 -> text(R.string.pref_screensaver_ageratingmax_zero); else -> context.getString(R.string.pref_screensaver_ageratingmax_entry, age) })

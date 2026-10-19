@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="library_compact_list">Compact list</string>
+    <string name="library_compact_list_description">Browse this movie or TV library in a vertical list with small artwork, title, year and available duration and progress. Saved for this user and library. Turn off to restore your grid choices; smart library screens are unchanged.</string>
+    <string name="library_list_minutes">%1$d min</string>
+    <string name="library_list_progress">%1$d%% played</string>
+    <string name="library_list_watched">Watched</string>
+</resources>

@@ -75,6 +75,7 @@ class CardPresenter @JvmOverloads constructor(
 	val staticHeight: Int,
 	val uniformAspect: Boolean,
 	val homeRow: Boolean = false,
+	val compactList: Boolean = false,
 ) : Presenter() {
 	private val preferences by lazy { GlobalContext.get().get<UserPreferences>() }
 	constructor(showInfo: Boolean, imageType: ImageType, staticHeight: Int) : this(showInfo, imageType, staticHeight, false)
@@ -140,7 +141,9 @@ class CardPresenter @JvmOverloads constructor(
 				val item by _item.collectAsState()
 				val focused by _focused.collectAsState()
 
-				CardViewHolderContent(
+				if (compactList) {
+					CompactLibraryRow(item, focused)
+				} else CardViewHolderContent(
 					item = item,
 					focused = focused,
 					showInfo = showInfo,

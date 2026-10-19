@@ -56,6 +56,17 @@ fun SettingsLibrariesDisplayScreen(itemId: UUID, displayPreferencesId: String) {
 			)
 		}
 
+		if (org.jellyfin.androidtv.ui.browsing.supportsCompactList(userView?.collectionType)) item {
+			var compactList by rememberPreference(libraryPreferences, LibraryPreferences.compactList)
+			ListButton(
+				headingContent = { Text(stringResource(R.string.library_compact_list)) },
+				captionContent = { Text(stringResource(R.string.library_compact_list_description)) },
+				trailingContent = { Checkbox(checked = compactList) },
+				onClick = { compactList = !compactList },
+				modifier = Modifier.focusKey("compact_list"),
+			)
+		}
+
 		item {
 			var imageType by rememberPreference(libraryPreferences, LibraryPreferences.imageType)
 
