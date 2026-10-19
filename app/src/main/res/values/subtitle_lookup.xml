@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="subtitle_lookup_more">Get more subtitles</string>
+    <string name="subtitle_lookup_language">Subtitle language</string>
+    <string name="subtitle_lookup_help">Search this title using providers configured on your Jellyfin server. Choose a language. Downloads add a file to the server library and may be available to other users.</string>
+    <string name="subtitle_lookup_busy">Contacting the server…</string>
+    <string name="subtitle_lookup_empty">No subtitles were returned. There may be no match, or a provider may need to be configured by your Jellyfin administrator. Try another language.</string>
+    <string name="subtitle_lookup_error">The subtitle request failed. Check your connection and the server’s subtitle provider configuration, then try again.</string>
+    <string name="subtitle_lookup_denied">The server did not allow this request. Ask your Jellyfin administrator about subtitle-management permission.</string>
+    <string name="subtitle_lookup_unsupported">Subtitle lookup is unavailable for this title or server.</string>
+    <string name="subtitle_lookup_download">Download subtitle</string>
+    <string name="subtitle_lookup_confirm">%1$s\n\nThis adds a subtitle to the server library for this title. Other users may see it. Download this file?</string>
+    <string name="subtitle_lookup_verifying">Download requested. Waiting for the server to refresh this title… Back stops waiting; a server download already sent may still finish.</string>
+    <string name="subtitle_lookup_verified">A new external subtitle is available for this version. Reopen the subtitle picker to choose it.</string>
+    <string name="subtitle_lookup_uncertain">The request was sent, but a new subtitle was not confirmed for this version. The server may still be refreshing, or its provider may have failed. Recheck the title before requesting the download again.</string>
+    <string name="subtitle_lookup_reload">Refresh playback</string>
+    <string name="subtitle_lookup_playback_help">A new subtitle is available. Refresh playback at your current position to load the updated tracks, then choose it in the subtitle picker. Playback may briefly restart.</string>
+    <plurals name="subtitle_lookup_results">
+        <item quantity="one">Subtitles — %1$d result</item>
+        <item quantity="other">Subtitles — %1$d results</item>
+    </plurals>
+    <string name="subtitle_lookup_provider_unknown">Server provider</string>
+    <string name="subtitle_lookup_hash_match">File match</string>
+    <string name="subtitle_lookup_hearing_impaired">Hearing impaired</string>
+    <string name="subtitle_lookup_forced">Forced</string>
+</resources>

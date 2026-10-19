@@ -25,6 +25,9 @@ import org.koin.core.context.GlobalContext
 import org.jellyfin.androidtv.util.InfoLayoutHelper
 import org.jellyfin.androidtv.util.MarkdownRenderer
 import org.jellyfin.sdk.model.api.BaseItemKind
+import androidx.lifecycle.findViewTreeLifecycleOwner
+import org.jellyfin.androidtv.ui.playback.SubtitleLookupDialog
+import org.jellyfin.androidtv.ui.playback.canGetMoreSubtitles
 
 class MyDetailsOverviewRowPresenter(
 	private val markdownRenderer: MarkdownRenderer,
@@ -34,8 +37,13 @@ class MyDetailsOverviewRowPresenter(
 		private val markdownRenderer: MarkdownRenderer,
 	) : RowPresenter.ViewHolder(detailRowView) {
 		private val binding get() = detailRowView.binding
+		private var currentRow: MyDetailsOverviewRow? = null
+		private var lookupDialog: SubtitleLookupDialog? = null
+		fun dismissLookup() { lookupDialog?.dismiss(); lookupDialog = null }
 
 		fun setItem(row: MyDetailsOverviewRow) {
+			if (currentRow !== row) dismissLookup()
+			currentRow = row
 			val item = row.item
 			val hasThumbnail = row.thumbnailImage != null
 
@@ -121,16 +129,17 @@ class MyDetailsOverviewRowPresenter(
 			binding.mainImage.load(if (hidden) null else row.imageDrawable, null, null, 1.0, 0)
 		}
 
-		private fun bindTrackChips(row: MyDetailsOverviewRow, enabled: Boolean) {
-			val item = row.item
+		private fun bindTrackChips(row: MyDetailsOverviewRow, enabled: Boolean, refreshedItem: BaseItemDto? = null) {
+			val item = refreshedItem ?: row.item
 			val streams = item.mediaSources?.getOrNull(row.selectedMediaSourceIndex)?.mediaStreams.orEmpty()
 			val audioStreams = streams.filter { it.type == MediaStreamType.AUDIO }
 			val subtitleStreams = streams.filter { it.type == MediaStreamType.SUBTITLE }
 			val source = item.mediaSources?.getOrNull(row.selectedMediaSourceIndex)
 
-			binding.fdTrackColumn.isVisible = enabled && (audioStreams.isNotEmpty() || subtitleStreams.isNotEmpty())
+			val lookupAllowed = canGetMoreSubtitles(item) && !source?.id.isNullOrBlank()
+			binding.fdTrackColumn.isVisible = enabled && (audioStreams.isNotEmpty() || subtitleStreams.isNotEmpty() || lookupAllowed)
 			binding.fdAudioChip.isVisible = audioStreams.isNotEmpty()
-			binding.fdSubtitleChip.isVisible = subtitleStreams.isNotEmpty()
+			binding.fdSubtitleChip.isVisible = subtitleStreams.isNotEmpty() || lookupAllowed
 			if (!enabled || source == null) return
 
 			val context = view.context
@@ -185,6 +194,21 @@ class MyDetailsOverviewRowPresenter(
 						PlaybackTrackSelection.setSubtitle(row.playbackItemId, stream.index)
 						refreshLabels()
 					}
+					if (lookupAllowed) item(context.getString(R.string.subtitle_lookup_more)) {
+						val owner = view.findViewTreeLifecycleOwner() ?: return@item
+						val selectedId = row.playbackItemId
+						val selectedIndex = row.selectedMediaSourceIndex
+						val sourceId = source.id ?: return@item
+						dismissLookup()
+						// Look up the actual selected version, rather than the grouped details title.
+						val selectedItem = item.copy(id = selectedId)
+						lookupDialog = SubtitleLookupDialog(context, owner, selectedItem, sourceId,
+							stillCurrent = { currentRow === row && row.playbackItemId == selectedId && row.selectedMediaSourceIndex == selectedIndex && view.isAttachedToWindow },
+							onRefreshed = { fresh ->
+								val selectedSource = fresh.mediaSources?.firstOrNull { it.id == source.id }
+								if (selectedSource != null) bindTrackChips(row, enabled, item.copy(mediaSources = item.mediaSources.orEmpty().map { if (it.id == source.id) selectedSource else it }))
+							}, onDismiss = { lookupDialog = null }).also { it.show() }
+					}
 				}.showIfNotEmpty()
 			}
 		}
@@ -225,4 +249,9 @@ class MyDetailsOverviewRowPresenter(
 	}
 
 	override fun onSelectLevelChanged(holder: RowPresenter.ViewHolder) = Unit
+
+	override fun onUnbindRowViewHolder(viewHolder: RowPresenter.ViewHolder) {
+		(viewHolder as? ViewHolder)?.dismissLookup()
+		super.onUnbindRowViewHolder(viewHolder)
+	}
 }

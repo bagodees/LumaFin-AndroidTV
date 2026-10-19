@@ -317,7 +317,7 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
             }
         }
 
-        if (playerAdapter.hasSubs()) {
+        if (playerAdapter.hasSubs() || org.jellyfin.androidtv.ui.playback.SubtitleLookupDialogKt.canGetMoreSubtitles(playbackController.getCurrentlyPlayingItem())) {
             secondaryActionsAdapter.add(closedCaptionsAction);
         }
 
@@ -558,7 +558,7 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
 
         VideoPlayerAdapter playerAdapter = getPlayerAdapter();
 
-        if (playerAdapter.hasSubs() && keyCode == KeyEvent.KEYCODE_CAPTIONS) {
+        if ((playerAdapter.hasSubs() || org.jellyfin.androidtv.ui.playback.SubtitleLookupDialogKt.canGetMoreSubtitles(playbackController.getCurrentlyPlayingItem())) && keyCode == KeyEvent.KEYCODE_CAPTIONS) {
             closedCaptionsAction.handleClickAction(playbackController, getPlayerAdapter(), getContext(), v);
         }
         if (playerAdapter.hasMultiAudio() && keyCode == KeyEvent.KEYCODE_MEDIA_AUDIO_TRACK) {

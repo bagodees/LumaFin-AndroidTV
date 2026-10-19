@@ -18,6 +18,8 @@ import org.jellyfin.androidtv.ui.playback.adjustSubtitleTiming
 import java.util.Locale
 import org.jellyfin.sdk.model.api.MediaStreamType
 import timber.log.Timber
+import org.jellyfin.androidtv.ui.playback.SubtitleLookupDialog
+import org.jellyfin.androidtv.ui.playback.canGetMoreSubtitles
 
 class ClosedCaptionsAction(
 	context: Context,
@@ -25,6 +27,7 @@ class ClosedCaptionsAction(
 ) : CustomAction(context, customPlaybackTransportControlGlue) {
 	private var popup: PopupMenu? = null
 	private var timingDialog: AlertDialog? = null
+	private var lookupDialog: SubtitleLookupDialog? = null
 
 	init {
 		initializeWithIcon(R.drawable.ic_select_subtitle)
@@ -62,13 +65,26 @@ class ClosedCaptionsAction(
 
 				setGroupCheckable(0, true, false)
 				add(1, -2, order, context.getString(R.string.subtitle_timing)).isEnabled = playbackController.subtitleTimingAvailable()
+				if (canGetMoreSubtitles(playbackController.currentlyPlayingItem))
+					add(1, -3, order + 1, context.getString(R.string.subtitle_lookup_more))
 			}
 			setOnDismissListener {
 				videoPlayerAdapter.leanbackOverlayFragment.setFading(true)
 				popup = null
 			}
 			setOnMenuItemClickListener { item ->
-				if (item.itemId == -2) {
+				if (item.itemId == -3) {
+					view.post {
+						val current = playbackController.currentlyPlayingItem ?: return@post
+						val source = playbackController.currentMediaSource?.id ?: return@post
+						val queueIndex = playbackController.currentQueueIndex
+						videoPlayerAdapter.leanbackOverlayFragment.setFading(false)
+						lookupDialog = SubtitleLookupDialog(context, playbackController.fragment.viewLifecycleOwner, current, source,
+							stillCurrent = { playbackController.currentlyPlayingItem?.id == current.id && playbackController.currentQueueIndex == queueIndex && playbackController.currentMediaSource?.id == source },
+							playback = true, onRefreshed = { playbackController.refreshStream() },
+							onDismiss = { videoPlayerAdapter.leanbackOverlayFragment.setFading(true); lookupDialog = null }).also { it.show() }
+					}
+				} else if (item.itemId == -2) {
 					view.post { showTiming(playbackController, videoPlayerAdapter, context) }
 				} else playbackController.setSubtitleIndex(item.itemId)
 				true
@@ -80,6 +96,7 @@ class ClosedCaptionsAction(
 	fun removePopup() {
 		popup?.dismiss()
 		timingDialog?.dismiss()
+		lookupDialog?.dismiss()
 	}
 
 	private fun showTiming(controller: PlaybackController, adapter: VideoPlayerAdapter, context: Context) {
