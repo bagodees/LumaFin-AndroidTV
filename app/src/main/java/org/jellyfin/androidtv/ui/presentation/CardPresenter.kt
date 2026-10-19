@@ -4,7 +4,6 @@ import org.jellyfin.androidtv.preference.UserPreferences
 import android.view.View
 import androidx.compose.ui.platform.findViewTreeCompositionContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import android.view.KeyEvent
 import android.view.ViewGroup
 import android.widget.ImageView
 import org.jellyfin.androidtv.ui.composable.rememberReducedMotion
@@ -60,10 +59,11 @@ import org.jellyfin.androidtv.ui.itemhandling.BaseItemDtoBaseRowItem
 import org.jellyfin.androidtv.ui.itemhandling.BaseRowItem
 import org.jellyfin.androidtv.ui.itemhandling.BaseRowType
 import org.jellyfin.androidtv.ui.itemhandling.GridButtonBaseRowItem
+import org.jellyfin.androidtv.ui.itemhandling.handleCardLongPress
+import org.koin.core.context.GlobalContext
 import org.jellyfin.androidtv.util.ImageHelper
 import org.jellyfin.androidtv.util.apiclient.JellyfinImage
 import org.jellyfin.androidtv.util.apiclient.getUrl
-import org.jellyfin.androidtv.util.getActivity
 import org.jellyfin.design.Tokens
 import org.jellyfin.sdk.api.client.ApiClient
 import org.jellyfin.sdk.model.api.BaseItemKind
@@ -76,6 +76,7 @@ class CardPresenter @JvmOverloads constructor(
 	val uniformAspect: Boolean,
 	val homeRow: Boolean = false,
 ) : Presenter() {
+	private val preferences by lazy { GlobalContext.get().get<UserPreferences>() }
 	constructor(showInfo: Boolean, imageType: ImageType, staticHeight: Int) : this(showInfo, imageType, staticHeight, false)
 	constructor(showInfo: Boolean, staticHeight: Int) : this(showInfo, ImageType.POSTER, staticHeight)
 	constructor(showInfo: Boolean) : this(showInfo, 150)
@@ -103,9 +104,6 @@ class CardPresenter @JvmOverloads constructor(
 			isFocusable = true
 			isFocusableInTouchMode = true
 
-			setOnLongClickListener {
-				context.getActivity()?.dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MENU)) ?: false
-			}
 		}
 
 		return CardViewHolder(view)
@@ -130,8 +128,14 @@ class CardPresenter @JvmOverloads constructor(
 	private inner class CardViewHolder(composeView: ComposeView) : ViewHolder(composeView) {
 		private val _item = MutableStateFlow<BaseRowItem?>(null)
 		private val _focused = MutableStateFlow(false)
+		private var boundAccountRevision = -1
 
 		init {
+			composeView.setOnLongClickListener {
+				val item = _item.value
+				if (item == null || !view.isFocused || preferences.accountRevision != boundAccountRevision) true
+				else handleCardLongPress(view, item, preferences[UserPreferences.cardLongPressAction])
+			}
 			composeView.setContent {
 				val item by _item.collectAsState()
 				val focused by _focused.collectAsState()
@@ -152,11 +156,13 @@ class CardPresenter @JvmOverloads constructor(
 		}
 
 		fun bind(item: BaseRowItem) {
+			boundAccountRevision = preferences.accountRevision
 			_item.value = item
 			_focused.value = view.isFocused
 		}
 
 		fun unbind() {
+			boundAccountRevision = -1
 			_item.value = null
 			_focused.value = false
 		}

@@ -32,6 +32,7 @@ import org.jellyfin.androidtv.preference.SettingsBackupFiles
 import org.jellyfin.androidtv.preference.UserPreferences
 import org.jellyfin.androidtv.preference.UserSettingPreferences
 import org.jellyfin.androidtv.preference.constant.AppTheme
+import org.jellyfin.androidtv.preference.constant.CardLongPressAction
 import org.jellyfin.androidtv.preference.constant.BackdropBehavior
 import org.jellyfin.androidtv.preference.constant.ClockBehavior
 import org.jellyfin.androidtv.preference.constant.MediaCardSize
@@ -74,6 +75,7 @@ fun SettingsBackupScreen() {
 		}.joinToString(", ")
 		if (key.endsWith("color")) return String.format(java.util.Locale.ROOT, "#%08X", value)
 		val enum: PreferenceEnum? = when (key) {
+			"card_long_press_action" -> CardLongPressAction.entries.find { it.name == value }
 			"app_theme" -> AppTheme.entries.find { it.name == value }
 			"backdrop_behavior" -> BackdropBehavior.entries.find { it.name == value }
 			"media_card_size" -> MediaCardSize.entries.find { it.name == value }
@@ -215,6 +217,7 @@ fun SettingsBackupScreen() {
 }
 
 private val backupLabels = mapOf(
+	"card_long_press_action" to R.string.remote_shortcuts,
 	"homeSectionOrder" to R.string.home_prefs,
 	"home_latest_movies_limit" to R.string.backup_latest_movies, "home_latest_shows_limit" to R.string.backup_latest_shows,
 	"home_recently_added_movies_limit" to R.string.backup_recent_movies, "home_recently_added_shows_limit" to R.string.backup_recent_shows,

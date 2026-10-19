@@ -91,6 +91,7 @@ object Routes {
 	const val AUTHENTICATION_SORT_BY = "/authentication/sort-by"
 	const val AUTHENTICATION_AUTO_SIGN_IN = "/authentication/auto-sign-in"
 	const val CUSTOMIZATION = "/customization"
+	const val REMOTE_SHORTCUTS = "/customization/remote-shortcuts"
 	const val CUSTOMIZATION_THEME = "/customization/theme"
 	const val CUSTOMIZATION_CLOCK = "/customization/clock"
 	const val CUSTOMIZATION_WATCHED_INDICATOR = "/customization/watch-indicators"
@@ -150,6 +151,7 @@ object Routes {
 }
 
 val routes = mapOf<String, RouteComposable>(
+	Routes.REMOTE_SHORTCUTS to { org.jellyfin.androidtv.ui.settings.screen.customization.SettingsRemoteShortcutsScreen() },
 	Routes.SETUP_GUIDE to { context -> org.jellyfin.androidtv.ui.settings.screen.SettingsSetupGuideScreen(context.parameters["firstRun"] == "true") },
 	Routes.SETUP_SUBTITLES to { org.jellyfin.androidtv.ui.settings.screen.SettingsSetupSubtitlesScreen() },
 	Routes.HELP to { SettingsHelpScreen() },

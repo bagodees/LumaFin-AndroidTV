@@ -13,6 +13,7 @@ import kotlinx.serialization.json.longOrNull
 import kotlinx.serialization.json.put
 import org.jellyfin.androidtv.constant.HomeSectionType
 import org.jellyfin.androidtv.preference.constant.AppTheme
+import org.jellyfin.androidtv.preference.constant.CardLongPressAction
 import org.jellyfin.androidtv.preference.constant.BackdropBehavior
 import org.jellyfin.androidtv.preference.constant.ClockBehavior
 import org.jellyfin.androidtv.preference.constant.MediaCardSize
@@ -40,6 +41,7 @@ internal object SettingsBackup {
 	private fun enumeration(key: String, default: String, values: List<String>) = Field(key, default) { it in values }
 	private fun number(key: String, default: Int, range: IntRange) = Field(key, default) { it is Int && it in range }
 	val fields = listOf(
+		enumeration("card_long_press_action", CardLongPressAction.MENU.name, CardLongPressAction.entries.map { it.name }),
 		Field("homeSectionOrder", UserSettingPreferences.defaultHomeSectionOrder.joinToString(",") { it.serializedName }) {
 			val rows = (it as String).split(',')
 			rows.size <= HomeSectionType.entries.size && rows.distinct().size == rows.size && rows.all { row ->

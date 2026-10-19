@@ -83,6 +83,7 @@ class AccountPreferences internal constructor(
 			"libass_enabled", "pgs_enabled", "playback_new", "pref_enable_debug", "refresh_rate_switching_behavior", "video_start_delay", "buffer_length",
 		)
 		internal val migrationKeys: Set<String> = setOf(
+			"card_long_press_action",
 			"app_theme",
 			"audio_behavior",
 			"audio_night_mode",

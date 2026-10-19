@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="backup_title">Back up and restore settings</string>
-    <string name="backup_scope">Save Home row order and limits, browsing appearance, subtitle appearance, autoplay, prerolls and seek lengths.</string>
+    <string name="backup_scope">Save Home row order and limits, browsing appearance, remote shortcuts, subtitle appearance, autoplay, prerolls and seek lengths.</string>
     <string name="backup_destination">Current account: %1$s on %2$s</string>
     <string name="backup_exclusions">Restores apply only to the current account on this TV. Backups contain no account identifiers, server addresses, passwords or tokens. Library settings, pinned shortcuts, recommendations, watch history, playlists, other playback settings and device capability overrides are excluded.</string>
     <string name="backup_save">Save settings backup</string>

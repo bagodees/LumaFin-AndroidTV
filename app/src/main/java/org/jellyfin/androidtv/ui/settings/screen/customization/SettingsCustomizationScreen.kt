@@ -69,6 +69,12 @@ fun SettingsCustomizationScreen() {
 				modifier = Modifier.focusKey(Routes.CUSTOMIZATION_SCREENSAVER),
 			)
 		}
+		item {
+			var longPress by rememberPreference(userPreferences, UserPreferences.cardLongPressAction)
+			ListButton(headingContent = { Text(stringResource(R.string.remote_shortcuts)) },
+				captionContent = { Text(stringResource(longPress.nameRes)) },
+				onClick = { router.push(Routes.REMOTE_SHORTCUTS) }, modifier = Modifier.focusKey(Routes.REMOTE_SHORTCUTS))
+		}
 		item { ListSection(headingContent = { Text(stringResource(R.string.settings_appearance_display)) }) }
 		item {
 			var appTheme by rememberPreference(userPreferences, UserPreferences.appTheme)

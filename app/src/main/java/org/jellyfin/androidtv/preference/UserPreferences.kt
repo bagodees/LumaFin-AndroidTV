@@ -91,6 +91,7 @@ class UserPreferences(context: Context, storage: SharedPreferences = PreferenceM
 
 	companion object {
 		val setupGuideSeen = booleanPreference("setup_guide_seen_v1", false)
+		val cardLongPressAction = enumPreference("card_long_press_action", org.jellyfin.androidtv.preference.constant.CardLongPressAction.MENU)
 		/* Display */
 		/**
 		 * Select the app theme

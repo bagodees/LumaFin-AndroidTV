@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="remote_shortcuts">Remote shortcuts</string>
+    <string name="remote_shortcuts_help">Choose what holding OK does on movie, episode and series cards. A short press keeps its usual action. The Menu button still opens actions. Other cards, settings and playback controls keep their existing behavior. Saved separately for each user and server on this TV.</string>
+    <string name="remote_hold_menu">Open actions menu (default)</string>
+    <string name="remote_hold_menu_help">Show the existing actions for the selected card.</string>
+    <string name="remote_hold_details">Open details</string>
+    <string name="remote_hold_details_help">Open the selected title’s details without starting playback.</string>
+    <string name="remote_hold_play">Play or resume</string>
+    <string name="remote_hold_play_help">Use the existing Play action. Movies and episodes start or resume; series show playback choices. Unavailable playback falls back to the actions menu.</string>
+    <string name="remote_hold_disabled">No action</string>
+    <string name="remote_hold_disabled_help">Ignore holding OK on these title cards. Release does not also open the title.</string>
+</resources>
