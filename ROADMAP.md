@@ -32,3 +32,21 @@ Publish LumaFin on Google Play for Android TV and Google TV while continuing to 
 - [ ] Complete required testing and submit for Android TV review.
 
 Recheck Google Play requirements when this milestone begins, as policies may change.
+
+## LumaFin v2 roadmap
+
+Public project: [LumaFin v2 Roadmap](https://github.com/users/bagodees/projects/2).
+Future planning after the current v1 work; no release date is set. Inclusion does not
+start implementation or settle details that still need user review.
+
+### Playlists
+
+Status: Planned for v2; scope review required before implementation.
+
+Tracking issue: [#60 — Playlist support: music-focused scope review](https://github.com/bagodees/LumaFin-AndroidTV/issues/60).
+
+Revisit playlists alongside music support, with music-focused playlists as the current
+direction to review. General movie/TV playlist management remains deferred. Confirm
+media types, Jellyfin capabilities and permissions, shared/server effects, and TV remote
+flows with the user before implementation. Existing video Watch Later and the session
+playback queue remain available.
