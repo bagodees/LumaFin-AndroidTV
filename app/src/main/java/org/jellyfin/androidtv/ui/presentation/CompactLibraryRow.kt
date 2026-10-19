@@ -24,6 +24,8 @@ import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.constant.ImageType
 import org.jellyfin.androidtv.preference.UserPreferences
 import org.jellyfin.androidtv.ui.base.Text
+import org.jellyfin.androidtv.ui.base.JellyfinTheme
+import org.jellyfin.androidtv.ui.base.rememberAccessibilityOptions
 import org.jellyfin.androidtv.ui.browsing.compactDurationMinutes
 import org.jellyfin.androidtv.ui.browsing.compactProgress
 import org.jellyfin.androidtv.ui.composable.AsyncImage
@@ -51,14 +53,17 @@ internal fun CompactLibraryRow(item: BaseRowItem?, focused: Boolean) {
 		else progress?.let { add(stringResource(R.string.library_list_progress, (it * 100).roundToInt())) }
 	}.joinToString(" · ")
 	val shape = RoundedCornerShape(8.dp)
+	val colors = JellyfinTheme.colorScheme
+	val accessibility = rememberAccessibilityOptions()
 	Row(
 		modifier = Modifier.width((LocalConfiguration.current.screenWidthDp - 80).coerceAtLeast(240).dp)
-			.height(96.dp).background(if (focused) Color(0xFF343840) else Color(0xFF20242A), shape)
-			.border(2.dp, if (focused) Color.White else Color.Transparent, shape).padding(10.dp),
+			.height(96.dp).background(if (focused) colors.listButtonFocused else colors.surface, shape)
+			.border(if (accessibility.strongFocus) 3.dp else 2.dp,
+				if (!focused) Color.Transparent else if (accessibility.strongFocus) Color.White else colors.inputFocused, shape).padding(10.dp),
 		verticalAlignment = Alignment.CenterVertically,
 		horizontalArrangement = Arrangement.spacedBy(16.dp),
 	) {
-		Box(Modifier.size(120.dp, 68.dp).clip(RoundedCornerShape(4.dp)).background(Color(0xFF30343A)), contentAlignment = Alignment.Center) {
+		Box(Modifier.size(120.dp, 68.dp).clip(RoundedCornerShape(4.dp)).background(colors.button), contentAlignment = Alignment.Center) {
 			if (image != null) {
 				val api = koinInject<ApiClient>()
 				AsyncImage(url = image.getUrl(api, maxWidth = with(density) { 120.dp.roundToPx() }, maxHeight = with(density) { 68.dp.roundToPx() }),
@@ -69,9 +74,9 @@ internal fun CompactLibraryRow(item: BaseRowItem?, focused: Boolean) {
 		Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
 			Text(item.getFullName(context) ?: stringResource(R.string.lbl_bracket_unknown), color = Color.White, fontSize = 20.sp, lineHeight = 23.sp,
 				fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
-			if (metadata.isNotEmpty()) Text(metadata, color = Color(0xFFCFD3DA), fontSize = 15.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-			if (progress != null) Box(Modifier.fillMaxWidth().height(3.dp).background(Color(0xFF555B64))) {
-				Box(Modifier.fillMaxWidth(progress).fillMaxHeight().background(Color(0xFF37B9F1)))
+			if (metadata.isNotEmpty()) Text(metadata, color = colors.listCaption, fontSize = 15.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+			if (progress != null) Box(Modifier.fillMaxWidth().height(3.dp).background(colors.rangeControlBackground)) {
+				Box(Modifier.fillMaxWidth(progress).fillMaxHeight().background(colors.rangeControlFill))
 			}
 		}
 	}

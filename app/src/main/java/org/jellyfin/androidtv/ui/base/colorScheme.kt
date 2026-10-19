@@ -5,40 +5,52 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import org.jellyfin.design.Tokens
 
-// LumaFin brand accent, sampled from the app logo
-private val LumaFinAccentBlue = Color(0xFF3C9CE4)
+/** Logo-derived palette. Classic views use the matching lumafin_* resources. */
+internal object LumaFinPalette {
+	val Background = Color(0xFF080D1C)
+	val Surface = Color(0xFF101A2D)
+	val Raised = Color(0xFF1B2A45)
+	val FocusedRow = Color(0xFF233E64)
+	val Cyan = Color(0xFF39CEF3)
+	val Blue = Color(0xFF679BFF)
+	val Purple = Color(0xFFB9A4FF)
+	val Selected = Color(0xFF302448)
+	val Text = Color(0xFFF2F5FF)
+	val SecondaryText = Color(0xFFB6C3DC)
+	val Muted = Color(0xFF9BAFD0)
+}
 
 fun colorScheme(): ColorScheme = ColorScheme(
-	background = Tokens.Color.colorGrey975,
-	onBackground = Tokens.Color.colorBluegrey25,
-	button = Color(0xB3747474),
-	onButton = Color(0xFFDDDDDD),
-	buttonFocused = Color(0xE6CCCCCC),
-	onButtonFocused = Color(0xFF444444),
-	buttonDisabled = Color(0x33747474),
-	onButtonDisabled = Color(0xFF686868),
-	buttonActive = Color(0x4DCCCCCC),
-	onButtonActive = Color(0xFFDDDDDD),
-	input = Color(0xB3747474),
-	onInput = Color(0xE6CCCCCC),
-	inputFocused = Color(0xE6CCCCCC),
-	onInputFocused = Color(0xFFDDDDDD),
-	rangeControlBackground = Tokens.Color.colorBluegrey700,
-	rangeControlFill = LumaFinAccentBlue,
-	rangeControlKnob = Tokens.Color.colorBluegrey100,
-	seekbarBuffer = Tokens.Color.colorBluegrey300,
+	background = LumaFinPalette.Background,
+	onBackground = LumaFinPalette.Text,
+	button = LumaFinPalette.Raised,
+	onButton = LumaFinPalette.SecondaryText,
+	buttonFocused = LumaFinPalette.Cyan,
+	onButtonFocused = LumaFinPalette.Background,
+	buttonDisabled = LumaFinPalette.Raised.copy(alpha = 0.4f),
+	onButtonDisabled = LumaFinPalette.Muted.copy(alpha = 0.65f),
+	buttonActive = LumaFinPalette.Selected,
+	onButtonActive = LumaFinPalette.Purple,
+	input = LumaFinPalette.Muted,
+	onInput = LumaFinPalette.SecondaryText,
+	inputFocused = LumaFinPalette.Cyan,
+	onInputFocused = LumaFinPalette.Text,
+	rangeControlBackground = LumaFinPalette.Raised,
+	rangeControlFill = LumaFinPalette.Blue,
+	rangeControlKnob = LumaFinPalette.Cyan,
+	seekbarBuffer = LumaFinPalette.Muted,
 	recording = Tokens.Color.colorRed300,
 	onRecording = Tokens.Color.colorRed25,
-	badge = LumaFinAccentBlue,
-	onBadge = Tokens.Color.colorBluegrey100,
-	listHeader = Tokens.Color.colorGrey50,
-	listOverline = Tokens.Color.colorGrey500,
-	listHeadline = Tokens.Color.colorGrey25,
-	listCaption = Tokens.Color.colorGrey200,
+	badge = LumaFinPalette.Cyan,
+	onBadge = LumaFinPalette.Background,
+	listHeader = LumaFinPalette.Text,
+	listOverline = LumaFinPalette.Muted,
+	listHeadline = LumaFinPalette.Text,
+	listCaption = LumaFinPalette.SecondaryText,
 	listButton = Color.Transparent,
-	listButtonFocused = Tokens.Color.colorBluegrey800,
-	surface = Tokens.Color.colorBluegrey900,
-	scrim = Tokens.Color.colorBlack.copy(alpha = 0.67f),
+	listButtonFocused = LumaFinPalette.FocusedRow,
+	surface = LumaFinPalette.Surface,
+	scrim = LumaFinPalette.Background.copy(alpha = 0.78f),
 )
 
 @Immutable

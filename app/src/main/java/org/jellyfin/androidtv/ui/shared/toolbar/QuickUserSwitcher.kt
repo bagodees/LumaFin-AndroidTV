@@ -67,6 +67,8 @@ import org.jellyfin.androidtv.ui.base.button.ButtonBase
 import org.jellyfin.androidtv.ui.base.button.ButtonDefaults
 import org.jellyfin.androidtv.ui.base.dialog.DialogBase
 import org.jellyfin.androidtv.ui.base.Text
+import org.jellyfin.androidtv.ui.base.LumaFinPalette
+import org.jellyfin.androidtv.ui.base.rememberAccessibilityOptions
 import org.jellyfin.androidtv.ui.navigation.ActivityDestinations
 import org.koin.compose.koinInject
 
@@ -194,13 +196,13 @@ fun QuickUserSwitcher(
 	}
 	val content: @Composable () -> Unit = {
 		Column(
-			modifier = Modifier.fillMaxSize().background(Color(0xFF101419)).padding(vertical = 32.dp),
+			modifier = Modifier.fillMaxSize().background(LumaFinPalette.Background).padding(vertical = 32.dp),
 			horizontalAlignment = Alignment.CenterHorizontally,
 			verticalArrangement = Arrangement.Center,
 		) {
 			Text(stringResource(R.string.user_switch_heading), fontSize = 32.sp, fontWeight = FontWeight.Bold, color = Color.White)
 			Spacer(Modifier.height(8.dp))
-			Text(server?.name.orEmpty(), fontSize = 14.sp, color = Color(0xFFADB5C0))
+			Text(server?.name.orEmpty(), fontSize = 14.sp, color = LumaFinPalette.Muted)
 			Spacer(Modifier.height(20.dp))
 			if (failure == null) LazyRow(
 				modifier = Modifier.fillMaxWidth().focusRequester(retryFocus).focusGroup(),
@@ -228,7 +230,7 @@ fun QuickUserSwitcher(
 				item(key = "other-users") {
 					UserProfileCard(name = stringResource(R.string.user_switch_other_users), imageUrl = null,
 						modifier = if (orderedUsers.isEmpty()) Modifier.focusRequester(initialFocus) else Modifier,
-						color = Color(0xFF28303B), current = false, enabled = !busy, otherUsers = true,
+						color = LumaFinPalette.Raised, current = false, enabled = !busy, otherUsers = true,
 						onClick = { if (onAddUser != null) onAddUser() else openStartup(true) })
 				}
 			}
@@ -238,11 +240,11 @@ fun QuickUserSwitcher(
 				verticalArrangement = Arrangement.spacedBy(12.dp),
 			) {
 				Text(stringResource(failure!!.title), color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.SemiBold)
-				Text(stringResource(failure!!.message), color = Color(0xFFBEC5CF), fontSize = 16.sp, textAlign = TextAlign.Center)
-				Text(stringResource(R.string.connection_account_preserved), color = Color(0xFFBEC5CF), fontSize = 14.sp)
+				Text(stringResource(failure!!.message), color = LumaFinPalette.SecondaryText, fontSize = 16.sp, textAlign = TextAlign.Center)
+				Text(stringResource(R.string.connection_account_preserved), color = LumaFinPalette.SecondaryText, fontSize = 14.sp)
 			}
 			Box(Modifier.height(54.dp).fillMaxWidth().padding(horizontal = 48.dp), contentAlignment = Alignment.Center) {
-				if (notice != null && !busy) Text(notice, color = Color(0xFFBEC5CF), fontSize = 13.sp, textAlign = TextAlign.Center)
+				if (notice != null && !busy) Text(notice, color = LumaFinPalette.SecondaryText, fontSize = 13.sp, textAlign = TextAlign.Center)
 				else if (busy) Text(
 					stringResource(when (result) {
 						UserSwitchResult.SWITCHING, UserSwitchResult.SWITCHED -> R.string.user_switch_loading
@@ -273,10 +275,10 @@ fun QuickUserSwitcher(
 		}
 	}
 	if (embedded) content() else DialogBase(visible = true, onDismissRequest = { if (!busy) onDismissRequest() },
-		scrimColor = Color(0xFF101419)) { content() }
+		scrimColor = LumaFinPalette.Background) { content() }
 }
 
-private val profileColors = listOf(Color(0xFF2265A7), Color(0xFF7952A3), Color(0xFF257D78), Color(0xFFA65337), Color(0xFF9A6B1E))
+private val profileColors = listOf(Color(0xFF285788), Color(0xFF544288), Color(0xFF236477), Color(0xFF35458A), Color(0xFF674576))
 
 @Composable
 private fun UserProfileCard(
@@ -292,6 +294,7 @@ private fun UserProfileCard(
 ) {
 	val interactions = remember { MutableInteractionSource() }
 	val focused by interactions.collectIsFocusedAsState()
+	val accessibility = rememberAccessibilityOptions()
 	val scale by animateFloatAsState(if (focused) 1.06f else 1f)
 	val shape = RoundedCornerShape(12.dp)
 	val painter = rememberAsyncImagePainter(imageUrl)
@@ -303,7 +306,7 @@ private fun UserProfileCard(
 			colors = ButtonDefaults.colors(containerColor = color, focusedContainerColor = color, contentColor = Color.White,
 				focusedContentColor = Color.White, disabledContainerColor = color.copy(alpha = 0.5f)),
 			modifier = modifier.size(128.dp).graphicsLayer { scaleX = scale; scaleY = scale }
-				.border(3.dp, if (focused) Color.White else Color.Transparent, shape)
+				.border(3.dp, if (!focused) Color.Transparent else if (accessibility.strongFocus) Color.White else LumaFinPalette.Cyan, shape)
 				.semantics { contentDescription = if (current) "$name, $currentLabel" else name },
 		) {
 			Box(Modifier.fillMaxSize().padding(4.dp).clip(RoundedCornerShape(9.dp)), contentAlignment = Alignment.Center) {
@@ -317,8 +320,8 @@ private fun UserProfileCard(
 			}
 		}
 		Spacer(Modifier.height(14.dp))
-		Text(name, color = if (focused) Color.White else Color(0xFFBEC5CF), fontSize = 17.sp, fontWeight = FontWeight.SemiBold,
+		Text(name, color = if (focused) Color.White else LumaFinPalette.SecondaryText, fontSize = 17.sp, fontWeight = FontWeight.SemiBold,
 			textAlign = TextAlign.Center, maxLines = 2, minLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.fillMaxWidth())
-		Text(if (current) currentLabel else "", color = Color(0xFFADB5C0), fontSize = 12.sp)
+		Text(if (current) currentLabel else "", color = LumaFinPalette.Muted, fontSize = 12.sp)
 	}
 }

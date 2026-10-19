@@ -7,6 +7,7 @@
     <style name="Theme.Jellyfin.MutedPurple" parent="Theme.Jellyfin">
         <!-- Colors -->
         <item name="android:colorAccent">@color/theme_muted_purple_accent</item>
+        <item name="colorAccent">@color/theme_muted_purple_accent</item>
         <item name="defaultSearchColor">@color/theme_muted_purple_accent</item>
         <item name="progressPrimary">@color/theme_muted_purple_accent</item>
         <item name="android:colorButtonNormal">@color/light_grey_transparent</item>

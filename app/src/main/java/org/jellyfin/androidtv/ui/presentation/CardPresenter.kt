@@ -12,6 +12,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -403,7 +404,7 @@ private fun CardViewHolderContent(
 								Box(
 									modifier = Modifier
 										.fillMaxWidth()
-										.background(Tokens.Color.colorBluegrey900.copy(alpha = if (accessibility.highContrast) 0.95f else 0.6f), JellyfinTheme.shapes.extraSmall),
+										.background(JellyfinTheme.colorScheme.surface.copy(alpha = if (accessibility.highContrast) 0.95f else 0.8f), JellyfinTheme.shapes.extraSmall),
 								) {
 									Text(
 										text = title,
@@ -423,6 +424,7 @@ private fun CardViewHolderContent(
 			},
 			modifier = Modifier
 				.size(size)
+				.then(if (focused && !accessibility.strongFocus) Modifier.border(2.dp, JellyfinTheme.colorScheme.inputFocused, JellyfinTheme.shapes.medium) else Modifier)
 				.focusOutline(focused, JellyfinTheme.shapes.medium, accessibility.strongFocus)
 				.then(if (hideLibraryCaption) Modifier.semantics { contentDescription = title.orEmpty() } else Modifier)
 				.graphicsLayer(alpha = cardAlpha)

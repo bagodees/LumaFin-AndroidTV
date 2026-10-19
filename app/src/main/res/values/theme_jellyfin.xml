@@ -6,6 +6,11 @@
         <item name="android:colorPrimary">@color/grey</item>
         <item name="android:colorPrimaryDark">@color/grey</item>
         <item name="android:colorAccent">@color/jellyfin_blue</item>
+        <item name="colorAccent">@color/lumafin_cyan</item>
+        <item name="android:colorBackground">@color/lumafin_background</item>
+        <item name="android:colorBackgroundFloating">@color/lumafin_surface</item>
+        <item name="colorControlHighlight">#403E6CB4</item>
+        <item name="android:colorControlHighlight">#403E6CB4</item>
         <!-- Background resource or color -->
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="defaultBackground">@color/not_quite_black</item>
@@ -29,7 +34,7 @@
 
         <!-- Progress Bar -->
         <item name="progressBackground">@color/grey_transparent</item>
-        <item name="progressPrimary">@color/jellyfin_blue</item>
+        <item name="progressPrimary">@color/lumafin_blue</item>
         <item name="progressSecondary">@color/jellyfin_purple</item>
 
         <!-- Custom Styles for Elements -->
@@ -87,6 +92,10 @@
     </style>
 
     <style name="Theme.Jellyfin.Dialog" parent="Theme.AppCompat.Dialog">
+        <item name="colorAccent">@color/lumafin_cyan</item>
+        <item name="android:colorAccent">@color/lumafin_cyan</item>
+        <item name="android:colorBackground">@color/lumafin_surface</item>
+        <item name="android:colorBackgroundFloating">@color/lumafin_surface</item>
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowAnimationStyle">@null</item>
     </style>

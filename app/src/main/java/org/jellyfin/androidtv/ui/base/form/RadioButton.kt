@@ -23,8 +23,8 @@ fun RadioButton(
 	checked: Boolean,
 	modifier: Modifier = Modifier,
 	shape: Shape = CircleShape,
-	containerColor: Color = JellyfinTheme.colorScheme.button,
-	contentColor: Color = JellyfinTheme.colorScheme.onButton
+	containerColor: Color = if (checked) JellyfinTheme.colorScheme.badge else JellyfinTheme.colorScheme.listOverline,
+	contentColor: Color = JellyfinTheme.colorScheme.onBadge
 ) {
 	Box(
 		modifier = modifier

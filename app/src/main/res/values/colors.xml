@@ -1,13 +1,23 @@
 <resources>
     <!-- Base Colors -->
-    <color name="jellyfin_blue">#3C9CE4</color>
-    <color name="jellyfin_purple">#C2264B</color>
-    <color name="midnight_blue">#031A6B</color>
-    <color name="indigo_dye">#033860</color>
-    <color name="spanish_blue">#1E76BA</color>
-    <color name="grey">#303030</color>
-    <color name="grey_light">#4b4b4b</color>
-    <color name="not_quite_black">#101010</color>
+    <color name="lumafin_background">#080D1C</color>
+    <color name="lumafin_surface">#101A2D</color>
+    <color name="lumafin_raised">#1B2A45</color>
+    <color name="lumafin_focus_row">#233E64</color>
+    <color name="lumafin_cyan">#39CEF3</color>
+    <color name="lumafin_blue">#679BFF</color>
+    <color name="lumafin_purple">#B9A4FF</color>
+    <color name="lumafin_text">#F2F5FF</color>
+    <color name="lumafin_secondary_text">#B6C3DC</color>
+    <color name="lumafin_muted">#9BAFD0</color>
+    <color name="jellyfin_blue">@color/lumafin_cyan</color>
+    <color name="jellyfin_purple">@color/lumafin_purple</color>
+    <color name="midnight_blue">#25254F</color>
+    <color name="indigo_dye">#173A59</color>
+    <color name="spanish_blue">#285788</color>
+    <color name="grey">@color/lumafin_raised</color>
+    <color name="grey_light">#263956</color>
+    <color name="not_quite_black">@color/lumafin_background</color>
     <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>
     <color name="red">#CC3333</color>
@@ -20,7 +30,7 @@
     <color name="black_transparent_light">#74000000</color>
 
     <!-- Progressbar Background -->
-    <color name="grey_transparent">#CC4b4b4b</color>
+    <color name="grey_transparent">#CC263956</color>
 
     <!-- Gradients -->
     <color name="dark_green_gradient_start">#c306610a</color>
@@ -41,28 +51,28 @@
     <color name="guide_kids_bg">#32039BE5</color>
 
     <!-- button_default -->
-    <color name="button_default_normal_background">#B3747474</color>
-    <color name="button_default_disabled_background">#33747474</color>
-    <color name="button_default_highlight_background">#E6CCCCCC</color>
-    <color name="button_default_normal_text">#DDDDDD</color>
-    <color name="button_default_disabled_text">#686868</color>
-    <color name="button_default_highlight_text">#444444</color>
-    <color name="button_default_activated_text">#CC3333</color>
+    <color name="button_default_normal_background">@color/lumafin_raised</color>
+    <color name="button_default_disabled_background">#661B2A45</color>
+    <color name="button_default_highlight_background">@color/lumafin_cyan</color>
+    <color name="button_default_normal_text">@color/lumafin_secondary_text</color>
+    <color name="button_default_disabled_text">#669BAFD0</color>
+    <color name="button_default_highlight_text">@color/lumafin_background</color>
+    <color name="button_default_activated_text">@color/lumafin_purple</color>
     <color name="button_default_progress_background">#33000000</color>
 
     <!-- input_default -->
-    <color name="input_default_stroke">#B3747474</color>
+    <color name="input_default_stroke">@color/lumafin_muted</color>
     <color name="input_default_disabled_background">#33747474</color>
-    <color name="input_default_highlight_background">#DDDDDD</color>
-    <color name="input_default_normal_text">#DDDDDD</color>
+    <color name="input_default_highlight_background">@color/lumafin_focus_row</color>
+    <color name="input_default_normal_text">@color/lumafin_text</color>
     <color name="input_default_disabled_text">#686868</color>
-    <color name="input_default_highlight_text">#444444</color>
+    <color name="input_default_highlight_text">@color/lumafin_text</color>
 
     <!-- popup_menu -->
-    <color name="popup_menu_background">#202124</color>
+    <color name="popup_menu_background">@color/lumafin_surface</color>
 
     <!-- Card Background Color -->
     <color name="lb_basic_card_info_bg_color">@color/grey</color>
 
-    <color name="background_filter">#94101010</color>
+    <color name="background_filter">#94080D1C</color>
 </resources>
