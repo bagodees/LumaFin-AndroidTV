@@ -84,6 +84,7 @@ object Routes {
 	const val STREAMING_SPEED = "/help/streaming-speed"
 	const val DIAGNOSTIC_EXPORT = "/help/diagnostics-export"
 	const val SETTINGS_BACKUP = "/help/settings-backup"
+	const val SETTINGS_SYNC = "/help/settings-sync"
 	const val AUTHENTICATION = "/authentication"
 	const val AUTHENTICATION_FROM_LOGIN = "/authentication+login"
 	const val AUTHENTICATION_SERVER = "/authentication/server/{serverId}"
@@ -158,6 +159,7 @@ val routes = mapOf<String, RouteComposable>(
 	Routes.STREAMING_SPEED to { org.jellyfin.androidtv.ui.settings.screen.SettingsStreamingSpeedScreen() },
 	Routes.DIAGNOSTIC_EXPORT to { org.jellyfin.androidtv.ui.settings.screen.SettingsDiagnosticExportScreen() },
 	Routes.SETTINGS_BACKUP to { org.jellyfin.androidtv.ui.settings.screen.SettingsBackupScreen() },
+	Routes.SETTINGS_SYNC to { org.jellyfin.androidtv.ui.settings.screen.SettingsSyncScreen() },
 	Routes.SEARCH to { SettingsSearchScreen() },
 	Routes.HOME_SHORTCUTS to { SettingsHomeShortcutsScreen() },
 	Routes.HOME_RECOMMENDATIONS to { SettingsHomeRecommendationsScreen() },

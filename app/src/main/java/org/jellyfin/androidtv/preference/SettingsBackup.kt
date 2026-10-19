@@ -68,7 +68,7 @@ internal object SettingsBackup {
 		Field("subtitles_text_stroke_color", 0xFF000000L) { it is Long && it in 0..0xFFFFFFFFL },
 	)
 	data class Review(val values: Map<String, Any>, val skipped: Int)
-	private fun primitive(value: Any): JsonPrimitive = when (value) {
+	fun primitive(value: Any): JsonPrimitive = when (value) {
 		is Boolean -> JsonPrimitive(value)
 		is Number -> JsonPrimitive(value)
 		else -> JsonPrimitive(value.toString())
@@ -86,6 +86,17 @@ internal object SettingsBackup {
 		} })
 	})
 	fun review(text: String): Review {
+		checkLimits(text)
+		val root = Json.parseToJsonElement(text).jsonObject
+		require(root["format"] == JsonPrimitive(FORMAT) && root["version"] == JsonPrimitive(1)) { "Unsupported backup format" }
+		val settings = root["settings"]?.jsonObject ?: error("Missing settings")
+		val values = fields.mapNotNull { field -> settings[field.key]?.let { field.key to field.decode(it) } }.toMap()
+		require(values.isNotEmpty()) { "No supported settings" }
+		return Review(values, settings.size - values.size)
+	}
+
+	/** Size and nesting bounds checked before parsing; shared with settings sync. */
+	fun checkLimits(text: String) {
 		require(text.toByteArray(Charsets.UTF_8).size <= MAX_BYTES) { "Backup too large" }
 		// Bound nesting before the parser, including within unsupported fields.
 		var depth = 0
@@ -100,11 +111,5 @@ internal object SettingsBackup {
 				'}', ']' -> depth--
 			}
 		}
-		val root = Json.parseToJsonElement(text).jsonObject
-		require(root["format"] == JsonPrimitive(FORMAT) && root["version"] == JsonPrimitive(1)) { "Unsupported backup format" }
-		val settings = root["settings"]?.jsonObject ?: error("Missing settings")
-		val values = fields.mapNotNull { field -> settings[field.key]?.let { field.key to field.decode(it) } }.toMap()
-		require(values.isNotEmpty()) { "No supported settings" }
-		return Review(values, settings.size - values.size)
 	}
 }

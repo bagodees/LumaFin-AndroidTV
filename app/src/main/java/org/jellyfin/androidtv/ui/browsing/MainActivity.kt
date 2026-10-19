@@ -40,6 +40,8 @@ class MainActivity : FragmentActivity() {
 	private val userRepository by inject<UserRepository>()
 	private val interactionTrackerViewModel by viewModel<InteractionTrackerViewModel>()
 	private val workManager by inject<WorkManager>()
+	private val settingsSync by inject<org.jellyfin.androidtv.preference.SettingsSync>()
+	private var shownSyncReview: org.jellyfin.androidtv.preference.SettingsSync.Review? = null
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		applyTheme()
@@ -55,6 +57,16 @@ class MainActivity : FragmentActivity() {
 			}.launchIn(lifecycleScope)
 
 		if (savedInstanceState == null && navigationRepository.canGoBack) navigationRepository.reset(clearHistory = true)
+
+		// Ask once per new set of sync conflicts; the settings screen keeps it reachable after dismissal.
+		settingsSync.state
+			.flowWithLifecycle(lifecycle, Lifecycle.State.RESUMED)
+			.onEach { state ->
+				val review = state.review?.takeIf { !it.enabling } ?: return@onEach
+				if (review == shownSyncReview) return@onEach
+				shownSyncReview = review
+				org.jellyfin.androidtv.ui.settings.SettingsSyncReviewDialog.show(this, lifecycleScope, settingsSync, review)
+			}.launchIn(lifecycleScope)
 
 		navigationRepository.currentAction
 			.flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
@@ -86,6 +98,7 @@ class MainActivity : FragmentActivity() {
 		applyTheme()
 
 		interactionTrackerViewModel.activityPaused = false
+		settingsSync.requestSync()
 	}
 
 	private fun validateAuthentication(): Boolean {

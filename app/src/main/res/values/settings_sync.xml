@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_sync_title">Sync settings across devices</string>
+    <string name="settings_sync_description">Keep personal preferences the same on every TV signed in to this Jellyfin account. Each TV keeps its own layout. Off by default.</string>
+    <string name="settings_sync_toggle">Sync this TV\'s settings</string>
+    <string name="settings_sync_off_caption">Off on this TV</string>
+    <string name="settings_sync_working">Syncing…</string>
+    <string name="settings_sync_just_now">Synced just now</string>
+    <string name="settings_sync_last">Last synced %1$s</string>
+    <string name="settings_sync_failed_short">Last sync failed; it will retry automatically</string>
+    <string name="settings_sync_failed">Settings could not be synced. Check the connection to your Jellyfin server; your settings on this TV are unchanged.</string>
+    <string name="settings_sync_account_changed">The account changed before sync finished. Nothing was changed.</string>
+    <string name="settings_sync_now">Sync now</string>
+    <string name="settings_sync_remove">Remove synced copy from server</string>
+    <string name="settings_sync_remove_description">Deletes this account\'s synced settings from the Jellyfin server and turns sync off here. Settings on each TV stay as they are.</string>
+    <string name="settings_sync_remove_confirm">Remove the synced settings for this account from the Jellyfin server? Other TVs keep their current settings but stop receiving changes until sync is turned on again.</string>
+    <string name="settings_sync_scope_heading">What syncs</string>
+    <string name="settings_sync_scope">Synced: spoiler controls, hide-watched filters, watched indicator, rating badges, series thumbnails, remote long-press action, autoplay, cinema prerolls, skip lengths, and subtitle brightness, weight and colors.\n\nKept per TV: Home rows and item limits, card size, theme, backdrop, clock, Reduced Motion, and subtitle size and position.\n\nNever synced: sign-in details, server addresses, device and playback compatibility options, watch history, Watch Later, shortcuts and remembered track choices. The synced copy is stored with your Jellyfin user and is only visible to that user and server administrators.</string>
+    <string name="settings_sync_enable_title">Synced settings already exist</string>
+    <string name="settings_sync_enable_review">This account already has synced settings that differ from this TV:</string>
+    <string name="settings_sync_use_synced_all">Use synced settings</string>
+    <string name="settings_sync_replace_synced">Replace with this TV\'s</string>
+    <string name="settings_sync_conflict_title">Review synced settings</string>
+    <string name="settings_sync_conflict_review">These settings were changed on this TV and on another device. Other changes were synced automatically.</string>
+    <string name="settings_sync_use_synced">Use synced</string>
+    <string name="settings_sync_keep_this_tv">Keep this TV\'s</string>
+    <string name="settings_sync_difference">%1$s\nThis TV: %2$s · Synced: %3$s</string>
+    <plurals name="settings_sync_conflicts">
+        <item quantity="one">%1$d setting needs your choice</item>
+        <item quantity="other">%1$d settings need your choice</item>
+    </plurals>
+</resources>
