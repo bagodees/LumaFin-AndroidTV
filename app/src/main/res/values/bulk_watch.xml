@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="bulk_watch_host" type="id" />
+    <string name="bulk_watch_title">Mark selected titles…</string>
+    <string name="bulk_watch_scope">Choose from %1$d currently loaded movies or episodes in this view. Only checked titles change. Series and seasons are excluded. For more titles, return to browsing and load them first.</string>
+    <string name="bulk_watch_window">Showing a group of %1$d out of %2$d loaded titles, including the focused title. No other titles will change.</string>
+    <string name="bulk_watch_review">Review (%1$d)</string>
+    <string name="bulk_watch_choose_action">Choose an action for %1$d selected titles</string>
+    <string name="bulk_watch_watched">Mark watched</string>
+    <string name="bulk_watch_unwatched">Mark unwatched</string>
+    <string name="bulk_watch_confirm_watched">Mark these %1$d titles watched for %2$s on %3$s? This updates Jellyfin watch history and clears resume progress. Continue Watching, Next Up, spoiler controls and watched filters may change on this user’s other devices.</string>
+    <string name="bulk_watch_confirm_unwatched">Mark these %1$d titles unwatched for %2$s on %3$s? Jellyfin clears their watched status, play count and resume progress. Continue Watching, Next Up, spoiler controls and watched filters may change on this user’s other devices.</string>
+    <string name="bulk_watch_apply">Apply changes</string>
+    <string name="bulk_watch_progress">Processing %1$d selected titles. Stop prevents remaining requests; completed changes are not undone. An in-flight server request may still finish.</string>
+    <string name="bulk_watch_stop">Stop remaining</string>
+    <string name="bulk_watch_stopping">Stopping after the current server request. Completed changes are not undone.</string>
+    <string name="bulk_watch_result">Changed: %1$d\nAlready in this state: %2$d\nCould not check: %3$d\nResult not confirmed: %4$d\nNot attempted: %5$d\n\nCompleted changes stay saved. Recheck unconfirmed titles before trying again.</string>
+    <string name="bulk_watch_unfinished">Titles to recheck:</string>
+    <string name="bulk_watch_edit">Edit selection</string>
+    <string name="bulk_watch_error">The operation stopped. Some server changes may already have completed. Recheck the titles before trying again.</string>
+</resources>

@@ -74,6 +74,11 @@ fun FullDetailsFragment.showDetailsMenu(
 	view: View,
 	baseItemDto: BaseItemDto,
 ) = popupMenu(requireContext(), view) {
+	if (org.jellyfin.androidtv.ui.browsing.canSelectWatchTitles(view)) {
+		item(getString(R.string.bulk_watch_title)) {
+			view.post { org.jellyfin.androidtv.ui.browsing.showBulkWatchSelection(view, null) }
+		}
+	}
 	// Hidden actions remain available in More.
     if (mWatchedToggleButton?.isVisible == false) {
         item(getString(if (baseItemDto.userData?.played == true) R.string.details_mark_unwatched else R.string.details_mark_watched)) { togglePlayed() }

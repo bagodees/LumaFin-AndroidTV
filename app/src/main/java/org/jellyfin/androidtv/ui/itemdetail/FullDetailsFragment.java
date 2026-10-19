@@ -303,6 +303,13 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
     }
 
     @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        org.jellyfin.androidtv.ui.browsing.BulkWatchDialogKt.installBulkWatchHost(view, getViewLifecycleOwner(), () ->
+            mBaseItem != null && (mBaseItem.getType() == BaseItemKind.SEASON || mBaseItem.getType() == BaseItemKind.SERIES) ? mRowsAdapter : null,
+            () -> { onResume(); return kotlin.Unit.INSTANCE; });
+    }
+    @Override
     public boolean onKey(View v, int keyCode, KeyEvent event) {
         if (event.getAction() != KeyEvent.ACTION_UP) return false;
 

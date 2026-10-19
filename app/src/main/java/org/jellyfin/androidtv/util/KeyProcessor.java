@@ -261,6 +261,7 @@ public class KeyProcessor {
 
         HomeShortcutMenuKt.addHomeShortcutMenu(menu, activity, item);
         WatchLaterMenuKt.addWatchLaterMenu(menu, activity, item);
+        org.jellyfin.androidtv.ui.browsing.BulkWatchDialogKt.addBulkWatchMenuItem(menu, activity.getCurrentFocus(), item.getId());
         menu.setOnMenuItemClickListener(new KeyProcessorItemMenuClickListener(activity, rowItem));
         menu.show();
         return menu;
@@ -378,4 +379,3 @@ public class KeyProcessor {
         customMessageRepository.getValue().pushMessage(CustomMessage.RefreshCurrentItem.INSTANCE);
     }
 }
-

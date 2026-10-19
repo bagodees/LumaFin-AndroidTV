@@ -206,6 +206,16 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
         createGrid();
         loadGrid();
         addTools();
+        BulkWatchDialogKt.installBulkWatchHost(view, getViewLifecycleOwner(), () -> mAdapter, () -> {
+            if (binding != null && mAdapter != null) {
+                binding.toolBar.requestFocus();
+                mCurrentItem = null;
+                mSelectedPosition = 0;
+                mGridView.setSelectedPosition(0);
+                mAdapter.Retrieve();
+            }
+            return kotlin.Unit.INSTANCE;
+        });
     }
 
     @Override
