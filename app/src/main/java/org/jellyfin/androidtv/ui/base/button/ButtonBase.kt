@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.sp
 import org.jellyfin.androidtv.ui.base.JellyfinTheme
+import org.jellyfin.androidtv.ui.base.focusOutline
 import org.jellyfin.androidtv.ui.base.ProvideTextStyle
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -55,6 +56,7 @@ fun ButtonBase(
 					onLongClick = onLongClick,
 				)
 				.background(colors.first, shape)
+				.focusOutline(focused && enabled, shape)
 				.clip(shape),
 			content = content,
 		)

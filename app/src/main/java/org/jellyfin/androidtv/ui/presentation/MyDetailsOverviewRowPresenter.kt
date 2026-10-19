@@ -63,6 +63,9 @@ class MyDetailsOverviewRowPresenter(
 			currentRow = row
 			val item = row.item
 			val hasThumbnail = row.thumbnailImage != null
+			// High contrast (#23): the secondary info values are normally dimmed.
+			val highContrast = GlobalContext.get().get<org.jellyfin.androidtv.preference.UserPreferences>()[org.jellyfin.androidtv.preference.UserPreferences.highContrast]
+			listOf(binding.infoValue1, binding.infoValue2, binding.infoValue3).forEach { it.alpha = if (highContrast) 1f else 0.6f }
 
 			if (item.type == BaseItemKind.EPISODE && item.seriesName != null) {
 				setTitle(item.seriesName)

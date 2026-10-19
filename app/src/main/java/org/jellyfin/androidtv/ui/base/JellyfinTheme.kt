@@ -12,8 +12,10 @@ fun JellyfinTheme(
 	typography: Typography = JellyfinTheme.typography,
 	content: @Composable () -> Unit
 ) {
+	val accessibility = rememberAccessibilityOptions()
 	CompositionLocalProvider(
-		LocalColorScheme provides colorScheme,
+		LocalColorScheme provides if (accessibility.highContrast) colorScheme.highContrast() else colorScheme,
+		LocalAccessibility provides accessibility,
 		LocalShapes provides shapes,
 		LocalTypography provides typography,
 		LocalTextStyle provides LocalTextStyle.current.merge(typography.default),

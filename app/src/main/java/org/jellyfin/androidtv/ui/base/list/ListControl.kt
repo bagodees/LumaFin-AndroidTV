@@ -17,6 +17,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import org.jellyfin.androidtv.ui.base.JellyfinTheme
 import org.jellyfin.androidtv.ui.base.LocalShapes
+import org.jellyfin.androidtv.ui.base.focusOutline
 
 object ListControlDefaults {
 	@ReadOnlyComposable
@@ -59,6 +60,7 @@ fun ListControl(
 		modifier = modifier
 			.fillMaxWidth()
 			.background(backgroundColor, LocalShapes.current.large)
+			.focusOutline(focused && enabled, LocalShapes.current.large)
 			.clip(LocalShapes.current.large)
 			.alpha(if (enabled) 1f else 0.4f),
 	) {

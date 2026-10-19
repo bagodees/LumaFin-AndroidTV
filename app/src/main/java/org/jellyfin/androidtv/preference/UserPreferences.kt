@@ -71,6 +71,17 @@ class UserPreferences(context: Context, storage: SharedPreferences = PreferenceM
 		awaitClose { sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener) }
 	}.distinctUntilChanged()
 
+	/** High contrast and stronger focus, for visible screens to restyle without being reopened. */
+	val accessibilityChanges = callbackFlow {
+		fun current() = this@UserPreferences[highContrast] to this@UserPreferences[strongFocus]
+		val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+			if (key == highContrast.key || key == strongFocus.key || key == null) trySend(current())
+		}
+		sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
+		trySend(current())
+		awaitClose { sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener) }
+	}.distinctUntilChanged()
+
 	val mediaCardSizeChanges = callbackFlow {
 		val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
 			if (key == mediaCardSize.key || key == null) trySend(this@UserPreferences[mediaCardSize])
@@ -117,6 +128,9 @@ class UserPreferences(context: Context, storage: SharedPreferences = PreferenceM
 
 		val mediaCardSize = enumPreference("media_card_size", MediaCardSize.DEFAULT)
 		val reducedMotion = booleanPreference("reduced_motion", false)
+		val textScale = enumPreference("accessibility_text_scale", org.jellyfin.androidtv.preference.constant.TextScale.DEFAULT)
+		val highContrast = booleanPreference("accessibility_high_contrast", false)
+		val strongFocus = booleanPreference("accessibility_strong_focus", false)
 		val hideUnwatchedEpisodeArtwork = booleanPreference("hide_unwatched_episode_artwork", false)
 		val hideUnwatchedEpisodeDescriptions = booleanPreference("hide_unwatched_episode_descriptions", false)
 

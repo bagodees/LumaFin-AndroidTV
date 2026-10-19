@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="accessibility_title">Accessibility</string>
+    <string name="text_scale">Text size</string>
+    <string name="text_scale_description">Makes text larger throughout LumaFin, on top of your TV\'s own text-size setting. The screen reloads when changed.</string>
+    <string name="text_scale_default">Default</string>
+    <string name="text_scale_large">Large (115%)</string>
+    <string name="text_scale_larger">Larger (130%)</string>
+    <string name="high_contrast">High contrast</string>
+    <string name="high_contrast_description">Brighter secondary text, solid backgrounds behind card titles and clearer highlighted rows.</string>
+    <string name="strong_focus">Stronger focus outline</string>
+    <string name="strong_focus_description">Draws a thick white outline around whatever is selected, so it is easy to find from across the room.</string>
+    <item name="focus_outline_previous" type="id" />
+</resources>

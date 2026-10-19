@@ -44,6 +44,8 @@ import org.jellyfin.androidtv.ui.startup.fragment.ServerFragment
 import org.jellyfin.androidtv.ui.startup.fragment.UserLoginFragment
 import org.jellyfin.androidtv.ui.startup.fragment.SplashFragment
 import org.jellyfin.androidtv.ui.startup.fragment.StartupToolbarFragment
+import org.jellyfin.androidtv.util.applyTextScale
+import org.jellyfin.androidtv.util.installFocusOutline
 import org.jellyfin.androidtv.util.applyTheme
 import org.jellyfin.androidtv.util.createBundle
 import org.jellyfin.sdk.api.client.ApiClient
@@ -55,6 +57,11 @@ import timber.log.Timber
 import java.util.UUID
 
 open class StartupActivity : FragmentActivity() {
+	override fun attachBaseContext(newBase: android.content.Context) {
+		super.attachBaseContext(newBase)
+		applyTextScale(newBase)
+	}
+
 	protected open val retainCurrentAccount = false
 	private var retainedSession: org.jellyfin.androidtv.auth.repository.Session? = null
 	companion object {
@@ -102,6 +109,7 @@ open class StartupActivity : FragmentActivity() {
 		binding.background.setContent { AppBackground() }
 		binding.screensaver.isVisible = false
 		setContentView(binding.root)
+		installFocusOutline()
 
 		if (!intent.getBooleanExtra(EXTRA_HIDE_SPLASH, false)) showSplash()
 

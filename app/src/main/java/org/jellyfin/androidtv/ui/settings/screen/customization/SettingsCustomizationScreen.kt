@@ -3,6 +3,10 @@ package org.jellyfin.androidtv.ui.settings.screen.customization
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import org.jellyfin.androidtv.preference.constant.MediaCardSize
+import org.jellyfin.androidtv.preference.constant.TextScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.fragment.app.FragmentActivity
+import org.jellyfin.androidtv.util.applyTheme
 import org.jellyfin.androidtv.ui.base.form.RadioButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -30,6 +34,11 @@ fun SettingsCustomizationScreen() {
 	val userPreferences = koinInject<UserPreferences>()
 	var cardSize by rememberPreference(userPreferences, UserPreferences.mediaCardSize)
 	var cardSizesExpanded by remember { mutableStateOf(false) }
+	// Settings may be shown with a wrapped context; find the hosting activity to reload it.
+	val activity = generateSequence(LocalContext.current) { (it as? android.content.ContextWrapper)?.baseContext }
+		.firstNotNullOfOrNull { it as? FragmentActivity }
+	var textScale by rememberPreference(userPreferences, UserPreferences.textScale)
+	var textScalesExpanded by remember { mutableStateOf(false) }
 
 	SettingsColumn {
 		item {
@@ -195,6 +204,56 @@ fun SettingsCustomizationScreen() {
 					modifier = Modifier.focusKey("media_card_size_${option.name}"),
 				)
 			}
+		}
+
+		item(key = "accessibility") {
+			ListSection(headingContent = { Text(stringResource(R.string.accessibility_title)) })
+		}
+		item(key = "text_scale") {
+			ListButton(
+				headingContent = { Text(stringResource(R.string.text_scale)) },
+				captionContent = { Text("${stringResource(textScale.nameRes)} · ${stringResource(R.string.text_scale_description)}") },
+				onClick = { textScalesExpanded = !textScalesExpanded },
+				modifier = Modifier.focusKey("text_scale"),
+			)
+		}
+		if (textScalesExpanded) {
+			items(TextScale.entries.size, key = { "text_scale_$it" }) { index ->
+				val option = TextScale.entries[index]
+				ListButton(
+					headingContent = { Text(stringResource(option.nameRes)) },
+					trailingContent = { RadioButton(checked = textScale == option) },
+					onClick = {
+						if (textScale != option) {
+							// Store synchronously: text size is applied when the screen is created, so reload it now.
+							userPreferences[UserPreferences.textScale] = option
+							textScale = option
+							activity?.applyTheme()
+						}
+					},
+					modifier = Modifier.focusKey("text_scale_${option.name}"),
+				)
+			}
+		}
+		item(key = "high_contrast") {
+			var highContrast by rememberPreference(userPreferences, UserPreferences.highContrast)
+			ListButton(
+				headingContent = { Text(stringResource(R.string.high_contrast)) },
+				captionContent = { Text(stringResource(R.string.high_contrast_description)) },
+				trailingContent = { Checkbox(checked = highContrast) },
+				onClick = { highContrast = !highContrast },
+				modifier = Modifier.focusKey("high_contrast"),
+			)
+		}
+		item(key = "strong_focus") {
+			var strongFocus by rememberPreference(userPreferences, UserPreferences.strongFocus)
+			ListButton(
+				headingContent = { Text(stringResource(R.string.strong_focus)) },
+				captionContent = { Text(stringResource(R.string.strong_focus_description)) },
+				trailingContent = { Checkbox(checked = strongFocus) },
+				onClick = { strongFocus = !strongFocus },
+				modifier = Modifier.focusKey("strong_focus"),
+			)
 		}
 
 	}

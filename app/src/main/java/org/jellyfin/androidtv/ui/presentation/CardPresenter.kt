@@ -50,6 +50,8 @@ import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.ui.GridButton
 import org.jellyfin.androidtv.constant.ImageType
 import org.jellyfin.androidtv.ui.base.JellyfinTheme
+import org.jellyfin.androidtv.ui.base.rememberAccessibilityOptions
+import org.jellyfin.androidtv.ui.base.focusOutline
 import org.jellyfin.androidtv.ui.base.Text
 import org.jellyfin.androidtv.ui.composable.AsyncImage
 import org.jellyfin.androidtv.ui.composable.item.ItemCard
@@ -345,6 +347,7 @@ private fun CardViewHolderContent(
 	// The focused card is the visual anchor for a TV row. Gently dim the artwork on
 	// its neighbours so focus remains clear without relying on an oversized zoom.
 	val reducedMotion = rememberReducedMotion()
+	val accessibility = rememberAccessibilityOptions()
 	val cardAlpha by animateFloatAsState(
 		targetValue = if (focused) 1f else 0.7f,
 		animationSpec = if (reducedMotion) snap() else spring(),
@@ -400,7 +403,7 @@ private fun CardViewHolderContent(
 								Box(
 									modifier = Modifier
 										.fillMaxWidth()
-										.background(Tokens.Color.colorBluegrey900.copy(alpha = 0.6f), JellyfinTheme.shapes.extraSmall),
+										.background(Tokens.Color.colorBluegrey900.copy(alpha = if (accessibility.highContrast) 0.95f else 0.6f), JellyfinTheme.shapes.extraSmall),
 								) {
 									Text(
 										text = title,
@@ -420,6 +423,7 @@ private fun CardViewHolderContent(
 			},
 			modifier = Modifier
 				.size(size)
+				.focusOutline(focused, JellyfinTheme.shapes.medium, accessibility.strongFocus)
 				.then(if (hideLibraryCaption) Modifier.semantics { contentDescription = title.orEmpty() } else Modifier)
 				.graphicsLayer(alpha = cardAlpha)
 		)

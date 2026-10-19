@@ -6,6 +6,10 @@ import androidx.lifecycle.ViewModel
 import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.preference.UserPreferences
 import org.jellyfin.androidtv.preference.constant.AppTheme
+import org.jellyfin.androidtv.preference.constant.TextScale
+import android.content.Context
+import android.content.res.Configuration
+import org.koin.core.context.GlobalContext
 import org.koin.android.ext.android.inject
 import timber.log.Timber
 
@@ -24,6 +28,7 @@ private val AppTheme.style
  */
 class ThemeViewModel : ViewModel() {
 	var theme: AppTheme? = null
+	var textScale: TextScale? = null
 }
 
 /**
@@ -35,6 +40,17 @@ fun FragmentActivity.applyTheme() {
 	val viewModel by viewModels<ThemeViewModel>()
 	val userPreferences by inject<UserPreferences>()
 	val theme = userPreferences[UserPreferences.appTheme]
+	val textScale = userPreferences[UserPreferences.textScale]
+
+	// Text size is applied in attachBaseContext, so a change needs a fresh activity.
+	if (viewModel.textScale != null && viewModel.textScale != textScale) {
+		Timber.i("Recreating activity to apply text size")
+		viewModel.theme = null
+		viewModel.textScale = null
+		recreate()
+		return
+	}
+	viewModel.textScale = textScale
 
 	if (viewModel.theme != theme) {
 		if (viewModel.theme != null) {
@@ -47,4 +63,14 @@ fun FragmentActivity.applyTheme() {
 			setTheme(theme.style)
 		}
 	}
+}
+
+/**
+ * Applies the app text size (#23) on top of the TV's own font scale. Call from attachBaseContext after super;
+ * it affects both the XML views and Compose, since Compose reads the configuration's font scale.
+ */
+fun FragmentActivity.applyTextScale(base: Context) {
+	val factor = runCatching { GlobalContext.get().get<UserPreferences>()[UserPreferences.textScale].factor }.getOrDefault(1f)
+	if (factor == 1f) return
+	applyOverrideConfiguration(Configuration().apply { fontScale = base.resources.configuration.fontScale * factor })
 }
