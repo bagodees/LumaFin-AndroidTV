@@ -74,7 +74,7 @@ values it last agreed with the server (the *base*).
    choose Keep this TV's or Use synced for the set. It is shown once on the main
    screen (never during playback) and stays reachable from the sync screen if
    dismissed. Until answered, local values stay and the server keeps its value.
-4. **Write:** re-read the remote revision immediately before saving; if it moved,
+4. **Write:** re-read the complete remote envelope immediately before saving; if it moved,
    merge again instead of overwriting. Save with `revision + 1`. The remaining
    race window (two TVs saving within the same request) resolves to last write
    wins and is caught as an ordinary change on the next sync.
@@ -89,6 +89,8 @@ remote copy, this TV's values are uploaded.
 Accounts are isolated as in #9: enablement, base and revision live in the
 account preference file, requests use the current account's API client, and a
 pending sync or review is discarded if the account changes.
+
+The completed-item audit added guards for account changes during review rechecks and for any synced local value changing while a review waits. A changed remote copy is re-reviewed even when its revision number is unchanged. Cancellation propagates without being reported as a connection failure.
 
 ## UI (existing menus only)
 

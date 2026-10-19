@@ -2,6 +2,7 @@ package org.jellyfin.androidtv.preference
 
 import android.content.SharedPreferences
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -83,6 +84,7 @@ class SettingsSync internal constructor(
 
 	private val mutex = Mutex()
 	private var pending: Pair<SettingsSyncModel.Merge, SettingsSyncModel.Envelope?>? = null
+	private var reviewedLocal: Map<String, Any>? = null
 	private var applying = false
 	private var scheduled: Job? = null
 	private val _state = MutableStateFlow(readState())
@@ -156,6 +158,7 @@ class SettingsSync internal constructor(
 			disable()
 			Outcome.Synced
 		} catch (error: Exception) {
+			if (error is CancellationException) throw error
 			Timber.w(error, "Unable to remove synced settings")
 			Outcome.Failed(error)
 		}
@@ -176,6 +179,7 @@ class SettingsSync internal constructor(
 					val server = if (enabling) Committed(remoteEnvelope) else commit(identity, remote, merge, remoteEnvelope) ?: return@repeat
 					val review = Review(identity, enabling, merge.conflicts)
 					pending = merge to server.server
+					reviewedLocal = local()
 					refresh(review = review)
 					return Outcome.NeedsReview(review)
 				}
@@ -185,6 +189,7 @@ class SettingsSync internal constructor(
 				return Outcome.Synced
 			}
 		} catch (error: Exception) {
+			if (error is CancellationException) { refresh(); throw error }
 			Timber.w(error, "Settings sync failed")
 			outcome = Outcome.Failed(error)
 		}
@@ -201,7 +206,8 @@ class SettingsSync internal constructor(
 		try {
 			// Re-check: anything that moved since the review was shown gets a fresh merge instead.
 			val current = remote.read()?.let(SettingsSyncModel::decode)
-			if (current?.revision != remoteEnvelope?.revision || local().filterKeys { it in merge.conflicts } != merge.conflicts.mapValues { it.value.first }) {
+			if (identity() != identity || _state.value.review != review) return Outcome.AccountChanged
+			if (current != remoteEnvelope || local() != reviewedLocal) {
 				pending = null
 				refresh(review = null)
 				return run(review.enabling)
@@ -213,6 +219,7 @@ class SettingsSync internal constructor(
 			refresh(review = null)
 			Outcome.Synced
 		} catch (error: Exception) {
+			if (error is CancellationException) { refresh(); throw error }
 			Timber.w(error, "Unable to apply settings sync review")
 			refresh(failed = true)
 			Outcome.Failed(error)
@@ -232,6 +239,7 @@ class SettingsSync internal constructor(
 	 * the server, or null when it changed underneath and the merge must be retried.
 	 */
 	private suspend fun commit(identity: String, remote: SettingsSyncRemote, merge: SettingsSyncModel.Merge, read: SettingsSyncModel.Envelope?): Committed? {
+		check(identity() == identity) { "Account changed" }
 		if (merge.toLocal.isNotEmpty()) {
 			applying = true
 			try {
@@ -245,7 +253,7 @@ class SettingsSync internal constructor(
 		merge.toRemote?.let { values ->
 			val latest = remote.read()?.let(SettingsSyncModel::decode)
 			if (identity() != identity) throw IllegalStateException("Account changed")
-			if (latest?.revision != read?.revision) return null
+			if (latest != read) return null
 			revision += 1
 			val envelope = SettingsSyncModel.Envelope(revision, writer, values)
 			remote.write(SettingsSyncModel.encode(envelope))

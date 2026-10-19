@@ -2,6 +2,8 @@
 
 Approved October 15, 2026. Search stays on the root page and only enters editing after Select.
 
+Status: completed with #24/#35. The implementation-pass and remaining-review notes below describe historical work and are superseded by the final coverage review. Later additions (setup, backup, sync, diagnostics and streaming-speed tools) live in Help & Maintenance; accessibility and remote shortcuts live in Appearance & Home. See [completed-item audit](completed-items-audit.md) for the current integration review.
+
 ## Main groups
 
 | Group | Existing controls |
@@ -35,7 +37,7 @@ Existing route identifiers and preference keys remain intact. Search links direc
 - Review all supported reset descriptions against their actual preference mutations; validate reset scope without resetting unrelated user settings.
 - Visual review at TV distance, including scrolling and selected states.
 
-Neither roadmap item is complete after this first pass. No user preference is migrated or reset by the navigation changes.
+At that first-pass milestone the roadmap items were still open. Both were subsequently completed, as recorded in the final review below. Navigation changes do not migrate or reset user preferences.
 
 ## Bitrate reset verification
 

@@ -6,12 +6,14 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
 import org.jellyfin.androidtv.preference.SettingsSyncModel.Resolution
 
 private class FakeRemote(var text: String? = null) : SettingsSyncRemote {
 	var writes = 0
+	var beforeRead: (() -> Unit)? = null
 	var beforeWrite: (() -> Unit)? = null
-	override suspend fun read() = text
+	override suspend fun read(): String? { beforeRead?.invoke(); return text }
 	override suspend fun write(text: String?) {
 		beforeWrite?.invoke()
 		writes++
@@ -76,11 +78,11 @@ class SettingsSyncModelTests : FunSpec({
 })
 
 class SettingsSyncTests : FunSpec({
-	fun setup(identity: () -> String? = { "server_user" }): Triple<SettingsSync, MemoryPreferences, FakeRemote> {
+	fun setup(identity: () -> String? = { "server_user" }, debounceMs: Long = 0): Triple<SettingsSync, MemoryPreferences, FakeRemote> {
 		val account = MemoryPreferences()
 		val prefs = SwitchingAccountPreferences(MemoryPreferences(), account, emptySet())
 		val remote = FakeRemote()
-		val sync = SettingsSync(prefs, identity, { remote }, "writer", CoroutineScope(Dispatchers.Unconfined), now = { 1000L }, debounceMs = 0)
+		val sync = SettingsSync(prefs, identity, { remote }, "writer", CoroutineScope(Dispatchers.Unconfined), now = { 1000L }, debounceMs = debounceMs)
 		return Triple(sync, account, remote)
 	}
 
@@ -214,5 +216,57 @@ class SettingsSyncTests : FunSpec({
 		sync.removeRemote() shouldBe SettingsSync.Outcome.Synced
 		remote.text shouldBe null
 		sync.state.value.enabled shouldBe false
+	}
+
+	test("review cannot replay an already merged value over a newer local choice") {
+		val (sync, account, remote) = setup(debounceMs = 60_000)
+		sync.enable()
+		account.edit().putInt("subtitle_brightness", 60).commit()
+		val copy = SettingsSyncModel.decode(remote.text!!)
+		remote.text = SettingsSyncModel.encode(copy.copy(revision = copy.revision + 1,
+			settings = copy.settings + ("subtitle_brightness" to 40) + ("pref_rating_badges_enabled" to false)))
+		val review = (sync.sync() as SettingsSync.Outcome.NeedsReview).review
+		account.getBoolean("pref_rating_badges_enabled", true) shouldBe false
+		account.edit().putBoolean("pref_rating_badges_enabled", true).commit()
+		sync.resolve(review, Resolution.USE_SYNCED)
+		account.getBoolean("pref_rating_badges_enabled", false) shouldBe true
+		sync.disable()
+	}
+
+	test("account switching during a review recheck cannot write into the next account") {
+		var identity = "a"
+		val accountA = MemoryPreferences()
+		val accountB = MemoryPreferences()
+		val prefs = SwitchingAccountPreferences(MemoryPreferences(), accountA, emptySet())
+		val remote = FakeRemote(SettingsSyncModel.encode(SettingsSyncModel.Envelope(1, "other",
+			SettingsSyncModel.snapshot { null } + ("subtitle_brightness" to 40))))
+		val sync = SettingsSync(prefs, { identity }, { remote }, "a", CoroutineScope(Dispatchers.Unconfined))
+		val review = (sync.enable() as SettingsSync.Outcome.NeedsReview).review
+		remote.beforeRead = { identity = "b"; prefs.select(accountB) }
+		sync.resolve(review, Resolution.USE_SYNCED) shouldBe SettingsSync.Outcome.AccountChanged
+		accountB.all.isEmpty() shouldBe true
+		remote.writes shouldBe 0
+	}
+
+	test("cancelled sync propagates cancellation instead of reporting a connection failure") {
+		val (sync, _, remote) = setup()
+		remote.beforeRead = { throw CancellationException("left screen") }
+		shouldThrow<CancellationException> { sync.enable() }
+		sync.state.value.syncing shouldBe false
+		sync.state.value.failed shouldBe false
+	}
+
+	test("a different server copy with the same revision requires a fresh review") {
+		val (sync, account, remote) = setup()
+		remote.text = SettingsSyncModel.encode(SettingsSyncModel.Envelope(1, "other",
+			SettingsSyncModel.snapshot { null } + ("subtitle_brightness" to 40)))
+		val review = (sync.enable() as SettingsSync.Outcome.NeedsReview).review
+		val original = SettingsSyncModel.decode(remote.text!!)
+		remote.text = SettingsSyncModel.encode(original.copy(settings = original.settings + ("subtitle_brightness" to 50)))
+		val outcome = sync.resolve(review, Resolution.USE_SYNCED)
+		outcome.shouldBeInstanceOf<SettingsSync.Outcome.NeedsReview>()
+		outcome.review.differences["subtitle_brightness"] shouldBe (100 to 50)
+		account.getInt("subtitle_brightness", 100) shouldBe 100
+		remote.writes shouldBe 0
 	}
 })

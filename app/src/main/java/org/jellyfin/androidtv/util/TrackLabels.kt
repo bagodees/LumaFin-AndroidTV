@@ -1,6 +1,7 @@
 package org.jellyfin.androidtv.util
 
 import android.content.Context
+import androidx.core.os.ConfigurationCompat
 import org.jellyfin.androidtv.R
 import org.jellyfin.sdk.model.api.MediaStream
 import org.jellyfin.sdk.model.api.MediaStreamType
@@ -69,7 +70,7 @@ internal fun List<MediaStream>.readableTrackLabels(locale: Locale, text: TrackLa
 }
 
 fun List<MediaStream>.trackLabels(context: Context): Map<Int, String> = readableTrackLabels(
-	context.resources.configuration.locales[0],
+	ConfigurationCompat.getLocales(context.resources.configuration)[0] ?: Locale.getDefault(),
 	TrackLabelText(
 		context.getString(R.string.track_unknown_language), context.getString(R.string.track_mono),
 		context.getString(R.string.track_stereo), context.getString(R.string.track_channels),
