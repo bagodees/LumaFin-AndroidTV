@@ -26,6 +26,7 @@ import org.jellyfin.sdk.api.client.extensions.userLibraryApi
 import org.jellyfin.sdk.api.client.extensions.userViewsApi
 import org.jellyfin.sdk.api.client.extensions.videosApi
 import org.jellyfin.sdk.model.api.ItemFilter
+import org.jellyfin.sdk.model.api.BaseItemDtoQueryResult
 import org.jellyfin.sdk.model.api.ItemSortBy
 import org.jellyfin.sdk.model.api.SeriesTimerInfoDto
 import org.jellyfin.sdk.model.api.request.GetAlbumArtistsRequest
@@ -48,6 +49,19 @@ fun <T : Any> ItemRowAdapter.setItems(
 	transform: (T, Int) -> BaseRowItem?,
 ) {
 	Timber.i("Creating items from $itemsLoaded existing and ${items.size} new, adapter size is ${size()}")
+	val offset = itemsLoaded
+	val mappedItems = items.mapIndexedNotNull { index, item -> transform(item, offset + index) }
+	if (offset == 0) {
+		// A new query/refresh must not retain an unrefreshed tail from the previous results.
+		replaceAll(mappedItems)
+		itemsLoaded = mappedItems.size
+		return
+	}
+	if (offset == size() && offset + mappedItems.size <= totalItems) {
+		appendAll(mappedItems)
+		itemsLoaded = offset + mappedItems.size
+		return
+	}
 
 	val allItems = buildList {
 		// Add current items before loaded items
@@ -56,9 +70,6 @@ fun <T : Any> ItemRowAdapter.setItems(
 		}
 
 		// Add loaded items
-		val mappedItems = items.mapIndexedNotNull { index, item ->
-			transform(item, itemsLoaded + index)
-		}
 		mappedItems.forEach { add(it) }
 
 		// Add current items after loaded items
@@ -445,167 +456,58 @@ fun ItemRowAdapter.retrieveLiveTvSeriesTimers(
 	}
 }
 
-fun ItemRowAdapter.retrieveLiveTvChannels(
+private fun ItemRowAdapter.loadPage(
 	api: ApiClient,
-	query: GetLiveTvChannelsRequest,
-	startIndex: Int,
-	batchSize: Int
+	current: () -> Boolean = { true },
+	fetch: suspend () -> BaseItemDtoQueryResult,
+	apply: ItemRowAdapter.(BaseItemDtoQueryResult) -> Unit,
 ) {
-	ProcessLifecycleOwner.get().lifecycleScope.launch {
-		runCatching {
-			val response = withContext(Dispatchers.IO) {
-				api.liveTvApi.getLiveTvChannels(
-					query.copy(
-						startIndex = startIndex,
-						limit = batchSize,
-					)
-				).content
-			}
+	val identity = api.baseUrl to api.accessToken
+	pageRequest.load(ProcessLifecycleOwner.get().lifecycleScope,
+		fetch = { withContext(Dispatchers.IO) { fetch() } },
+		isCurrent = { identity == (api.baseUrl to api.accessToken) && current() },
+		apply = { apply(it) }, finished = { notifyRetrieveFinished(it) }, started = { notifyRetrieveStarted() })
+}
 
-			totalItems = response.totalRecordCount
-			setItems(
-				items = response.items,
-				transform = { item, _ ->
-					BaseItemDtoBaseRowItem(
-						item,
-						false,
-						isStaticHeight,
-					)
-				},
-			)
-
-			if (response.items.isEmpty()) removeRow()
-		}.fold(
-			onSuccess = { notifyRetrieveFinished() },
-			onFailure = { error -> notifyRetrieveFinished(error as? Exception) }
-		)
+fun ItemRowAdapter.retrieveLiveTvChannels(api: ApiClient, query: GetLiveTvChannelsRequest, startIndex: Int, batchSize: Int) {
+	loadPage(api, fetch = { api.liveTvApi.getLiveTvChannels(query.copy(startIndex = startIndex, limit = batchSize)).content }) { response ->
+		totalItems = response.totalRecordCount
+		setItems(response.items) { item, _ -> BaseItemDtoBaseRowItem(item, false, isStaticHeight) }
+		if (itemsLoaded == 0) removeRow()
 	}
 }
 
-fun ItemRowAdapter.retrieveAlbumArtists(
-	api: ApiClient,
-	query: GetAlbumArtistsRequest,
-	startIndex: Int,
-	batchSize: Int
-) {
-	ProcessLifecycleOwner.get().lifecycleScope.launch {
-		runCatching {
-			val response = withContext(Dispatchers.IO) {
-				api.artistsApi.getAlbumArtists(
-					query.copy(
-						startIndex = startIndex,
-						limit = batchSize,
-					)
-				).content
-			}
-
-			totalItems = response.totalRecordCount
-			setItems(
-				items = response.items,
-				transform = { item, _ ->
-					BaseItemDtoBaseRowItem(
-						item,
-						preferParentThumb,
-						isStaticHeight,
-					)
-				},
-			)
-
-			if (response.items.isEmpty()) removeRow()
-		}.fold(
-			onSuccess = { notifyRetrieveFinished() },
-			onFailure = { error -> notifyRetrieveFinished(error as? Exception) }
-		)
+fun ItemRowAdapter.retrieveAlbumArtists(api: ApiClient, query: GetAlbumArtistsRequest, startIndex: Int, batchSize: Int) {
+	loadPage(api, fetch = { api.artistsApi.getAlbumArtists(query.copy(startIndex = startIndex, limit = batchSize)).content }) { response ->
+		totalItems = response.totalRecordCount
+		setItems(response.items) { item, _ -> BaseItemDtoBaseRowItem(item, preferParentThumb, isStaticHeight) }
+		if (itemsLoaded == 0) removeRow()
 	}
 }
 
-fun ItemRowAdapter.retrieveArtists(
-	api: ApiClient,
-	query: GetArtistsRequest,
-	startIndex: Int,
-	batchSize: Int
-) {
-	ProcessLifecycleOwner.get().lifecycleScope.launch {
-		runCatching {
-			val response = withContext(Dispatchers.IO) {
-				api.artistsApi.getArtists(
-					query.copy(
-						startIndex = startIndex,
-						limit = batchSize,
-					)
-				).content
-			}
-
-			totalItems = response.totalRecordCount
-			setItems(
-				items = response.items,
-				transform = { item, _ ->
-					BaseItemDtoBaseRowItem(
-						item,
-						preferParentThumb,
-						isStaticHeight,
-					)
-				},
-			)
-
-			if (response.items.isEmpty()) removeRow()
-		}.fold(
-			onSuccess = { notifyRetrieveFinished() },
-			onFailure = { error -> notifyRetrieveFinished(error as? Exception) }
-		)
+fun ItemRowAdapter.retrieveArtists(api: ApiClient, query: GetArtistsRequest, startIndex: Int, batchSize: Int) {
+	loadPage(api, fetch = { api.artistsApi.getArtists(query.copy(startIndex = startIndex, limit = batchSize)).content }) { response ->
+		totalItems = response.totalRecordCount
+		setItems(response.items) { item, _ -> BaseItemDtoBaseRowItem(item, preferParentThumb, isStaticHeight) }
+		if (itemsLoaded == 0) removeRow()
 	}
 }
 
-fun ItemRowAdapter.retrieveItems(
-	api: ApiClient,
-	query: GetItemsRequest,
-	startIndex: Int,
-	batchSize: Int
-) {
+fun ItemRowAdapter.retrieveItems(api: ApiClient, query: GetItemsRequest, startIndex: Int, batchSize: Int) {
 	if (runtimeController != null && filters?.runtimeMinutes != null) {
+		pageRequest.cancel()
 		runtimeController.retrieve(query, startIndex, batchSize)
 		return
 	}
 	runtimeController?.clear()
-	ProcessLifecycleOwner.get().lifecycleScope.launch {
-		runCatching {
-			val response = withContext(Dispatchers.IO) {
-				api.itemsApi.getItems(
-					query.copy(
-						startIndex = startIndex,
-						limit = batchSize,
-					)
-				).content
-			}
-
-			if (itemsRequest != query || filters?.runtimeMinutes != null) return@launch
-			// Home rows with an explicit cap must not grow from extra server results
-			// or keep cards from an earlier, larger response when refreshed.
-			val items = if (query.enableTotalRecordCount == false && batchSize > 0) {
-				response.items.take(batchSize)
-			} else {
-				response.items
-			}
-			totalItems = if (query.enableTotalRecordCount == false) items.size else response.totalRecordCount
-			setItems(
-				items = items,
-				transform = { item, _ ->
-					BaseItemDtoBaseRowItem(
-						item,
-						preferParentThumb,
-						isStaticHeight,
-					)
-				},
-			)
-
-			if (itemsLoaded == 0) removeRow()
-		}.fold(
-			onSuccess = { notifyRetrieveFinished() },
-			onFailure = { error -> notifyRetrieveFinished(error as? Exception) }
-		)
+	loadPage(api, current = { itemsRequest == query && filters?.runtimeMinutes == null },
+		fetch = { api.itemsApi.getItems(query.copy(startIndex = startIndex, limit = batchSize)).content }) { response ->
+		val items = if (query.enableTotalRecordCount == false && batchSize > 0) response.items.take(batchSize) else response.items
+		totalItems = if (query.enableTotalRecordCount == false) items.size else response.totalRecordCount
+		setItems(items) { item, _ -> BaseItemDtoBaseRowItem(item, preferParentThumb, isStaticHeight) }
+		if (itemsLoaded == 0) removeRow()
 	}
 }
-
 fun ItemRowAdapter.retrievePremieres(
 	api: ApiClient,
 	query: GetItemsRequest,

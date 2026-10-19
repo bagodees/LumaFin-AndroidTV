@@ -79,6 +79,8 @@ public class ItemRowAdapter extends MutableObjectAdapter<Object> {
     private FilterOptions mFilters;
     private GetItemsRequest mFilterBaseRequest;
     private RuntimeFilterController runtimeController;
+    private final LatestPageRequest pageRequest = new LatestPageRequest();
+    public LatestPageRequest getPageRequest() { return pageRequest; }
 
     private EmptyResponse mRetrieveFinishedListener;
 
@@ -735,7 +737,7 @@ public class ItemRowAdapter extends MutableObjectAdapter<Object> {
         this.mRetrieveFinishedListener = response;
     }
 
-    private void notifyRetrieveStarted() {
+    protected void notifyRetrieveStarted() {
         setCurrentlyRetrieving(true);
     }
 }

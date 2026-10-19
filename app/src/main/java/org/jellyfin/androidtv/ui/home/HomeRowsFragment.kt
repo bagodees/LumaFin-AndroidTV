@@ -185,6 +185,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 
 	private fun loadHomeRows() {
 		homeLoadJob?.cancel()
+		cancelRowPages()
 		homeLoadJob = lifecycleScope.launch(Dispatchers.IO) {
 			val currentUser = withTimeout(30.seconds) {
 				userRepository.currentUser.filterNotNull().first()
@@ -389,7 +390,15 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 		adapter.refreshItem(api, this, item)
 	}
 
+	private fun cancelRowPages() {
+		for (index in 0 until (adapter?.size() ?: 0)) {
+			((adapter[index] as? ListRow)?.adapter as? ItemRowAdapter)?.pageRequest?.cancel()
+		}
+	}
+
 	override fun onDestroy() {
+		homeLoadJob?.cancel()
+		cancelRowPages()
 		super.onDestroy()
 
 		mediaManager.removeAudioEventListener(this)

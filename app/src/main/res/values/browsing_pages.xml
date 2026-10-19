@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="browse_page_failed">Could not load library items</string>
+    <string name="browse_page_failed_help">Check the connection to your Jellyfin server. Retry loads the same page again. Items already loaded for the current results are kept.</string>
+</resources>

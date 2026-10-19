@@ -214,6 +214,7 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
 
     @Override
     public void onDestroyView() {
+        if (mAdapter != null) mAdapter.getPageRequest().cancel();
         super.onDestroyView();
 
         binding = null;
@@ -625,18 +626,15 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
     }
 
     private void buildAdapter() {
+        if (mAdapter != null) mAdapter.getPageRequest().cancel();
         if (mAdapter != null && mAdapter.getRuntimeController() != null) mAdapter.getRuntimeController().clear();
         mCardPresenter = new CardPresenter(false, mImageType, mCardHeight, true);
 
         Timber.d("buildAdapter cardHeight <%s> getCardWidthBy <%s> chunks <%s> type <%s>", mCardHeight, (int) getCardWidthBy(mCardHeight, mImageType, mFolder), mRowDef.getChunkSize(), mRowDef.getQueryType().toString());
 
         // adapt chunk size if needed
-        int chunkSize = mRowDef.getChunkSize();
-        if (mCardsScreenEst > 0 && mCardsScreenEst >= chunkSize) {
-            chunkSize = Math.min(mCardsScreenEst + mCardsScreenStride, 150); // cap at 150
-            Timber.d("buildAdapter adjusting chunkSize to <%s> screenEst <%s>", chunkSize, mCardsScreenEst);
-        }
-        chunkSize=100;
+        int chunkSize = BrowsePageSizeKt.browsePageSize(mRowDef.getChunkSize(), mCardsScreenEst, mCardsScreenStride);
+        Timber.d("Browse page size <%s> visible <%s> stride <%s>", chunkSize, mCardsScreenEst, mCardsScreenStride);
 
         switch (mRowDef.getQueryType()) {
             case NextUp:
@@ -699,6 +697,11 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
 
         mAdapter.setRetrieveFinishedListener(new EmptyResponse(getLifecycle()) {
             @Override
+            public void onError(Exception exception) {
+                BrowsePageFailureKt.showBrowsePageFailure(BrowseGridFragment.this, mAdapter, exception);
+            }
+
+            @Override
             public void onResponse() {
                 if (!isActive()) return;
                 setStatusText(mFolder.getName());
@@ -717,7 +720,8 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
                     }, 500);
                 } else if (mGridView != null) {
                     mGridView.setFocusable(true);
-                    mGridView.requestFocus();
+                    // A completed background page must not pull focus away from the toolbar.
+                    if (mCurrentItem == null || mAdapter.getItemsLoaded() <= mAdapter.getRuntimePageSize()) mGridView.requestFocus();
                 }
             }
         });
