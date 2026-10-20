@@ -33,6 +33,8 @@ import org.jellyfin.androidtv.ui.playback.PlaybackChoiceRecorder
 import org.jellyfin.androidtv.ui.playback.PlaybackChoiceScopeDialog
 import org.jellyfin.androidtv.ui.playback.rememberedTracks
 import org.jellyfin.androidtv.util.MenuBuilder
+import org.jellyfin.androidtv.ui.itemdetail.showPersonOverviewLayout
+import org.jellyfin.androidtv.ui.TextUnderButton
 
 class MyDetailsOverviewRowPresenter(
 	private val markdownRenderer: MarkdownRenderer,
@@ -130,6 +132,24 @@ class MyDetailsOverviewRowPresenter(
 				if (parent is ViewGroup) parent.removeView(button)
 
 				binding.fdButtonRow.addView(button)
+			}
+			if (item.type == BaseItemKind.PERSON) {
+				detailRowView.showPersonOverviewLayout()
+				binding.fdMainInfoRow.isVisible = item.premiereDate != null
+				binding.fdThumb.load(row.imageDrawable, null, ContextCompat.getDrawable(view.context, R.drawable.tile_port_person), 2.0 / 3.0, 0)
+				if (row.summary.isNullOrBlank()) {
+					binding.fdSummaryText.setText(R.string.person_biography_missing)
+				} else {
+					binding.fdButtonRow.addView(TextUnderButton.create(view.context, R.drawable.ic_info,
+						label = view.context.getString(R.string.person_biography), onClickListener = {
+							choicesDialog?.dismiss()
+							choicesDialog = AlertDialog.Builder(view.context)
+								.setTitle(item.name)
+								.setMessage(markdownRenderer.toMarkdownSpanned(row.summary.orEmpty()))
+								.setPositiveButton(android.R.string.ok, null)
+								.show()
+						}))
+				}
 			}
             binding.fdButtonRow.doOnLayout { container ->
                 val widest = row.actions.maxOfOrNull { button ->

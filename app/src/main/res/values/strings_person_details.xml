@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="person_biography">Biography</string>
+    <string name="person_biography_missing">No biography available.</string>
+</resources>
