@@ -137,12 +137,10 @@ private fun BrowseGridFragment.modernFilterMenu(
 	row(R.string.library_filter_rating_title, draft.minimumRating?.let { getString(R.string.library_rating_minimum, it) } ?: any) {
 		choose(R.string.library_filter_rating_title, listOf(any) + (1..10).map { getString(R.string.library_rating_minimum, it) }, draft.minimumRating ?: 0) { draft.minimumRating = it.takeIf { it > 0 } }
 	}
-	row(R.string.library_hide_watched, getString(if (draft.isUnwatchedOnly) R.string.library_filter_on else R.string.library_filter_off), draft.isUnwatchedOnly) {
-		draft.isUnwatchedOnly = !draft.isUnwatchedOnly; redisplay()
-	}
-	row(R.string.library_filter_favorites_title, getString(if (draft.isFavoriteOnly) R.string.library_filter_on else R.string.library_filter_off), draft.isFavoriteOnly) {
-		draft.isFavoriteOnly = !draft.isFavoriteOnly; redisplay()
-	}
+	// Switches flip in place; like every other choice they stay a draft until Apply.
+	index += 2
+	menu.toggle(getString(R.string.library_hide_watched), draft.isUnwatchedOnly) { draft.isUnwatchedOnly = it }
+	menu.toggle(getString(R.string.library_filter_favorites_title), draft.isFavoriteOnly) { draft.isFavoriteOnly = it }
 	if (allowResolution) {
 		val resolutions = LibraryResolution.entries
 		row(R.string.library_resolution_title, getString(draft.resolution.labelRes)) {

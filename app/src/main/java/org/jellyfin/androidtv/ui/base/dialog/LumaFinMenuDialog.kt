@@ -11,6 +11,7 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
+import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
@@ -89,6 +90,41 @@ internal class LumaFinMenuDialog(
 			setTextColor(color(if (selected == true) R.color.lumafin_cyan else R.color.lumafin_muted))
 			setPadding(12.dp(context), 0, 0, 0)
 		})
+		rows.addView(row, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+			bottomMargin = 6.dp(context)
+		})
+		targets += row
+	}
+
+	/** On/off row matching the settings switch. Flips in place; the switch position and color carry the state. */
+	fun toggle(label: String, checked: Boolean, onChange: (Boolean) -> Unit) {
+		var state = checked
+		val on = context.getString(R.string.library_filter_on)
+		val off = context.getString(R.string.library_filter_off)
+		val track = FrameLayout(context)
+		val thumb = View(context)
+		track.addView(thumb, FrameLayout.LayoutParams(16.dp(context), 16.dp(context)))
+		val row = LinearLayout(context).apply {
+			orientation = LinearLayout.HORIZONTAL
+			gravity = Gravity.CENTER_VERTICAL
+			minimumHeight = 56.dp(context)
+			setPadding(14.dp(context), 9.dp(context), 14.dp(context), 9.dp(context))
+			isFocusable = true
+			isClickable = true
+			background = focusBackground()
+		}
+		fun render() {
+			track.background = shape(color(if (state) R.color.lumafin_cyan else R.color.lumafin_muted).let { if (state) it else Color.argb(128, Color.red(it), Color.green(it), Color.blue(it)) }, 11)
+			thumb.background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(color(if (state) R.color.lumafin_background else R.color.lumafin_text)) }
+			(thumb.layoutParams as FrameLayout.LayoutParams).gravity = Gravity.CENTER_VERTICAL or (if (state) Gravity.END else Gravity.START)
+			thumb.requestLayout()
+			row.contentDescription = "$label, ${if (state) on else off}"
+		}
+		row.setOnClickListener { state = !state; render(); onChange(state) }
+		row.addView(text(label, 16f, true).apply { setTextColor(color(R.color.lumafin_text)) }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+		track.setPadding(3.dp(context), 3.dp(context), 3.dp(context), 3.dp(context))
+		row.addView(track, LinearLayout.LayoutParams(36.dp(context), 22.dp(context)).apply { marginStart = 12.dp(context) })
+		render()
 		rows.addView(row, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
 			bottomMargin = 6.dp(context)
 		})
