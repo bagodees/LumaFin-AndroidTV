@@ -394,6 +394,7 @@ private fun CardViewHolderContent(
 				item.baseItem?.let { baseItem ->
 					ItemCardBaseItemOverlay(
 						item = baseItem,
+						subtleWatched = !homeRow,
 						footer = {
 							if (showInfo && title != null) {
 								val focusModifier = if (focused) Modifier.basicMarquee(

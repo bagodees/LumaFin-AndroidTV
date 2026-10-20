@@ -17,6 +17,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
@@ -45,6 +46,8 @@ import java.util.Locale
 fun ItemCardBaseItemOverlay(
 	item: BaseItemDto,
 	footer: (@Composable () -> Unit)? = null,
+	/** Library grids: quieter watched check so a mostly watched library doesn't read as noise. */
+	subtleWatched: Boolean = false,
 ) = Box(
 	modifier = Modifier
 		.fillMaxSize()
@@ -60,6 +63,7 @@ fun ItemCardBaseItemOverlay(
 
 	WatchIndicator(
 		item = item,
+		subtle = subtleWatched,
 		modifier = Modifier.align(Alignment.TopEnd)
 	)
 
@@ -191,6 +195,7 @@ private fun RatingBadge(
 @Stable
 private fun WatchIndicator(
 	item: BaseItemDto,
+	subtle: Boolean = false,
 	modifier: Modifier = Modifier,
 ) {
 	val userPreferences = koinInject<UserPreferences>()
@@ -205,7 +210,8 @@ private fun WatchIndicator(
 	if (isPlayed) {
 		Badge(
 			modifier = modifier
-				.size(24.dp),
+				.size(24.dp)
+				.alpha(if (subtle) 0.55f else 1f),
 		) {
 			Icon(
 				imageVector = ImageVector.vectorResource(R.drawable.ic_watch),
