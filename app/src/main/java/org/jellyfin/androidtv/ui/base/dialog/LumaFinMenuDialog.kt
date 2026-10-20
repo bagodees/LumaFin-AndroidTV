@@ -12,6 +12,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.Window
 import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
@@ -86,10 +87,23 @@ internal class LumaFinMenuDialog(
 			setPadding(0, 3.dp(context), 0, 0)
 		})
 		row.addView(labels, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
-		if (selected != null || navigates) row.addView(text(when (selected) { true -> "✓"; false -> "○"; null -> "›" }, 22f, true).apply {
-			setTextColor(color(if (selected == true) R.color.lumafin_cyan else R.color.lumafin_muted))
-			setPadding(12.dp(context), 0, 0, 0)
-		})
+		if (selected != null || navigates) {
+			// Drawn icons, matching the weight of the rest of the app: check for the saved choice,
+			// an empty ring for other options and a chevron where another menu opens.
+			val indicator = ImageView(context).apply {
+				when (selected) {
+					true -> { setImageResource(R.drawable.ic_check); setColorFilter(color(R.color.lumafin_cyan)) }
+					false -> setImageDrawable(GradientDrawable().apply {
+						shape = GradientDrawable.OVAL
+						setStroke(2.dp(context), color(R.color.lumafin_muted))
+						setSize(18.dp(context), 18.dp(context))
+					})
+					null -> { setImageResource(R.drawable.ic_settings_chevron); setColorFilter(color(R.color.lumafin_muted)) }
+				}
+				scaleType = ImageView.ScaleType.CENTER_INSIDE
+			}
+			row.addView(indicator, LinearLayout.LayoutParams(24.dp(context), 24.dp(context)).apply { marginStart = 12.dp(context) })
+		}
 		rows.addView(row, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
 			bottomMargin = 6.dp(context)
 		})
