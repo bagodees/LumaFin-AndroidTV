@@ -1,6 +1,7 @@
 package org.jellyfin.androidtv.ui.search
 
 import android.os.Bundle
+import android.view.View
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.compose.foundation.background
@@ -51,6 +52,12 @@ import org.koin.core.parameter.parametersOf
 class SearchFragment : Fragment() {
 	companion object {
 		const val EXTRA_QUERY = "query"
+	}
+
+	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+		super.onViewCreated(view, savedInstanceState)
+		// Same readability gradient as Home, libraries and details over the backdrop.
+		view.setBackgroundResource(R.drawable.details_readability_gradient)
 	}
 
 	override fun onCreateView(

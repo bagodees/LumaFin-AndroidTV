@@ -200,6 +200,9 @@ fun QuickUserSwitcher(
 			horizontalAlignment = Alignment.CenterHorizontally,
 			verticalArrangement = Arrangement.Center,
 		) {
+			Image(androidx.compose.ui.res.painterResource(R.drawable.app_logo), contentDescription = null,
+				modifier = Modifier.height(44.dp))
+			Spacer(Modifier.height(24.dp))
 			Text(stringResource(R.string.user_switch_heading), fontSize = 32.sp, fontWeight = FontWeight.Bold, color = Color.White)
 			Spacer(Modifier.height(8.dp))
 			Text(server?.name.orEmpty(), fontSize = 14.sp, color = LumaFinPalette.Muted)
@@ -322,6 +325,10 @@ private fun UserProfileCard(
 		Spacer(Modifier.height(14.dp))
 		Text(name, color = if (focused) Color.White else LumaFinPalette.SecondaryText, fontSize = 17.sp, fontWeight = FontWeight.SemiBold,
 			textAlign = TextAlign.Center, maxLines = 2, minLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.fillMaxWidth())
-		Text(if (current) currentLabel else "", color = LumaFinPalette.Muted, fontSize = 12.sp)
+		// Current account uses the purple "active" chip from the rest of the app; the empty slot keeps cards aligned.
+		Box(Modifier.height(24.dp), contentAlignment = Alignment.Center) {
+			if (current) Text(currentLabel, color = LumaFinPalette.Purple, fontSize = 12.sp, fontWeight = FontWeight.SemiBold,
+				modifier = Modifier.background(LumaFinPalette.Selected, RoundedCornerShape(12.dp)).padding(horizontal = 10.dp, vertical = 3.dp))
+		}
 	}
 }
