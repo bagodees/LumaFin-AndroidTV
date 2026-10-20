@@ -305,6 +305,7 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        FullDetailsFragmentHelperKt.installDetailsHeaderFocus(this, view);
         org.jellyfin.androidtv.ui.browsing.BulkWatchDialogKt.installBulkWatchHost(view, getViewLifecycleOwner(), () ->
             mBaseItem != null && (mBaseItem.getType() == BaseItemKind.SEASON || mBaseItem.getType() == BaseItemKind.SERIES) ? mRowsAdapter : null,
             () -> { onResume(); return kotlin.Unit.INSTANCE; });
@@ -499,7 +500,7 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
 
             ClassPresenterSelector ps = new ClassPresenterSelector();
             ps.addClassPresenter(MyDetailsOverviewRow.class, mDorPresenter);
-            mListRowPresenter = new CustomListRowPresenter(Utils.convertDpToPixel(requireContext(), 10));
+            mListRowPresenter = new CustomListRowPresenter(Utils.convertDpToPixel(requireContext(), 10), true);
             ps.addClassPresenter(ListRow.class, mListRowPresenter);
             mRowsAdapter = new MutableObjectAdapter<Row>(ps);
             mRowsFragment.setAdapter(mRowsAdapter);
@@ -780,20 +781,10 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
 
     private void deleteItem() {
         Timber.i("Showing item delete confirmation");
-        new AlertDialog.Builder(requireContext())
-                .setTitle(getString(R.string.item_delete_confirm_title))
-                .setMessage(getString(R.string.item_delete_confirm_message))
-                .setNegativeButton(R.string.lbl_no, null)
-                .setPositiveButton(R.string.lbl_delete, (dialog, which) -> {
-                    FullDetailsFragmentHelperKt.deleteItem(
-                            this,
-                            api.getValue(),
-                            mBaseItem,
-                            dataRefreshService.getValue(),
-                            navigationRepository.getValue()
-                    );
-                })
-                .show();
+        FullDetailsFragmentHelperKt.showDeleteConfirmation(this, () -> {
+            FullDetailsFragmentHelperKt.deleteItem(
+                    this, api.getValue(), mBaseItem, dataRefreshService.getValue(), navigationRepository.getValue());
+        });
     }
 
     TextUnderButton favButton = null;

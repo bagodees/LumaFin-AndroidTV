@@ -29,7 +29,6 @@ import org.jellyfin.sdk.model.api.BaseItemKind
 import androidx.lifecycle.findViewTreeLifecycleOwner
 import org.jellyfin.androidtv.ui.playback.SubtitleLookupDialog
 import org.jellyfin.androidtv.ui.playback.canGetMoreSubtitles
-import android.app.AlertDialog
 import org.jellyfin.androidtv.ui.playback.PlaybackChoiceRecorder
 import org.jellyfin.androidtv.ui.playback.PlaybackChoiceScopeDialog
 import org.jellyfin.androidtv.ui.playback.rememberedTracks
@@ -59,6 +58,18 @@ class MyDetailsOverviewRowPresenter(
 			trackMenu?.dismiss(); trackMenu = null
 			lookupDialog?.dismiss(); lookupDialog = null
 			choicesDialog?.dismiss(); choicesDialog = null
+		}
+
+		private fun showBiography(row: MyDetailsOverviewRow, anchor: View) {
+			val owner = view.findViewTreeLifecycleOwner() ?: return
+			if (currentRow !== row) return
+			choicesDialog?.dismiss()
+			choicesDialog = LumaFinMenuDialog(view.context, owner, row.item.name.orEmpty(), fitContent = true).apply {
+				body(markdownRenderer.toMarkdownSpanned(row.summary.orEmpty()))
+				button(view.context.getString(android.R.string.ok), primary = true) { dismiss() }
+				onDismiss { choicesDialog = null; if (anchor.isAttachedToWindow) anchor.requestFocus() }
+				show()
+			}
 		}
 
 		private fun DetailsMenu.choicesItem(row: MyDetailsOverviewRow, refresh: () -> Unit) {
@@ -161,15 +172,10 @@ class MyDetailsOverviewRowPresenter(
 				if (row.summary.isNullOrBlank()) {
 					binding.fdSummaryText.setText(R.string.person_biography_missing)
 				} else {
+					binding.fdSummaryText.setOnClickListener { anchor -> showBiography(row, anchor) }
 					binding.fdButtonRow.addView(TextUnderButton.create(view.context, R.drawable.ic_info,
-						label = view.context.getString(R.string.person_biography), onClickListener = {
-							choicesDialog?.dismiss()
-							choicesDialog = AlertDialog.Builder(view.context)
-								.setTitle(item.name)
-								.setMessage(markdownRenderer.toMarkdownSpanned(row.summary.orEmpty()))
-								.setPositiveButton(android.R.string.ok, null)
-								.show()
-						}).apply { applyDetailsStyle() })
+						label = view.context.getString(R.string.person_biography),
+						onClickListener = { anchor -> showBiography(row, anchor) }).apply { applyDetailsStyle() })
 				}
 			}
             binding.fdButtonRow.doOnLayout { container ->

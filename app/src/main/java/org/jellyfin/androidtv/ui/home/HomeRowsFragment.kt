@@ -3,6 +3,8 @@ package org.jellyfin.androidtv.ui.home
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
+import androidx.leanback.widget.ItemBridgeAdapter
+import androidx.leanback.widget.ListRowPresenter
 import androidx.leanback.app.RowsSupportFragment
 import androidx.leanback.widget.ListRow
 import androidx.leanback.widget.OnItemViewClickedListener
@@ -42,7 +44,7 @@ import org.jellyfin.androidtv.data.repository.NotificationsRepository
 import org.jellyfin.androidtv.data.repository.UserViewsRepository
 import org.jellyfin.androidtv.data.service.BackgroundService
 import org.jellyfin.androidtv.preference.RecommendationPreferences
-import androidx.appcompat.app.AlertDialog
+import org.jellyfin.androidtv.ui.base.dialog.LumaFinMenuDialog
 import org.jellyfin.androidtv.preference.UserSettingPreferences
 import org.jellyfin.androidtv.ui.GridButton
 import org.jellyfin.androidtv.ui.browsing.CompositeClickedListener
@@ -73,7 +75,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 	private val sessionRepository by inject<SessionRepository>()
 	private var homeLoadGeneration = 0L
 	private var homeErrorShown = false
-	private var homeErrorDialog: AlertDialog? = null
+	private var homeErrorDialog: LumaFinMenuDialog? = null
 	private val backgroundService by inject<BackgroundService>()
 	private val playbackManager by inject<PlaybackManager>()
 	private val mediaManager by inject<MediaManager>()
@@ -314,12 +316,16 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 			lifecycle.currentStateFlow.first { it.isAtLeast(Lifecycle.State.RESUMED) }
 			if (generation != homeLoadGeneration || session != sessionRepository.currentSession.value || homeErrorShown || !isAdded) return@launch
 			homeErrorShown = true
-			homeErrorDialog = AlertDialog.Builder(requireContext())
-				.setTitle(R.string.home_load_failed_title)
-				.setMessage(R.string.home_load_failed_message)
-				.setPositiveButton(R.string.home_shortcut_retry) { _, _ -> loadHomeRows() }
-				.setNegativeButton(android.R.string.cancel, null)
-				.show()
+			homeErrorDialog = LumaFinMenuDialog(requireContext(), viewLifecycleOwner,
+                getString(R.string.home_load_failed_title), getString(R.string.home_load_failed_message), fitContent = true).apply {
+                button(getString(android.R.string.cancel)) { dismiss() }
+                button(getString(R.string.home_shortcut_retry), primary = true) {
+                    dismiss()
+                    if (isAdded && generation == homeLoadGeneration && session == sessionRepository.currentSession.value) loadHomeRows()
+                }
+                onDismiss { homeErrorDialog = null }
+                show()
+            }
 		}
 	}
 
@@ -343,11 +349,11 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 		if (keyCode == KeyEvent.KEYCODE_MENU && header != null && item?.baseItem != null) {
 			val menu = keyProcessor.createItemMenu(item, item.baseItem?.userData, requireActivity())
 			menu.menu.add(0, 1001, 0, R.string.recommendation_why).setOnMenuItemClickListener {
-				AlertDialog.Builder(requireContext())
-					.setTitle(getString(R.string.because_you_watched, header.seedName))
-					.setMessage(getString(R.string.recommendation_explanation, header.seedName))
-					.setPositiveButton(android.R.string.ok, null)
-					.show()
+				LumaFinMenuDialog(requireContext(), viewLifecycleOwner, getString(R.string.because_you_watched, header.seedName),
+                    getString(R.string.recommendation_explanation, header.seedName), fitContent = true).apply {
+                    button(getString(android.R.string.ok), primary = true) { dismiss() }
+                    show()
+                }
 				true
 			}
 			menu.menu.add(0, 1002, 0, R.string.recommendation_hide).setOnMenuItemClickListener {
@@ -368,8 +374,36 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 		return keyProcessor.handleKey(keyCode, currentItem, activity)
 	}
 
+	private fun restoreFocusedBackdrop() {
+		val grid = verticalGridView ?: return
+		val focused = grid.findFocus() ?: return
+		val rowHolder = grid.findContainingViewHolder(focused) as? ItemBridgeAdapter.ViewHolder ?: return
+		val row = rowHolder.item as? ListRow ?: return
+		val cards = (rowHolder.viewHolder as? ListRowPresenter.ViewHolder)?.gridView ?: return
+		val cardHolder = cards.findContainingViewHolder(focused) as? ItemBridgeAdapter.ViewHolder ?: return
+		val item = cardHolder.item as? BaseRowItem ?: return
+		currentItem = item
+		currentRow = row
+		backgroundService.setBackground(item.baseItem)
+	}
+
+	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+		super.onViewCreated(view, savedInstanceState)
+		fun View?.insideRows() = this != null && generateSequence(this) { it.parent as? View }.any { it === view }
+		val listener = android.view.ViewTreeObserver.OnGlobalFocusChangeListener { old, focused ->
+			if (focused.insideRows() && !old.insideRows()) restoreFocusedBackdrop()
+		}
+		view.viewTreeObserver.addOnGlobalFocusChangeListener(listener)
+		viewLifecycleOwner.lifecycle.addObserver(object : androidx.lifecycle.DefaultLifecycleObserver {
+			override fun onDestroy(owner: androidx.lifecycle.LifecycleOwner) {
+				if (view.viewTreeObserver.isAlive) view.viewTreeObserver.removeOnGlobalFocusChangeListener(listener)
+			}
+		})
+	}
+
 	override fun onResume() {
 		super.onResume()
+		view?.post { if (isResumed) restoreFocusedBackdrop() }
 
 		//React to deletion
 		if (currentRow != null && currentItem != null && currentItem?.baseItem != null && currentItem!!.baseItem!!.id == dataRefreshService.lastDeletedItemId) {
@@ -492,6 +526,9 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 			rowViewHolder: RowPresenter.ViewHolder?,
 			row: Row?,
 		) {
+			// Adapter rebuilding/restored focus can report a temporary null selection.
+			// Keep the backdrop until an actual replacement item is selected.
+			if (item == null) return
 			if (item !is BaseRowItem) {
 				currentItem = null
 				//fill in default background

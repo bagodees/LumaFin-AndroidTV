@@ -40,6 +40,42 @@ import java.util.UUID
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
+fun FullDetailsFragment.showDeleteConfirmation(onConfirmed: Runnable) {
+	val selectedId = mBaseItem.id
+	val root = requireView()
+	val anchor = root.findFocus()
+	val menu = LumaFinMenuDialog(requireContext(), viewLifecycleOwner,
+		getString(R.string.item_delete_confirm_title), getString(R.string.item_delete_confirm_message), fitContent = true)
+	menu.button(getString(R.string.lbl_no)) { menu.dismiss() }
+	menu.button(getString(R.string.lbl_delete), primary = true) {
+		menu.dismiss()
+		if (isAdded && view === root && mBaseItem.id == selectedId &&
+			viewLifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) onConfirmed.run()
+	}
+	menu.onDismiss { if (anchor?.isAttachedToWindow == true) anchor.requestFocus() }
+	menu.show()
+}
+
+/** Selected-row callbacks also run while data binds; only actual focus should hide header chrome. */
+fun FullDetailsFragment.installDetailsHeaderFocus(root: View) {
+	val header = root.findViewById<View>(R.id.detailsHeader)
+	header.visibility = View.VISIBLE
+	val listener = android.view.ViewTreeObserver.OnGlobalFocusChangeListener { _, focused ->
+		if (focused == null || !generateSequence(focused) { it.parent as? View }.any { it === root })
+			return@OnGlobalFocusChangeListener
+		val grid = root.findViewById<View>(R.id.rowsFragment)
+		val rows = (childFragmentManager.findFragmentById(grid.id) as? androidx.leanback.app.RowsSupportFragment)?.verticalGridView
+		val holder = rows?.findContainingViewHolder(focused) as? androidx.leanback.widget.ItemBridgeAdapter.ViewHolder
+		header.visibility = if (holder?.item is androidx.leanback.widget.ListRow) View.INVISIBLE else View.VISIBLE
+	}
+	root.viewTreeObserver.addOnGlobalFocusChangeListener(listener)
+	viewLifecycleOwner.lifecycle.addObserver(object : androidx.lifecycle.DefaultLifecycleObserver {
+		override fun onDestroy(owner: androidx.lifecycle.LifecycleOwner) {
+			if (root.viewTreeObserver.isAlive) root.viewTreeObserver.removeOnGlobalFocusChangeListener(listener)
+		}
+	})
+}
+
 fun FullDetailsFragment.deleteItem(
 	api: ApiClient,
 	item: BaseItemDto,
@@ -445,7 +481,11 @@ fun FullDetailsFragment.showExtras(anchor: View) {
             loading = false
             dialog.dismiss()
             if (entries.isEmpty()) {
-                Toast.makeText(requireContext(), R.string.extras_empty, Toast.LENGTH_LONG).show()
+                val empty = LumaFinMenuDialog(requireContext(), owner, getString(R.string.extras_title), selectedItem.name, fitContent = true)
+                empty.emptyState(getString(R.string.extras_empty))
+                empty.button(getString(android.R.string.ok), primary = true) { empty.dismiss() }
+                empty.onDismiss { if (anchor.isAttachedToWindow) anchor.requestFocus() }
+                empty.show()
                 return@launch
             }
             val menu = LumaFinMenuDialog(requireContext(), owner, getString(R.string.extras_title), selectedItem.name, fitContent = true)

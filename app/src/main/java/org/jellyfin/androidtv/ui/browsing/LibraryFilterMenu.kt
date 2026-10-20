@@ -32,25 +32,25 @@ fun createHideWatchedButton(context: Context) = TextView(context).apply {
 	typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
 	isFocusable = true
 	isClickable = true
-	minimumWidth = 32.dp(context)
-	minimumHeight = 28.dp(context)
-	setPadding(7.dp(context), 4.dp(context), 7.dp(context), 4.dp(context))
+	minimumWidth = 26.dp(context)
+	minimumHeight = 26.dp(context)
+	setPadding(4.dp(context), 4.dp(context), 4.dp(context), 4.dp(context))
 	compoundDrawablePadding = 0
 	val icon = ContextCompat.getDrawable(context, R.drawable.ic_unwatch)?.mutate()?.apply { setBounds(0, 0, 18.dp(context), 18.dp(context)) }
 	setCompoundDrawablesRelative(icon, null, null, null)
 	val tint = ContextCompat.getColorStateList(context, R.drawable.button_icon_tint)
 	setTextColor(tint)
 	TextViewCompat.setCompoundDrawableTintList(this, tint)
-	fun pill(fill: Int, stroke: Int? = null) = GradientDrawable().apply {
-		setColor(fill); cornerRadius = 9.dp(context).toFloat()
+	fun circle(fill: Int, stroke: Int? = null) = GradientDrawable().apply {
+		setColor(fill); shape = GradientDrawable.OVAL
 		if (stroke != null) setStroke(2.dp(context), stroke)
 	}
 	background = StateListDrawable().apply {
 		addState(intArrayOf(android.R.attr.state_focused, android.R.attr.state_activated),
-			pill(ContextCompat.getColor(context, R.color.lumafin_cyan), ContextCompat.getColor(context, R.color.lumafin_purple)))
-		addState(intArrayOf(android.R.attr.state_focused), pill(ContextCompat.getColor(context, R.color.lumafin_cyan)))
-		addState(intArrayOf(android.R.attr.state_activated), pill(ContextCompat.getColor(context, R.color.lumafin_raised), ContextCompat.getColor(context, R.color.lumafin_purple)))
-		addState(intArrayOf(), pill(Color.TRANSPARENT))
+			circle(ContextCompat.getColor(context, R.color.lumafin_cyan), ContextCompat.getColor(context, R.color.lumafin_purple)))
+		addState(intArrayOf(android.R.attr.state_focused), circle(ContextCompat.getColor(context, R.color.lumafin_cyan)))
+		addState(intArrayOf(android.R.attr.state_activated), circle(ContextCompat.getColor(context, R.color.lumafin_raised), ContextCompat.getColor(context, R.color.lumafin_purple)))
+		addState(intArrayOf(), circle(Color.TRANSPARENT))
 	}
 }
 

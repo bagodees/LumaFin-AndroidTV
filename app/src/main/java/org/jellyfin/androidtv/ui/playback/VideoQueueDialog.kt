@@ -3,6 +3,7 @@ package org.jellyfin.androidtv.ui.playback
 import android.content.Context
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.view.isVisible
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -20,6 +21,7 @@ class VideoQueueDialog(private val context: Context, private val editor: VideoQu
 	private var dialog: LumaFinMenuDialog? = null
 	private var actions: LumaFinMenuDialog? = null
 	private var more: TextView? = null
+	private var close: TextView? = null
 	private var view: VideoQueueView? = null
 	private var limit = 50
 	private var refreshing = false
@@ -27,15 +29,17 @@ class VideoQueueDialog(private val context: Context, private val editor: VideoQu
 	private var labels: List<String>? = null
 
 	fun show() {
-		dialog = LumaFinMenuDialog(context, null, context.getString(R.string.video_queue_title), context.getString(R.string.video_queue_loading)).apply {
+		dialog = LumaFinMenuDialog(context, null, context.getString(R.string.video_queue_title), context.getString(R.string.video_queue_loading), fitContent = true).apply {
 			more = button(context.getString(R.string.video_queue_more)) {
 				if (view?.hasMore == true) limit += 50
 				scope.launch { refresh() }
 			}
-			button(context.getString(R.string.video_queue_close), primary = true) { dismiss() }
+			more?.isVisible = false
+			close = button(context.getString(R.string.video_queue_close), primary = true) { dismiss() }
 			onDismiss { actions?.dismiss(); actions = null; scope.cancel(); dialog = null; onClosed() }
-			show(fullHeight = true)
+			show()
 		}
+		close?.requestFocus()
 		setMoreEnabled(false)
 		scope.launch { while (true) { refresh(); delay(1000) } }
 	}
@@ -48,18 +52,21 @@ class VideoQueueDialog(private val context: Context, private val editor: VideoQu
 		refreshing = true
 		try {
 			val snapshot = withTimeout(5000) { editor.snapshot(limit) }
+			val previousTitle = view?.currentTitle
+			val previousEditable = view?.editable
 			view = snapshot
 			menu.description(context.getString(R.string.video_queue_scope) + "\n\n" +
 				context.getString(R.string.video_queue_current, snapshot.currentTitle ?: context.getString(R.string.video_queue_none)) + "\n" +
-				context.getString(if (snapshot.editable) R.string.video_queue_upcoming else R.string.video_queue_order_note))
+				if (snapshot.upcoming.isEmpty()) "" else context.getString(if (snapshot.editable) R.string.video_queue_upcoming else R.string.video_queue_order_note))
 			val newLabels = snapshot.upcoming.mapIndexed { index, item -> "${index + 1}. ${item.title.ifBlank { context.getString(R.string.video_queue_untitled) }}" }
+			val layoutChanged = newLabels != labels || previousTitle != snapshot.currentTitle || previousEditable != snapshot.editable
 			val followEdit = selectedAfterEdit
 			if (newLabels != labels) {
 				val firstFill = labels == null
 				val focused = menu.focusedRow()
 				labels = newLabels
 				menu.clearRows()
-				if (newLabels.isEmpty()) menu.row(context.getString(R.string.video_queue_empty), navigates = false, enabled = false) {}
+				if (newLabels.isEmpty()) menu.emptyState(context.getString(R.string.video_queue_empty), context.getString(R.string.video_queue_empty_help))
 				else snapshot.upcoming.forEachIndexed { position, row ->
 					menu.row(newLabels[position], navigates = snapshot.editable) {
 						val current = view ?: return@row
@@ -67,6 +74,7 @@ class VideoQueueDialog(private val context: Context, private val editor: VideoQu
 					}
 				}
 				when {
+					newLabels.isEmpty() -> close?.requestFocus()
 					followEdit != null -> menu.focusRow(followEdit)
 					focused >= 0 -> menu.focusRow(focused)
 					firstFill && newLabels.isNotEmpty() -> menu.focusRow(0)
@@ -74,7 +82,10 @@ class VideoQueueDialog(private val context: Context, private val editor: VideoQu
 			} else if (followEdit != null) menu.focusRow(followEdit)
 			selectedAfterEdit = null
 			more?.text = context.getString(R.string.video_queue_more)
+			more?.isVisible = snapshot.hasMore
 			setMoreEnabled(snapshot.hasMore)
+			// Full height is useful for a queue; a zero-item state should fit its message.
+			if (layoutChanged) menu.updateSize(fitToContents = newLabels.isEmpty(), fullHeight = newLabels.isNotEmpty())
 		} catch (cancelled: CancellationException) {
 			// A timeout is handled below; actual disposal must cancel the dialog's work.
 			if (cancelled !is kotlinx.coroutines.TimeoutCancellationException) throw cancelled
@@ -84,11 +95,15 @@ class VideoQueueDialog(private val context: Context, private val editor: VideoQu
 	}
 
 	private fun showFailure() {
+		val firstFailure = labels != null || view != null
 		view = null
 		labels = null
 		dialog?.apply { description(context.getString(R.string.video_queue_failed)); clearRows() }
 		more?.text = context.getString(R.string.video_queue_retry)
+		more?.isVisible = true
 		setMoreEnabled(true)
+		dialog?.updateSize(fitToContents = true)
+		if (firstFailure || close?.hasFocus() == true) more?.requestFocus()
 	}
 
 	private fun showActions(snapshot: VideoQueueView, row: UpcomingVideo, position: Int) {

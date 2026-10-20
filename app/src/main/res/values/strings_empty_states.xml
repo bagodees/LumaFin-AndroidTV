@@ -1,0 +1,3 @@
+<resources>
+    <string name="video_queue_empty_help">Videos queued for this playback session will appear here.</string>
+</resources>

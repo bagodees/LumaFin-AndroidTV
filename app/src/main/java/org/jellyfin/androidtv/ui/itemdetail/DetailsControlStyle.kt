@@ -17,7 +17,7 @@ import org.jellyfin.androidtv.preference.UserPreferences
 import org.jellyfin.androidtv.util.dp
 import org.koin.core.context.GlobalContext
 
-internal fun detailsControlBackground(context: Context): StateListDrawable {
+internal fun detailsControlBackground(context: Context, transparentAtRest: Boolean = false): StateListDrawable {
 	val strong = GlobalContext.get().get<UserPreferences>()[UserPreferences.strongFocus]
 	fun color(id: Int) = ContextCompat.getColor(context, id)
 	fun shape(fill: Int, border: Int? = null) = GradientDrawable().apply {
@@ -31,7 +31,7 @@ internal fun detailsControlBackground(context: Context): StateListDrawable {
 		addState(intArrayOf(android.R.attr.state_focused), shape(color(R.color.lumafin_focus_row), if (strong) Color.WHITE else color(R.color.lumafin_cyan)))
 		addState(intArrayOf(android.R.attr.state_pressed), shape(color(R.color.lumafin_focus_row), color(R.color.lumafin_cyan)))
 		addState(intArrayOf(android.R.attr.state_activated), shape(Color.rgb(48, 36, 72), color(R.color.lumafin_purple)))
-		addState(intArrayOf(), shape(color(R.color.lumafin_raised)))
+		addState(intArrayOf(), shape(if (transparentAtRest) Color.TRANSPARENT else color(R.color.lumafin_raised)))
 	}
 }
 

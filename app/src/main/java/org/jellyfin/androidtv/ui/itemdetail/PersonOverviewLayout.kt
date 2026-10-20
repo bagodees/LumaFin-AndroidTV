@@ -25,6 +25,9 @@ internal fun DetailRowView.showPersonOverviewLayout() {
 	b.fdTitle.setTextColor(context.getColor(R.color.lumafin_text))
 	b.fdTitle.textSize = 28f
 	b.fdSummaryText.typeface = Typeface.create("sans-serif", Typeface.NORMAL)
+	b.fdSummaryText.background = detailsControlBackground(context, transparentAtRest = true)
+	b.fdSummaryText.setPadding(8.dp(context), 6.dp(context), 8.dp(context), 6.dp(context))
+	if (android.os.Build.VERSION.SDK_INT >= 26) b.fdSummaryText.defaultFocusHighlightEnabled = false
 	b.fdSummaryText.maxLines = 4
 	b.fdSummaryText.setLineSpacing(2.dp(context).toFloat(), 1f)
 

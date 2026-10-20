@@ -130,6 +130,21 @@ internal class LumaFinMenuDialog(
 
 	fun title(value: String) { heading.text = value }
 
+	/** Informational state, not a disabled action or a remote focus stop. */
+	fun emptyState(label: String, detail: String? = null) {
+		val content = LinearLayout(context).apply {
+			orientation = LinearLayout.VERTICAL
+			setPadding(16.dp(context), 16.dp(context), 16.dp(context), 16.dp(context))
+			background = shape(color(R.color.lumafin_raised), 12)
+		}
+		content.addView(text(label, 16f, true).apply { setTextColor(color(R.color.lumafin_text)) })
+		if (!detail.isNullOrBlank()) content.addView(text(detail, 13f).apply {
+			setPadding(0, 6.dp(context), 0, 0)
+			setTextColor(color(if (highContrast) R.color.lumafin_text else R.color.lumafin_secondary_text))
+		})
+		rows.addView(content)
+	}
+
 	/** Removes all rows (not footer buttons), e.g. before rebuilding a live list. */
 	fun clearRows() {
 		targets.removeAll(rowTargets.toSet()); rowTargets.clear()
@@ -200,9 +215,24 @@ internal class LumaFinMenuDialog(
 	override fun cancel() = dialog.cancel()
 	/** [fullHeight] reserves the full panel height for content that is filled in after showing (e.g. live lists). */
 	fun show(focus: Int = 0, fullHeight: Boolean = false) {
+		dialog.window?.apply {
+			// Configure software rendering before the window is shown, including live-sized panels.
+			clearFlags(android.view.WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED)
+			setBackgroundDrawableResource(android.R.color.transparent)
+			addFlags(android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+			setDimAmount(0.65f)
+			setWindowAnimations(0)
+		}
+		updateSize(fitContent, fullHeight)
+		dialog.show()
+		targets.getOrNull(focus.coerceIn(0, (targets.size - 1).coerceAtLeast(0)))?.requestFocus()
+	}
+
+	/** Resize a live panel without recreating the window or resetting its focus/scroll position. */
+	fun updateSize(fitToContents: Boolean = fitContent, fullHeight: Boolean = false) {
 		val width = minOf(560.dp(context), context.resources.displayMetrics.widthPixels - 48.dp(context))
 		var height = (if (rows.childCount == 0 && !fullHeight) 220 else 480).dp(context)
-		if (fitContent) {
+		if (fitToContents) {
 			val measureWidth = View.MeasureSpec.makeMeasureSpec(width - root.paddingLeft - root.paddingRight, View.MeasureSpec.EXACTLY)
 			val unbounded = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
 			height = root.paddingTop + root.paddingBottom
@@ -219,17 +249,8 @@ internal class LumaFinMenuDialog(
 			height = height.coerceAtMost(480.dp(context))
 		}
 		dialog.window?.apply {
-			// These static menus do not need a GPU surface. Configure before showing:
-			// resizing a newly shown window can stall the emulator EGL render thread.
-			clearFlags(android.view.WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED)
-			setBackgroundDrawableResource(android.R.color.transparent)
-			addFlags(android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND)
-			setDimAmount(0.65f)
-			setWindowAnimations(0)
 			setLayout(width, minOf(height, context.resources.displayMetrics.heightPixels - 48.dp(context)))
 		}
-		dialog.show()
-		targets.getOrNull(focus.coerceIn(0, (targets.size - 1).coerceAtLeast(0)))?.requestFocus()
 	}
 	override fun onStop(owner: LifecycleOwner) { dismiss() }
 	private fun color(id: Int) = ContextCompat.getColor(context, id)
