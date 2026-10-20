@@ -23,8 +23,6 @@ import org.jellyfin.androidtv.ui.base.Icon
 import org.jellyfin.androidtv.ui.base.LocalTextStyle
 import org.jellyfin.androidtv.ui.base.ProvideTextStyle
 
-internal val LocalModernInfoBadges = staticCompositionLocalOf { false }
-
 /**
  * A single item in the [BaseItemInfoRow].
  */
@@ -39,7 +37,8 @@ fun InfoRowItem(
 	// Content
 	content: @Composable RowScope.() -> Unit,
 ) {
-	val (backgroundColor, foregroundColor) = if (LocalModernInfoBadges.current && colors == InfoRowColors.Default)
+	// Neutral chips (ratings, quality, codecs) use the LumaFin navy chip everywhere; status colors keep their meaning.
+	val (backgroundColor, foregroundColor) = if (colors == InfoRowColors.Default)
 		LumaFinPalette.Raised to LumaFinPalette.SecondaryText else colors
 
 	val modifier = when {

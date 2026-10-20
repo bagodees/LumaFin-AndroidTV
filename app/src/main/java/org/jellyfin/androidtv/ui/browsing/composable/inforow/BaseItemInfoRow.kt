@@ -444,10 +444,8 @@ class BaseItemInfoRowView @JvmOverloads constructor(
                 val lineHeight = with(LocalDensity.current) { 22.sp.toDp() }
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Row(Modifier.height(lineHeight)) { BaseItemInfoRow(selected, null, includeRuntime) }
-                    CompositionLocalProvider(LocalModernInfoBadges provides true) {
-                        Row(Modifier.height(lineHeight), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                            InfoRowMediaDetails(mediaSource!!)
-                        }
+                    Row(Modifier.height(lineHeight), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                        InfoRowMediaDetails(mediaSource!!)
                     }
                 }
             } else BaseItemInfoRow(selected, mediaSource, includeRuntime)
