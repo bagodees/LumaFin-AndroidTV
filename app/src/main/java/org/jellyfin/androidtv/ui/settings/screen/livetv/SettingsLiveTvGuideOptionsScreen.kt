@@ -10,9 +10,9 @@ import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.preference.LiveTvPreferences
 import org.jellyfin.androidtv.preference.constant.LiveTvChannelOrder
 import org.jellyfin.androidtv.ui.base.Text
-import org.jellyfin.androidtv.ui.base.form.Checkbox
-import org.jellyfin.androidtv.ui.base.list.ListButton
-import org.jellyfin.androidtv.ui.base.list.ListSection
+import org.jellyfin.androidtv.ui.settings.composable.SettingsSwitch
+import org.jellyfin.androidtv.ui.settings.composable.SettingsButton as ListButton
+import org.jellyfin.androidtv.ui.settings.composable.SettingsSection as ListSection
 import org.jellyfin.androidtv.ui.navigation.LocalRouter
 import org.jellyfin.androidtv.ui.navigation.focus.focusKey
 import org.jellyfin.androidtv.ui.settings.Routes
@@ -45,6 +45,8 @@ fun SettingsLiveTvGuideOptionsScreen() {
 			var channelOrder by rememberPreference(liveTvPreferences, LiveTvPreferences.channelOrder)
 
 			ListButton(
+
+				navigates = true,
 				headingContent = { Text(stringResource(R.string.lbl_sort_by)) },
 				captionContent = { Text(stringResource(LiveTvChannelOrder.fromString(channelOrder).nameRes)) },
 				onClick = { router.push(Routes.LIVETV_GUIDE_CHANNEL_ORDER) },
@@ -56,8 +58,10 @@ fun SettingsLiveTvGuideOptionsScreen() {
 			var favsAtTop by rememberPreference(liveTvPreferences, LiveTvPreferences.favsAtTop)
 
 			ListButton(
+
+				toggleState = favsAtTop,
 				headingContent = { Text(stringResource(R.string.lbl_start_favorites)) },
-				trailingContent = { Checkbox(checked = favsAtTop) },
+				trailingContent = { SettingsSwitch(checked = favsAtTop) },
 				onClick = { favsAtTop = !favsAtTop },
 				modifier = Modifier.focusKey("favs_at_top")
 			)
@@ -67,8 +71,10 @@ fun SettingsLiveTvGuideOptionsScreen() {
 			var colorCodeGuide by rememberPreference(liveTvPreferences, LiveTvPreferences.colorCodeGuide)
 
 			ListButton(
+
+				toggleState = colorCodeGuide,
 				headingContent = { Text(stringResource(R.string.lbl_colored_backgrounds)) },
-				trailingContent = { Checkbox(checked = colorCodeGuide) },
+				trailingContent = { SettingsSwitch(checked = colorCodeGuide) },
 				onClick = { colorCodeGuide = !colorCodeGuide },
 				modifier = Modifier.focusKey("color_code_guide")
 			)
@@ -80,8 +86,10 @@ fun SettingsLiveTvGuideOptionsScreen() {
 			var enabled by preference
 
 			ListButton(
+
+				toggleState = enabled,
 				headingContent = { Text(label) },
-				trailingContent = { Checkbox(checked = enabled) },
+				trailingContent = { SettingsSwitch(checked = enabled) },
 				onClick = { enabled = !enabled },
 				modifier = Modifier.focusKey("indicator_$label")
 			)

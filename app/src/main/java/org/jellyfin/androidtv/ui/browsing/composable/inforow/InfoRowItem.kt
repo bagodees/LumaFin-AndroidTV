@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.staticCompositionLocalOf
+import org.jellyfin.androidtv.ui.base.LumaFinPalette
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -20,6 +22,8 @@ import androidx.compose.ui.unit.sp
 import org.jellyfin.androidtv.ui.base.Icon
 import org.jellyfin.androidtv.ui.base.LocalTextStyle
 import org.jellyfin.androidtv.ui.base.ProvideTextStyle
+
+internal val LocalModernInfoBadges = staticCompositionLocalOf { false }
 
 /**
  * A single item in the [BaseItemInfoRow].
@@ -35,7 +39,8 @@ fun InfoRowItem(
 	// Content
 	content: @Composable RowScope.() -> Unit,
 ) {
-	val (backgroundColor, foregroundColor) = colors
+	val (backgroundColor, foregroundColor) = if (LocalModernInfoBadges.current && colors == InfoRowColors.Default)
+		LumaFinPalette.Raised to LumaFinPalette.SecondaryText else colors
 
 	val modifier = when {
 		backgroundColor.alpha > 0f -> Modifier

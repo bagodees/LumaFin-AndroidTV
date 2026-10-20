@@ -23,8 +23,8 @@ import org.jellyfin.androidtv.preference.UserPreferences
 import org.jellyfin.androidtv.preference.UserSettingPreferences
 import org.jellyfin.androidtv.ui.playback.segment.MediaSegmentRepository
 import org.jellyfin.androidtv.ui.base.Text
-import org.jellyfin.androidtv.ui.base.list.ListButton
-import org.jellyfin.androidtv.ui.base.list.ListSection
+import org.jellyfin.androidtv.ui.settings.composable.SettingsButton as ListButton
+import org.jellyfin.androidtv.ui.settings.composable.SettingsSection as ListSection
 import org.jellyfin.androidtv.ui.navigation.LocalRouter
 import org.jellyfin.androidtv.ui.navigation.focus.focusKey
 import org.jellyfin.androidtv.ui.settings.composable.SettingsSearchField
@@ -84,7 +84,7 @@ fun SettingsSearchScreen(mainMenu: (LazyListScope.() -> Unit)? = null) {
 			ListSection(headingContent = { Text(stringResource(R.string.settings_search_empty)) })
 		}
 		itemsIndexed(results, key = { _, entry -> entry.id }) { index, entry ->
-			ListButton(headingContent = { Text(entry.title) }, overlineContent = { Text(entry.section) },
+			ListButton(navigates = true, headingContent = { Text(entry.title) }, overlineContent = { Text(entry.section) },
 				captionContent = { Text(listOfNotNull(entry.description, entry.currentValue?.let {
 					context.getString(R.string.settings_search_current, it)
 				}).joinToString("\n")) },

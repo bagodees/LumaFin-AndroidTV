@@ -9,8 +9,8 @@ import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.preference.UserPreferences
 import org.jellyfin.androidtv.preference.constant.HdrFormat
 import org.jellyfin.androidtv.ui.base.Text
-import org.jellyfin.androidtv.ui.base.list.ListButton
-import org.jellyfin.androidtv.ui.base.list.ListSection
+import org.jellyfin.androidtv.ui.settings.composable.SettingsButton as ListButton
+import org.jellyfin.androidtv.ui.settings.composable.SettingsSection as ListSection
 import org.jellyfin.androidtv.ui.navigation.LocalRouter
 import org.jellyfin.androidtv.ui.navigation.focus.focusKey
 import org.jellyfin.androidtv.ui.settings.Routes
@@ -36,6 +36,8 @@ fun SettingsPlaybackHdrOverridesScreen() {
 			val mode by rememberPreference(userPreferences, format.preference)
 
 			ListButton(
+
+				navigates = true,
 				headingContent = { Text(stringResource(format.nameRes)) },
 				captionContent = { Text(stringResource(mode.nameRes)) },
 				onClick = {

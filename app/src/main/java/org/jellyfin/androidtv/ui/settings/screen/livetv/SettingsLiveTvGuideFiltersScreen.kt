@@ -9,9 +9,9 @@ import androidx.compose.ui.res.stringResource
 import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.preference.SystemPreferences
 import org.jellyfin.androidtv.ui.base.Text
-import org.jellyfin.androidtv.ui.base.form.Checkbox
-import org.jellyfin.androidtv.ui.base.list.ListButton
-import org.jellyfin.androidtv.ui.base.list.ListSection
+import org.jellyfin.androidtv.ui.settings.composable.SettingsSwitch
+import org.jellyfin.androidtv.ui.settings.composable.SettingsButton as ListButton
+import org.jellyfin.androidtv.ui.settings.composable.SettingsSection as ListSection
 import org.jellyfin.androidtv.ui.navigation.focus.focusKey
 import org.jellyfin.androidtv.ui.settings.compat.rememberPreference
 import org.jellyfin.androidtv.ui.settings.composable.SettingsColumn
@@ -42,8 +42,10 @@ fun SettingsLiveTvGuideFiltersScreen() {
 			var enabled by preference
 
 			ListButton(
+
+				toggleState = enabled,
 				headingContent = { Text(label) },
-				trailingContent = { Checkbox(checked = enabled) },
+				trailingContent = { SettingsSwitch(checked = enabled) },
 				onClick = { enabled = !enabled },
 				modifier = Modifier.focusKey("filter_$label")
 			)

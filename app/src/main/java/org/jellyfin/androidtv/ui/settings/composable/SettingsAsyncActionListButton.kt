@@ -18,7 +18,7 @@ import kotlinx.coroutines.withContext
 import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.ui.base.CircularProgressIndicator
 import org.jellyfin.androidtv.ui.base.Icon
-import org.jellyfin.androidtv.ui.base.list.ListButton
+import org.jellyfin.androidtv.ui.settings.composable.SettingsButton as ListButton
 import org.jellyfin.androidtv.ui.base.list.ListControlColors
 import org.jellyfin.androidtv.ui.base.list.ListControlDefaults
 import org.jellyfin.design.Tokens

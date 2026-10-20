@@ -18,9 +18,9 @@ import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.preference.UserPreferences
 import org.jellyfin.androidtv.ui.base.Icon
 import org.jellyfin.androidtv.ui.base.Text
-import org.jellyfin.androidtv.ui.base.form.Checkbox
-import org.jellyfin.androidtv.ui.base.list.ListButton
-import org.jellyfin.androidtv.ui.base.list.ListSection
+import org.jellyfin.androidtv.ui.settings.composable.SettingsSwitch
+import org.jellyfin.androidtv.ui.settings.composable.SettingsButton as ListButton
+import org.jellyfin.androidtv.ui.settings.composable.SettingsSection as ListSection
 import org.jellyfin.androidtv.ui.navigation.LocalRouter
 import org.jellyfin.androidtv.ui.navigation.focus.focusKey
 import org.jellyfin.androidtv.ui.settings.Routes
@@ -52,6 +52,7 @@ fun SettingsCustomizationScreen() {
 
 		item {
 			ListButton(
+				navigates = true,
 				leadingContent = { Icon(painterResource(R.drawable.ic_grid), contentDescription = null) },
 				headingContent = { Text(stringResource(R.string.pref_libraries)) },
 				captionContent = { Text(stringResource(R.string.settings_search_libraries)) },
@@ -62,6 +63,7 @@ fun SettingsCustomizationScreen() {
 
 		item {
 			ListButton(
+				navigates = true,
 				leadingContent = { Icon(painterResource(R.drawable.ic_house), contentDescription = null) },
 				headingContent = { Text(stringResource(R.string.home_prefs)) },
 				captionContent = { Text(stringResource(R.string.settings_search_home)) },
@@ -71,6 +73,7 @@ fun SettingsCustomizationScreen() {
 		}
 		item {
 			ListButton(
+				navigates = true,
 				leadingContent = { Icon(painterResource(R.drawable.ic_photos), contentDescription = null) },
 				headingContent = { Text(stringResource(R.string.pref_screensaver)) },
 				captionContent = { Text(stringResource(R.string.settings_search_screensaver)) },
@@ -80,7 +83,7 @@ fun SettingsCustomizationScreen() {
 		}
 		item {
 			var longPress by rememberPreference(userPreferences, UserPreferences.cardLongPressAction)
-			ListButton(headingContent = { Text(stringResource(R.string.remote_shortcuts)) },
+			ListButton(navigates = true, headingContent = { Text(stringResource(R.string.remote_shortcuts)) },
 				captionContent = { Text(stringResource(longPress.nameRes)) },
 				onClick = { router.push(Routes.REMOTE_SHORTCUTS) }, modifier = Modifier.focusKey(Routes.REMOTE_SHORTCUTS))
 		}
@@ -89,6 +92,8 @@ fun SettingsCustomizationScreen() {
 			var appTheme by rememberPreference(userPreferences, UserPreferences.appTheme)
 
 			ListButton(
+
+				navigates = true,
 				headingContent = { Text(stringResource(R.string.pref_app_theme)) },
 				captionContent = { Text(stringResource(appTheme.nameRes)) },
 				onClick = { router.push(Routes.CUSTOMIZATION_THEME) },
@@ -100,6 +105,8 @@ fun SettingsCustomizationScreen() {
 			var clockBehavior by rememberPreference(userPreferences, UserPreferences.clockBehavior)
 
 			ListButton(
+
+				navigates = true,
 				headingContent = { Text(stringResource(R.string.pref_clock_display)) },
 				captionContent = { Text(stringResource(clockBehavior.nameRes)) },
 				onClick = { router.push(Routes.CUSTOMIZATION_CLOCK) },
@@ -111,6 +118,8 @@ fun SettingsCustomizationScreen() {
 			var watchedIndicatorBehavior by rememberPreference(userPreferences, UserPreferences.watchedIndicatorBehavior)
 
 			ListButton(
+
+				navigates = true,
 				headingContent = { Text(stringResource(R.string.pref_watched_indicator)) },
 				captionContent = { Text(stringResource(watchedIndicatorBehavior.nameRes)) },
 				onClick = { router.push(Routes.CUSTOMIZATION_WATCHED_INDICATOR) },
@@ -122,6 +131,8 @@ fun SettingsCustomizationScreen() {
 			var backdropBehavior by rememberPreference(userPreferences, UserPreferences.backdropBehavior)
 
 			ListButton(
+
+				navigates = true,
 				headingContent = { Text(stringResource(R.string.lbl_show_backdrop)) },
 				captionContent = { Text(stringResource(backdropBehavior.nameRes)) },
 				onClick = { router.push(Routes.CUSTOMIZATION_BACKDROP) },
@@ -133,8 +144,10 @@ fun SettingsCustomizationScreen() {
 			var seriesThumbnailsEnabled by rememberPreference(userPreferences, UserPreferences.seriesThumbnailsEnabled)
 
 			ListButton(
+
+				toggleState = seriesThumbnailsEnabled,
 				headingContent = { Text(stringResource(R.string.lbl_use_series_thumbnails)) },
-				trailingContent = { Checkbox(checked = seriesThumbnailsEnabled) },
+				trailingContent = { SettingsSwitch(checked = seriesThumbnailsEnabled) },
 				captionContent = { Text(stringResource(R.string.lbl_use_series_thumbnails_description)) },
 				onClick = { seriesThumbnailsEnabled = !seriesThumbnailsEnabled },
 				modifier = Modifier.focusKey("series_thumbnails_enabled")
@@ -145,9 +158,11 @@ fun SettingsCustomizationScreen() {
 			var ratingBadgesEnabled by rememberPreference(userPreferences, UserPreferences.ratingBadgesEnabled)
 
 			ListButton(
+
+				toggleState = ratingBadgesEnabled,
 				headingContent = { Text(stringResource(R.string.pref_rating_badges)) },
 				captionContent = { Text(stringResource(R.string.pref_rating_badges_description)) },
-				trailingContent = { Checkbox(checked = ratingBadgesEnabled) },
+				trailingContent = { SettingsSwitch(checked = ratingBadgesEnabled) },
 				onClick = { ratingBadgesEnabled = !ratingBadgesEnabled },
 				modifier = Modifier.focusKey("rating_badges_enabled")
 			)
@@ -156,9 +171,10 @@ fun SettingsCustomizationScreen() {
 		item {
 			var hideDescriptions by rememberPreference(userPreferences, UserPreferences.hideUnwatchedEpisodeDescriptions)
 			ListButton(
+				toggleState = hideDescriptions,
 				headingContent = { Text(stringResource(R.string.hide_unwatched_episode_descriptions)) },
 				captionContent = { Text(stringResource(R.string.hide_unwatched_episode_descriptions_description)) },
-				trailingContent = { Checkbox(checked = hideDescriptions) },
+				trailingContent = { SettingsSwitch(checked = hideDescriptions) },
 				onClick = { hideDescriptions = !hideDescriptions },
 				modifier = Modifier.focusKey("hide_unwatched_episode_descriptions"),
 			)
@@ -167,9 +183,10 @@ fun SettingsCustomizationScreen() {
 		item {
 			var reducedMotion by rememberPreference(userPreferences, UserPreferences.reducedMotion)
 			ListButton(
+				toggleState = reducedMotion,
 				headingContent = { Text(stringResource(R.string.reduced_motion)) },
 				captionContent = { Text(stringResource(R.string.reduced_motion_description)) },
-				trailingContent = { Checkbox(checked = reducedMotion) },
+				trailingContent = { SettingsSwitch(checked = reducedMotion) },
 				onClick = { reducedMotion = !reducedMotion },
 				modifier = Modifier.focusKey("reduced_motion"),
 			)
@@ -178,9 +195,10 @@ fun SettingsCustomizationScreen() {
 		item {
 			var hideArtwork by rememberPreference(userPreferences, UserPreferences.hideUnwatchedEpisodeArtwork)
 			ListButton(
+				toggleState = hideArtwork,
 				headingContent = { Text(stringResource(R.string.hide_unwatched_episode_artwork)) },
 				captionContent = { Text(stringResource(R.string.hide_unwatched_episode_artwork_description)) },
-				trailingContent = { Checkbox(checked = hideArtwork) },
+				trailingContent = { SettingsSwitch(checked = hideArtwork) },
 				onClick = { hideArtwork = !hideArtwork },
 				modifier = Modifier.focusKey("hide_unwatched_episode_artwork"),
 			)
@@ -238,9 +256,10 @@ fun SettingsCustomizationScreen() {
 		item(key = "high_contrast") {
 			var highContrast by rememberPreference(userPreferences, UserPreferences.highContrast)
 			ListButton(
+				toggleState = highContrast,
 				headingContent = { Text(stringResource(R.string.high_contrast)) },
 				captionContent = { Text(stringResource(R.string.high_contrast_description)) },
-				trailingContent = { Checkbox(checked = highContrast) },
+				trailingContent = { SettingsSwitch(checked = highContrast) },
 				onClick = { highContrast = !highContrast },
 				modifier = Modifier.focusKey("high_contrast"),
 			)
@@ -248,9 +267,10 @@ fun SettingsCustomizationScreen() {
 		item(key = "strong_focus") {
 			var strongFocus by rememberPreference(userPreferences, UserPreferences.strongFocus)
 			ListButton(
+				toggleState = strongFocus,
 				headingContent = { Text(stringResource(R.string.strong_focus)) },
 				captionContent = { Text(stringResource(R.string.strong_focus_description)) },
-				trailingContent = { Checkbox(checked = strongFocus) },
+				trailingContent = { SettingsSwitch(checked = strongFocus) },
 				onClick = { strongFocus = !strongFocus },
 				modifier = Modifier.focusKey("strong_focus"),
 			)

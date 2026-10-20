@@ -1,0 +1,167 @@
+package org.jellyfin.androidtv.ui.base.dialog
+
+import android.app.Dialog
+import android.content.Context
+import android.content.DialogInterface
+import android.graphics.Color
+import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.StateListDrawable
+import android.view.Gravity
+import android.view.View
+import android.view.ViewGroup
+import android.view.Window
+import android.widget.LinearLayout
+import android.widget.ScrollView
+import android.widget.TextView
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
+import org.jellyfin.androidtv.R
+import org.jellyfin.androidtv.preference.UserPreferences
+import org.jellyfin.androidtv.util.dp
+import org.koin.core.context.GlobalContext
+
+/** Shared, remote-first menu panel. Rows show labels and values without native list-dialog chrome. */
+internal class LumaFinMenuDialog(
+	private val context: Context,
+	private val owner: LifecycleOwner,
+	title: String,
+	description: String? = null,
+	private val fitContent: Boolean = false,
+) : DefaultLifecycleObserver, DialogInterface {
+	private val dialog = Dialog(context)
+	private val root = LinearLayout(context).apply {
+		orientation = LinearLayout.VERTICAL
+		setPadding(20.dp(context), 20.dp(context), 20.dp(context), 16.dp(context))
+		background = shape(color(R.color.lumafin_surface), 20)
+	}
+	private val rows = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
+	private val footer = LinearLayout(context).apply { gravity = Gravity.END; orientation = LinearLayout.HORIZONTAL }
+	private val targets = mutableListOf<View>()
+	private var dismissed: (() -> Unit)? = null
+	private var message: TextView? = null
+	private val strongFocus = runCatching { GlobalContext.get().get<UserPreferences>()[UserPreferences.strongFocus] }.getOrDefault(false)
+	private val highContrast = runCatching { GlobalContext.get().get<UserPreferences>()[UserPreferences.highContrast] }.getOrDefault(false)
+
+	init {
+		dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+		root.addView(text(title, 24f, true).apply { setTextColor(color(R.color.lumafin_text)) })
+		if (!description.isNullOrBlank()) root.addView(text(description, 13f).apply {
+			message = this
+			setPadding(0, 6.dp(context), 0, 12.dp(context))
+			setTextColor(color(if (highContrast) R.color.lumafin_text else R.color.lumafin_secondary_text))
+		})
+		val scroll = ScrollView(context).apply {
+			isFillViewport = false
+			scrollBarStyle = View.SCROLLBARS_OUTSIDE_INSET
+			clipToPadding = false
+			setPadding(2.dp(context), 8.dp(context), 2.dp(context), 8.dp(context))
+			addView(rows)
+		}
+		root.addView(scroll, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
+		root.addView(footer, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+		dialog.setContentView(root)
+		dialog.setOnDismissListener { owner.lifecycle.removeObserver(this); dismissed?.invoke() }
+		owner.lifecycle.addObserver(this)
+	}
+
+	fun row(label: String, value: String? = null, selected: Boolean? = null, navigates: Boolean = true, action: () -> Unit) {
+		val row = LinearLayout(context).apply {
+			orientation = LinearLayout.HORIZONTAL
+			gravity = Gravity.CENTER_VERTICAL
+			minimumHeight = 56.dp(context)
+			setPadding(14.dp(context), 9.dp(context), 14.dp(context), 9.dp(context))
+			isFocusable = true
+			isClickable = true
+			isSelected = selected == true
+			background = focusBackground()
+			setOnClickListener { action() }
+		}
+		val labels = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
+		labels.addView(text(label, 16f, true).apply { setTextColor(color(R.color.lumafin_text)) })
+		if (value != null) labels.addView(text(value, 13f).apply {
+			setTextColor(color(if (highContrast) R.color.lumafin_text else R.color.lumafin_secondary_text))
+			setPadding(0, 3.dp(context), 0, 0)
+		})
+		row.addView(labels, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+		if (selected != null || navigates) row.addView(text(when (selected) { true -> "✓"; false -> "○"; null -> "›" }, 22f, true).apply {
+			setTextColor(color(if (selected == true) R.color.lumafin_cyan else R.color.lumafin_muted))
+			setPadding(12.dp(context), 0, 0, 0)
+		})
+		rows.addView(row, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+			bottomMargin = 6.dp(context)
+		})
+		targets += row
+	}
+
+	fun button(label: String, primary: Boolean = false, action: () -> Unit) {
+		val button = text(label, 15f, true).apply {
+			gravity = Gravity.CENTER
+			minimumHeight = 42.dp(context)
+			setPadding(18.dp(context), 8.dp(context), 18.dp(context), 8.dp(context))
+			setTextColor(color(if (primary) R.color.lumafin_background else R.color.lumafin_text))
+			background = focusBackground(primary)
+			isFocusable = true
+			isClickable = true
+			setOnClickListener { action() }
+		}
+		footer.addView(button, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+			marginStart = 8.dp(context); topMargin = 8.dp(context)
+		})
+		if (targets.isEmpty()) targets += button
+	}
+
+	fun onDismiss(action: () -> Unit) { dismissed = action }
+	val isShowing get() = dialog.isShowing
+	fun description(value: String) { message?.text = value }
+	override fun dismiss() = dialog.dismiss()
+	override fun cancel() = dialog.cancel()
+	fun show(focus: Int = 0) {
+		val width = minOf(560.dp(context), context.resources.displayMetrics.widthPixels - 48.dp(context))
+		var height = (if (rows.childCount == 0) 220 else 480).dp(context)
+		if (fitContent) {
+			val measureWidth = View.MeasureSpec.makeMeasureSpec(width - root.paddingLeft - root.paddingRight, View.MeasureSpec.EXACTLY)
+			val unbounded = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+			height = root.paddingTop + root.paddingBottom
+			for (index in 0 until root.childCount) {
+				val child = root.getChildAt(index)
+				if (child is ScrollView) {
+					rows.measure(View.MeasureSpec.makeMeasureSpec(View.MeasureSpec.getSize(measureWidth) - child.paddingLeft - child.paddingRight, View.MeasureSpec.EXACTLY), unbounded)
+					height += rows.measuredHeight + child.paddingTop + child.paddingBottom
+				} else {
+					child.measure(measureWidth, unbounded)
+					height += child.measuredHeight
+				}
+			}
+			height = height.coerceAtMost(480.dp(context))
+		}
+		dialog.window?.apply {
+			// These static menus do not need a GPU surface. Configure before showing:
+			// resizing a newly shown window can stall the emulator EGL render thread.
+			clearFlags(android.view.WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED)
+			setBackgroundDrawableResource(android.R.color.transparent)
+			addFlags(android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+			setDimAmount(0.65f)
+			setWindowAnimations(0)
+			setLayout(width, minOf(height, context.resources.displayMetrics.heightPixels - 48.dp(context)))
+		}
+		dialog.show()
+		targets.getOrNull(focus.coerceIn(0, (targets.size - 1).coerceAtLeast(0)))?.requestFocus()
+	}
+	override fun onStop(owner: LifecycleOwner) { dismiss() }
+	private fun color(id: Int) = ContextCompat.getColor(context, id)
+	private fun text(value: String, size: Float, bold: Boolean = false) = TextView(context).apply {
+		text = value; textSize = size
+		typeface = Typeface.create(if (bold) "sans-serif-medium" else "sans-serif", Typeface.NORMAL)
+	}
+	private fun shape(fill: Int, radius: Int, stroke: Int? = null) = GradientDrawable().apply {
+		setColor(fill); cornerRadius = radius.dp(context).toFloat()
+		if (stroke != null) setStroke((if (strongFocus) 3 else 2).dp(context), stroke)
+	}
+	private fun focusBackground(primary: Boolean = false) = StateListDrawable().apply {
+		addState(intArrayOf(android.R.attr.state_focused), shape(color(if (primary) R.color.lumafin_cyan else R.color.lumafin_focus_row), 12,
+			if (strongFocus || primary) Color.WHITE else color(R.color.lumafin_cyan)))
+		addState(intArrayOf(), shape(color(if (primary) R.color.lumafin_cyan else R.color.lumafin_raised), 12))
+	}
+}

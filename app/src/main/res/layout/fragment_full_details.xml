@@ -4,7 +4,9 @@
 
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:importantForAccessibility="no"
+        android:background="@drawable/details_readability_gradient" />
 
     <FrameLayout
         android:layout_width="match_parent"

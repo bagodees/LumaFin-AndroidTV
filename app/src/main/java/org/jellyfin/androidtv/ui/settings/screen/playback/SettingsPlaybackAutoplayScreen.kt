@@ -11,9 +11,9 @@ import org.jellyfin.androidtv.preference.UserPreferences
 import org.jellyfin.androidtv.preference.constant.StillWatchingBehavior
 import org.jellyfin.androidtv.ui.base.Icon
 import org.jellyfin.androidtv.ui.base.Text
-import org.jellyfin.androidtv.ui.base.form.Checkbox
-import org.jellyfin.androidtv.ui.base.list.ListButton
-import org.jellyfin.androidtv.ui.base.list.ListSection
+import org.jellyfin.androidtv.ui.settings.composable.SettingsSwitch
+import org.jellyfin.androidtv.ui.settings.composable.SettingsButton as ListButton
+import org.jellyfin.androidtv.ui.settings.composable.SettingsSection as ListSection
 import org.jellyfin.androidtv.ui.navigation.LocalRouter
 import org.jellyfin.androidtv.ui.navigation.focus.focusKey
 import org.jellyfin.androidtv.ui.settings.Routes
@@ -37,8 +37,9 @@ fun SettingsPlaybackAutoplayScreen() {
 
 		item {
 			ListButton(
+				toggleState = mediaQueuingEnabled,
 				headingContent = { Text(stringResource(R.string.pref_media_queueing)) },
-				trailingContent = { Checkbox(checked = mediaQueuingEnabled) },
+				trailingContent = { SettingsSwitch(checked = mediaQueuingEnabled) },
 				captionContent = { Text(stringResource(R.string.pref_media_queueing_description)) },
 				onClick = { mediaQueuingEnabled = !mediaQueuingEnabled },
 				modifier = Modifier.focusKey("media_queuing_enabled")
@@ -47,6 +48,7 @@ fun SettingsPlaybackAutoplayScreen() {
 
 		item {
 			ListButton(
+				navigates = true,
 				leadingContent = { Icon(painterResource(R.drawable.ic_next_up), contentDescription = null) },
 				headingContent = { Text(stringResource(R.string.pref_playback_next_up)) },
 				captionContent = { Text(stringResource(R.string.next_up_settings_description)) },
@@ -58,6 +60,7 @@ fun SettingsPlaybackAutoplayScreen() {
 		item {
 			val stillWatchingBehavior by rememberPreference(userPreferences, UserPreferences.stillWatchingBehavior)
 			ListButton(
+				navigates = true,
 				leadingContent = { Icon(painterResource(R.drawable.ic_zzz), contentDescription = null) },
 				headingContent = { Text(stringResource(R.string.pref_playback_inactivity_prompt)) },
 				captionContent = {

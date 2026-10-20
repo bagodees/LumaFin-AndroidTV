@@ -23,7 +23,7 @@ internal fun DetailRowView.showPersonOverviewLayout() {
 	b.fdThumb.maxHeight = Int.MAX_VALUE
 	b.fdTitle.typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
 	b.fdTitle.setTextColor(context.getColor(R.color.lumafin_text))
-	b.fdTitle.textSize = 30f
+	b.fdTitle.textSize = 28f
 	b.fdSummaryText.typeface = Typeface.create("sans-serif", Typeface.NORMAL)
 	b.fdSummaryText.maxLines = 4
 	b.fdSummaryText.setLineSpacing(2.dp(context).toFloat(), 1f)

@@ -702,7 +702,7 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
         if (mFolder.getCollectionType() == CollectionType.MOVIES) {
             mAdapter.setRuntimeController(BrowseGridFragmentHelperKt.createRuntimeController(this, mAdapter, () -> {
                 if (binding != null) {
-                    if (mUnwatchedButton != null) mUnwatchedButton.setActivated(mAdapter.getFilters().isUnwatchedOnly());
+                    if (mUnwatchedButton != null) LibraryFilterMenuKt.updateHideWatchedButton(mUnwatchedButton, mAdapter.getFilters().isUnwatchedOnly());
                     if (mFavoriteButton != null) mFavoriteButton.setActivated(mAdapter.getFilters().isFavoriteOnly());
                     updateDisplayPrefs();
                 }
@@ -773,7 +773,7 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
 
     private ImageButton mSortButton;
     private ImageButton mSettingsButton;
-    private ImageButton mUnwatchedButton;
+    private android.widget.TextView mUnwatchedButton;
     private ImageButton mFavoriteButton;
     private ImageButton mLetterButton;
 
@@ -818,7 +818,7 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
                             mAdapter.setFilters(new FilterOptions());
                             mAdapter.setStartLetter(null);
                             mAdapter.setSortBy(getSortOption(ItemSortBy.SORT_NAME));
-                            if (mUnwatchedButton != null) mUnwatchedButton.setActivated(false);
+                            if (mUnwatchedButton != null) LibraryFilterMenuKt.updateHideWatchedButton(mUnwatchedButton, false);
                             mFavoriteButton.setActivated(false);
                         } else if (item.getItemId() == 100) {
                             SortOption current = getSortOption(mAdapter.getSortBy());
@@ -841,11 +841,8 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
         binding.toolBar.addView(mSortButton);
 
         if (mRowDef.getQueryType() == QueryType.Items) {
-            mUnwatchedButton = new ImageButton(requireContext(), null, 0, R.style.Button_Icon);
-            mUnwatchedButton.setImageResource(R.drawable.ic_unwatch);
-            mUnwatchedButton.setActivated(mAdapter.getFilters().isUnwatchedOnly());
-            mUnwatchedButton.setMaxHeight(size);
-            mUnwatchedButton.setAdjustViewBounds(true);
+            mUnwatchedButton = LibraryFilterMenuKt.createHideWatchedButton(requireContext());
+            LibraryFilterMenuKt.updateHideWatchedButton(mUnwatchedButton, mAdapter.getFilters().isUnwatchedOnly());
             mUnwatchedButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -853,13 +850,12 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
                     if (filters == null) filters = new FilterOptions();
 
                     filters.setUnwatchedOnly(!filters.isUnwatchedOnly());
-                    mUnwatchedButton.setActivated(filters.isUnwatchedOnly());
+                    LibraryFilterMenuKt.updateHideWatchedButton(mUnwatchedButton, filters.isUnwatchedOnly());
                     mAdapter.setFilters(filters);
                     mAdapter.Retrieve();
                     updateDisplayPrefs();
                 }
             });
-            mUnwatchedButton.setContentDescription(getString(R.string.lbl_unwatched));
             binding.toolBar.addView(mUnwatchedButton);
             ImageButton combinedFilters = new ImageButton(requireContext(), null, 0, R.style.Button_Icon);
             combinedFilters.setImageResource(R.drawable.ic_filter);
@@ -867,7 +863,7 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
             combinedFilters.setAdjustViewBounds(true);
             combinedFilters.setContentDescription(getString(R.string.library_filters_title));
             combinedFilters.setOnClickListener(v -> BrowseGridFragmentHelperKt.showCombinedFilters(this, mAdapter, api.getValue(), mFolder.getCollectionType() == CollectionType.MOVIES, () -> {
-                mUnwatchedButton.setActivated(mAdapter.getFilters().isUnwatchedOnly());
+                LibraryFilterMenuKt.updateHideWatchedButton(mUnwatchedButton, mAdapter.getFilters().isUnwatchedOnly());
                 mFavoriteButton.setActivated(mAdapter.getFilters().isFavoriteOnly());
                 updateDisplayPrefs();
                 mAdapter.Retrieve();

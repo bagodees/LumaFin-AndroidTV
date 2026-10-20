@@ -78,3 +78,9 @@ fun List<MediaStream>.trackLabels(context: Context): Map<Int, String> = readable
 		context.getString(R.string.track_default), context.getString(R.string.track_number),
 	),
 )
+
+/** Compact details chip; full track titles, codecs and flags remain in the picker. */
+fun MediaStream.audioTrackSummary(context: Context): String = listOf(copy(
+	title = null, displayTitle = null, codec = null,
+	isDefault = false, isForced = false, isHearingImpaired = false,
+)).trackLabels(context).getValue(index)

@@ -21,8 +21,8 @@ import androidx.compose.runtime.mutableStateOf
 import org.jellyfin.androidtv.ui.base.Icon
 import org.jellyfin.androidtv.ui.base.LocalShapes
 import org.jellyfin.androidtv.ui.base.Text
-import org.jellyfin.androidtv.ui.base.list.ListButton
-import org.jellyfin.androidtv.ui.base.list.ListSection
+import org.jellyfin.androidtv.ui.settings.composable.SettingsButton as ListButton
+import org.jellyfin.androidtv.ui.settings.composable.SettingsSection as ListSection
 import org.jellyfin.androidtv.ui.navigation.LocalRouter
 import org.jellyfin.androidtv.ui.navigation.focus.focusKey
 import org.jellyfin.androidtv.ui.settings.Routes
@@ -51,6 +51,7 @@ fun SettingsPlaybackScreen() {
 
 		item {
 			ListButton(
+				navigates = true,
 				leadingContent = { Icon(painterResource(R.drawable.ic_tv_play), contentDescription = null) },
 				headingContent = { Text(stringResource(R.string.playback_video_player)) },
 				captionContent = { Text(stringResource(R.string.settings_search_player)) },
@@ -74,6 +75,7 @@ fun SettingsPlaybackScreen() {
 
 		item {
 			ListButton(
+				navigates = true,
 				leadingContent = { Icon(painterResource(R.drawable.ic_photo), contentDescription = null) },
 				headingContent = { Text(stringResource(R.string.photo_player)) },
 				captionContent = { Text(stringResource(R.string.settings_search_photos)) },
@@ -84,6 +86,7 @@ fun SettingsPlaybackScreen() {
 
 		item {
 			ListButton(
+				navigates = true,
 				leadingContent = { Icon(painterResource(R.drawable.ic_next_up), contentDescription = null) },
 				headingContent = { Text(stringResource(R.string.pref_playback_autoplay)) },
 				captionContent = { Text(stringResource(R.string.settings_search_autoplay)) },
@@ -94,6 +97,7 @@ fun SettingsPlaybackScreen() {
 
 		item {
 			ListButton(
+				navigates = true,
 				leadingContent = { Icon(painterResource(R.drawable.ic_trailer), contentDescription = null) },
 				headingContent = { Text(stringResource(R.string.pref_playback_prerolls)) },
 				captionContent = { Text(stringResource(R.string.settings_search_prerolls)) },
@@ -105,6 +109,7 @@ fun SettingsPlaybackScreen() {
 		item {
 			val quality by rememberPreference(userPreferences, UserPreferences.streamingQuality)
 			ListButton(
+				navigates = true,
 				leadingContent = { Icon(painterResource(R.drawable.ic_select_quality), contentDescription = null) },
 				headingContent = { Text(stringResource(R.string.pref_streaming_quality)) },
 				captionContent = { Text(stringResource(quality.nameRes)) },
@@ -115,6 +120,7 @@ fun SettingsPlaybackScreen() {
 
 		item {
 			ListButton(
+				navigates = true,
 				leadingContent = { Icon(painterResource(R.drawable.ic_subtitles), contentDescription = null) },
 				headingContent = { Text(stringResource(R.string.pref_customization_subtitles)) },
 				captionContent = { Text(stringResource(R.string.settings_search_subtitles)) },
@@ -126,6 +132,7 @@ fun SettingsPlaybackScreen() {
 		item {
 			val introAction = mediaSegmentRepository.getDefaultSegmentTypeAction(MediaSegmentType.INTRO)
 			ListButton(
+				navigates = true,
 				headingContent = { Text(stringResource(R.string.intro_skipping)) },
 				captionContent = { Text(stringResource(introAction.introNameRes)) },
 				onClick = { router.push(Routes.PLAYBACK_MEDIA_SEGMENT, parameters = mapOf("segmentType" to MediaSegmentType.INTRO.toString())) },
@@ -135,6 +142,7 @@ fun SettingsPlaybackScreen() {
 
 		item {
 			ListButton(
+				navigates = true,
 				leadingContent = { Icon(painterResource(R.drawable.ic_clapperboard), contentDescription = null) },
 				headingContent = { Text(stringResource(R.string.settings_intro_recap_credits)) },
 				captionContent = { Text(stringResource(R.string.settings_search_segments)) },
@@ -168,6 +176,7 @@ fun SettingsPlaybackScreen() {
 
 		item {
 			ListButton(
+				navigates = true,
 				leadingContent = { Icon(painterResource(R.drawable.ic_more), contentDescription = null) },
 				headingContent = { Text(stringResource(R.string.pref_playback_advanced)) },
 				captionContent = { Text(stringResource(R.string.settings_search_advanced)) },

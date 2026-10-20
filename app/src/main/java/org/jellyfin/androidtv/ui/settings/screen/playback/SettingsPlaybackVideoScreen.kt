@@ -21,9 +21,9 @@ import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.preference.UserPreferences
 import org.jellyfin.androidtv.ui.base.Text
 import org.jellyfin.androidtv.ui.base.form.RangeControl
-import org.jellyfin.androidtv.ui.base.list.ListButton
-import org.jellyfin.androidtv.ui.base.list.ListControl
-import org.jellyfin.androidtv.ui.base.list.ListSection
+import org.jellyfin.androidtv.ui.settings.composable.SettingsButton as ListButton
+import org.jellyfin.androidtv.ui.settings.composable.SettingsControl as ListControl
+import org.jellyfin.androidtv.ui.settings.composable.SettingsSection as ListSection
 import org.jellyfin.androidtv.ui.navigation.LocalRouter
 import org.jellyfin.androidtv.ui.navigation.focus.focusKey
 import org.jellyfin.androidtv.ui.settings.Routes
@@ -52,6 +52,8 @@ fun SettingsPlaybackVideoScreen() {
 			var bufferLength by rememberPreference(userPreferences, UserPreferences.bufferLength)
 
 			ListButton(
+
+				navigates = true,
 				headingContent = { Text(stringResource(R.string.playback_buffer_length)) },
 				captionContent = { Text(stringResource(bufferLength.nameRes)) },
 				onClick = { router.push(Routes.PLAYBACK_BUFFER_LENGTH) },
@@ -63,6 +65,7 @@ fun SettingsPlaybackVideoScreen() {
 		item {
 			val bitrate by rememberPreference(userPreferences, UserPreferences.maxBitrate)
 			ListButton(
+				navigates = true,
 				headingContent = { Text(stringResource(R.string.pref_max_bitrate_title)) },
 				captionContent = { Text(getQualityProfiles(context)[bitrate].orEmpty()) },
 				onClick = { router.push(Routes.PLAYBACK_MAX_BITRATE) },
@@ -74,6 +77,8 @@ fun SettingsPlaybackVideoScreen() {
 			var refreshRateSwitchingBehavior by rememberPreference(userPreferences, UserPreferences.refreshRateSwitchingBehavior)
 
 			ListButton(
+
+				navigates = true,
 				headingContent = { Text(stringResource(R.string.lbl_refresh_switching)) },
 				captionContent = { Text(stringResource(refreshRateSwitchingBehavior.nameRes)) },
 				onClick = { router.push(Routes.PLAYBACK_REFRESH_RATE_SWITCHING_BEHAVIOR) },
@@ -124,6 +129,8 @@ fun SettingsPlaybackVideoScreen() {
 			var playerZoomMode by rememberPreference(userPreferences, UserPreferences.playerZoomMode)
 
 			ListButton(
+
+				navigates = true,
 				headingContent = { Text(stringResource(R.string.default_video_zoom)) },
 				captionContent = { Text(stringResource(playerZoomMode.nameRes)) },
 				onClick = { router.push(Routes.PLAYBACK_ZOOM_MODE) },
@@ -133,6 +140,7 @@ fun SettingsPlaybackVideoScreen() {
 
 		item {
 			ListButton(
+				navigates = true,
 				headingContent = { Text(stringResource(R.string.preference_hdr_overrides)) },
 				captionContent = { Text(stringResource(R.string.preference_hdr_overrides_summary)) },
 				onClick = { router.push(Routes.PLAYBACK_HDR_OVERRIDES) },
@@ -142,6 +150,7 @@ fun SettingsPlaybackVideoScreen() {
 
 		item {
 			ListButton(
+				navigates = true,
 				headingContent = { Text(stringResource(R.string.preference_codecs)) },
 				captionContent = { Text(stringResource(R.string.preference_codecs_summary)) },
 				onClick = { router.push(Routes.PLAYBACK_CODEC) },

@@ -38,12 +38,12 @@ import org.jellyfin.androidtv.preference.UserSettingPreferences
 import org.jellyfin.androidtv.ui.base.Icon
 import org.jellyfin.androidtv.ui.base.Text
 import org.jellyfin.androidtv.ui.base.form.RadioButton
-import org.jellyfin.androidtv.ui.base.form.Checkbox
+import org.jellyfin.androidtv.ui.settings.composable.SettingsSwitch
 import org.jellyfin.androidtv.ui.base.form.RangeControl
-import org.jellyfin.androidtv.ui.base.list.ListButton
+import org.jellyfin.androidtv.ui.settings.composable.SettingsButton as ListButton
 import org.jellyfin.androidtv.ui.base.list.ListControlDefaults
-import org.jellyfin.androidtv.ui.base.list.ListControl
-import org.jellyfin.androidtv.ui.base.list.ListSection
+import org.jellyfin.androidtv.ui.settings.composable.SettingsControl as ListControl
+import org.jellyfin.androidtv.ui.settings.composable.SettingsSection as ListSection
 import org.jellyfin.androidtv.ui.navigation.focus.focusKey
 import org.jellyfin.androidtv.ui.settings.composable.SettingsColumn
 import org.jellyfin.androidtv.ui.settings.compat.rememberPreference
@@ -210,6 +210,7 @@ fun SettingsHomeScreen() {
 
 		item(key = "home_shortcuts") {
 			ListButton(
+				navigates = true,
 				headingContent = { Text(stringResource(R.string.home_shortcuts)) },
 				captionContent = { Text(stringResource(R.string.home_shortcuts_settings_description)) },
 				enabled = grabbed == null,
@@ -220,6 +221,7 @@ fun SettingsHomeScreen() {
 
 		item(key = "hidden_recommendations") {
 			ListButton(
+				navigates = true,
 				headingContent = { Text(stringResource(R.string.recommendation_settings)) },
 				captionContent = { Text(stringResource(R.string.recommendation_settings_description)) },
 				enabled = grabbed == null,
@@ -240,9 +242,10 @@ fun SettingsHomeScreen() {
 		if (limitsExpanded) {
 			item(key = "hide_watched_latest_movies") {
 				ListButton(
+					toggleState = hideWatchedLatestMovies,
 					headingContent = { Text(stringResource(R.string.home_hide_watched_latest_movies)) },
 					captionContent = { Text(stringResource(R.string.home_hide_watched_latest_movies_description)) },
-					trailingContent = { Checkbox(checked = hideWatchedLatestMovies) },
+					trailingContent = { SettingsSwitch(checked = hideWatchedLatestMovies) },
 					enabled = grabbed == null,
 					onClick = { hideWatchedLatestMovies = !hideWatchedLatestMovies },
 					modifier = Modifier.focusKey("hide_watched_latest_movies")
@@ -250,9 +253,10 @@ fun SettingsHomeScreen() {
 			}
 			item(key = "hide_watched_recently_added_movies") {
 				ListButton(
+					toggleState = hideWatchedRecentlyAddedMovies,
 					headingContent = { Text(stringResource(R.string.home_hide_watched_recently_added_movies)) },
 					captionContent = { Text(stringResource(R.string.home_hide_watched_recently_added_movies_description)) },
-					trailingContent = { Checkbox(checked = hideWatchedRecentlyAddedMovies) },
+					trailingContent = { SettingsSwitch(checked = hideWatchedRecentlyAddedMovies) },
 					enabled = grabbed == null,
 					onClick = { hideWatchedRecentlyAddedMovies = !hideWatchedRecentlyAddedMovies },
 					modifier = Modifier.focusKey("hide_watched_recently_added_movies")

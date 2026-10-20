@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="library_hide_watched">Hide watched</string>
+    <string name="library_hide_watched_state">Hide watched: %1$s</string>
+    <string name="library_filter_menu_description">Narrow this library. Choose Apply to save your changes.</string>
+    <string name="library_filter_choice_description">Choose an option. Back returns to Filters.</string>
+    <string name="library_filter_favorites_title">Favorites only</string>
+</resources>

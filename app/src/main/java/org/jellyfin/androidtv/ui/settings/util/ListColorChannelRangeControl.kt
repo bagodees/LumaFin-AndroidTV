@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.dp
 import org.jellyfin.androidtv.ui.base.Text
 import org.jellyfin.androidtv.ui.base.form.RangeControl
 import org.jellyfin.androidtv.ui.base.form.RangeControlDefaults
-import org.jellyfin.androidtv.ui.base.list.ListControl
+import org.jellyfin.androidtv.ui.settings.composable.SettingsControl as ListControl
 import org.jellyfin.design.Tokens
 import kotlin.math.roundToInt
 

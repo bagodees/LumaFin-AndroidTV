@@ -1,0 +1,5 @@
+<resources>
+    <string name="settings_library_layout">Layout</string>
+    <string name="settings_library_browsing">Browsing</string>
+    <string name="settings_compact_list_summary">Use a vertical list with small artwork and item details. Saved for this user and library; turn off to restore the grid. Smart screens are unchanged.</string>
+</resources>

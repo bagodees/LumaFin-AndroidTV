@@ -8,9 +8,9 @@ import androidx.compose.ui.res.stringResource
 import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.preference.UserPreferences
 import org.jellyfin.androidtv.ui.base.Text
-import org.jellyfin.androidtv.ui.base.form.Checkbox
-import org.jellyfin.androidtv.ui.base.list.ListButton
-import org.jellyfin.androidtv.ui.base.list.ListSection
+import org.jellyfin.androidtv.ui.settings.composable.SettingsSwitch
+import org.jellyfin.androidtv.ui.settings.composable.SettingsButton as ListButton
+import org.jellyfin.androidtv.ui.settings.composable.SettingsSection as ListSection
 import org.jellyfin.androidtv.ui.navigation.LocalRouter
 import org.jellyfin.androidtv.ui.navigation.focus.focusKey
 import org.jellyfin.androidtv.ui.settings.Routes
@@ -35,8 +35,10 @@ fun SettingsScreensaverScreen() {
 			var screensaverInAppEnabled by rememberPreference(userPreferences, UserPreferences.screensaverInAppEnabled)
 
 			ListButton(
+
+				toggleState = screensaverInAppEnabled,
 				headingContent = { Text(stringResource(R.string.pref_screensaver_inapp_enabled)) },
-				trailingContent = { Checkbox(checked = screensaverInAppEnabled) },
+				trailingContent = { SettingsSwitch(checked = screensaverInAppEnabled) },
 				captionContent = { Text(stringResource(R.string.pref_screensaver_inapp_enabled_description)) },
 				onClick = { screensaverInAppEnabled = !screensaverInAppEnabled },
 				modifier = Modifier.focusKey("screensaver_in_app_enabled")
@@ -50,6 +52,8 @@ fun SettingsScreensaverScreen() {
 				?.second.orEmpty()
 
 			ListButton(
+
+				navigates = true,
 				headingContent = { Text(stringResource(R.string.pref_screensaver_inapp_timeout)) },
 				captionContent = { Text(caption) },
 				onClick = { router.push(Routes.CUSTOMIZATION_SCREENSAVER_TIMEOUT) },
@@ -61,8 +65,10 @@ fun SettingsScreensaverScreen() {
 			var screensaverAgeRatingRequired by rememberPreference(userPreferences, UserPreferences.screensaverAgeRatingRequired)
 
 			ListButton(
+
+				toggleState = screensaverAgeRatingRequired,
 				headingContent = { Text(stringResource(R.string.pref_screensaver_ageratingrequired_title)) },
-				trailingContent = { Checkbox(checked = screensaverAgeRatingRequired) },
+				trailingContent = { SettingsSwitch(checked = screensaverAgeRatingRequired) },
 				captionContent = { Text(stringResource(R.string.pref_screensaver_ageratingrequired_enabled)) },
 				onClick = { screensaverAgeRatingRequired = !screensaverAgeRatingRequired },
 				modifier = Modifier.focusKey("screensaver_age_rating_required")
@@ -76,6 +82,8 @@ fun SettingsScreensaverScreen() {
 				?.second.orEmpty()
 
 			ListButton(
+
+				navigates = true,
 				headingContent = { Text(stringResource(R.string.pref_screensaver_ageratingmax)) },
 				captionContent = { Text(caption) },
 				onClick = { router.push(Routes.CUSTOMIZATION_SCREENSAVER_AGE_RATING) },

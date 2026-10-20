@@ -4,6 +4,12 @@ import android.content.Context
 import android.util.AttributeSet
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.height
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -398,6 +404,10 @@ class BaseItemInfoRowView @JvmOverloads constructor(
 	private val _item = MutableStateFlow<BaseItemDto?>(null)
 	private val _mediaSource = MutableStateFlow<MediaSourceInfo?>(null)
 	private val _includeRuntime = MutableStateFlow(false)
+	private val _detailsLayout = MutableStateFlow(false)
+	var detailsLayout: Boolean
+		get() = _detailsLayout.value
+		set(value) { _detailsLayout.value = value }
 
 	var item: BaseItemDto?
 		get() = _item.value
@@ -428,6 +438,19 @@ class BaseItemInfoRowView @JvmOverloads constructor(
 		val mediaSource by _mediaSource.collectAsState()
 		val includeRuntime by _includeRuntime.collectAsState()
 
-		item?.let { BaseItemInfoRow(it, mediaSource, includeRuntime) }
+		val detailsLayout by _detailsLayout.collectAsState()
+        item?.let { selected ->
+            if (detailsLayout && mediaSource != null) {
+                val lineHeight = with(LocalDensity.current) { 22.sp.toDp() }
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Row(Modifier.height(lineHeight)) { BaseItemInfoRow(selected, null, includeRuntime) }
+                    CompositionLocalProvider(LocalModernInfoBadges provides true) {
+                        Row(Modifier.height(lineHeight), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                            InfoRowMediaDetails(mediaSource!!)
+                        }
+                    }
+                }
+            } else BaseItemInfoRow(selected, mediaSource, includeRuntime)
+        }
 	}
 }

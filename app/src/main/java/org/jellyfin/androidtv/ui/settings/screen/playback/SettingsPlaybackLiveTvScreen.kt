@@ -8,9 +8,9 @@ import androidx.compose.ui.res.stringResource
 import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.preference.UserPreferences
 import org.jellyfin.androidtv.ui.base.Text
-import org.jellyfin.androidtv.ui.base.form.Checkbox
-import org.jellyfin.androidtv.ui.base.list.ListButton
-import org.jellyfin.androidtv.ui.base.list.ListSection
+import org.jellyfin.androidtv.ui.settings.composable.SettingsSwitch
+import org.jellyfin.androidtv.ui.settings.composable.SettingsButton as ListButton
+import org.jellyfin.androidtv.ui.settings.composable.SettingsSection as ListSection
 import org.jellyfin.androidtv.ui.navigation.focus.focusKey
 import org.jellyfin.androidtv.ui.settings.compat.rememberPreference
 import org.jellyfin.androidtv.ui.settings.composable.SettingsColumn
@@ -33,9 +33,11 @@ fun SettingsPlaybackLiveTvScreen() {
 			var liveTvDirectPlayEnabled by rememberPreference(userPreferences, UserPreferences.liveTvDirectPlayEnabled)
 
 			ListButton(
+
+				toggleState = liveTvDirectPlayEnabled,
 				headingContent = { Text(stringResource(R.string.lbl_direct_stream_live)) },
 				captionContent = { Text(stringResource(R.string.settings_live_direct_description)) },
-				trailingContent = { Checkbox(checked = liveTvDirectPlayEnabled) },
+				trailingContent = { SettingsSwitch(checked = liveTvDirectPlayEnabled) },
 				onClick = { liveTvDirectPlayEnabled = !liveTvDirectPlayEnabled },
 				modifier = Modifier.focusKey("live_tv_direct_play_enabled")
 			)

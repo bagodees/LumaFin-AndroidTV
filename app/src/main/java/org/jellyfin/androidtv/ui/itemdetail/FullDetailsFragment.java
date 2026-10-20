@@ -440,7 +440,7 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
             String primaryImageUrl = imageHelper.getValue().getLogoImageUrl(mBaseItem, 600);
             boolean showThumbnail = item.getType() == BaseItemKind.EPISODE || item.getType() == BaseItemKind.MOVIE;
             if (showThumbnail) {
-                // Artwork goes on the left; the logo (if any) stays on the right
+                // The presenter stacks the logo, landscape artwork and track controls on the left.
                 int thumbHeight = Utils.convertDpToPixel(requireContext(), 180);
                 mDetailsOverviewRow.setThumbnailImage(item.getType() == BaseItemKind.MOVIE
                         ? imageHelper.getValue().getLandscapeImageUrl(item, null, thumbHeight)
@@ -806,6 +806,7 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
     TextUnderButton trailerButton = null;
     TextUnderButton extrasButton = null;
     TextUnderButton watchLaterButton = null;
+    private TextUnderButton restartButton = null;
     boolean returnToExtras = false;
 
     private void focusExtrasAction() {
@@ -814,6 +815,7 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
     }
 
     private void addButtons(int buttonSize) {
+        restartButton = null;
         BaseItemDto baseItem = mBaseItem;
         String buttonLabel;
         if (baseItem.getType() == BaseItemKind.SERIES) {
@@ -844,6 +846,13 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
                 }
             });
             mDetailsOverviewRow.addAction(playButton);
+
+            if (baseItem.getType() == BaseItemKind.MOVIE || baseItem.getType() == BaseItemKind.EPISODE) {
+                restartButton = TextUnderButton.create(requireContext(), R.drawable.ic_restart, buttonSize, 2,
+                        getString(R.string.details_restart), view -> play(mBaseItem, 0, false));
+                restartButton.setVisibility(hasRestartProgress() ? View.VISIBLE : View.GONE);
+                mDetailsOverviewRow.addAction(restartButton);
+            }
 
             if (isSeries && !isStarted) {
                 FullDetailsFragmentHelperKt.getNextUpEpisode(this, nextUpEpisode -> {
@@ -1169,16 +1178,10 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
 
     private void addVersionsMenu(View v) {
         String[] labels = org.jellyfin.androidtv.util.VideoVersionLabels.labels(requireContext(), versions);
-        android.widget.ArrayAdapter<String> adapter = new android.widget.ArrayAdapter<>(
-                requireContext(), R.layout.video_version_menu_item, labels);
-        new AlertDialog.Builder(requireContext())
-                .setTitle(R.string.select_version)
-                .setSingleChoiceItems(adapter, mDetailsOverviewRow.getSelectedMediaSourceIndex(), (dialog, index) -> {
-                    org.jellyfin.androidtv.ui.playback.PlaybackChoiceRecorder.version(mDetailsOverviewRow.getItem(), versions.get(index));
-                    selectVersion(index, dialog);
-                })
-                .setNegativeButton(android.R.string.cancel, null)
-                .show();
+        DetailsMenuKt.showDetailsVersions(v, labels, mDetailsOverviewRow.getSelectedMediaSourceIndex(), (index, dialog) -> {
+            org.jellyfin.androidtv.ui.playback.PlaybackChoiceRecorder.version(mDetailsOverviewRow.getItem(), versions.get(index));
+            selectVersion(index, dialog);
+        });
     }
 
     /** Switches the details screen to another version; [dialog] is null when restoring a remembered version. */
@@ -1196,6 +1199,7 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
             }
             mDetailsOverviewRow.setSelectedMediaSourceIndex(index);
             mBaseItem = item;
+            showMoreButtonIfNeeded();
             // A stream index from another version may refer to a different track.
             org.jellyfin.androidtv.ui.playback.PlaybackTrackSelection.INSTANCE.consume(mDetailsOverviewRow.getPlaybackItemId());
             mDetailsOverviewRow.setPlaybackItemId(item.getId());
@@ -1211,13 +1215,29 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
     int collapsedOptions = 0;
     private int detailsActionCapacity = 7;
 
+    boolean hasDeleteAction() {
+        return deleteButton != null && mDetailsOverviewRow.getActions().contains(deleteButton);
+    }
+
+    boolean hasWatchLaterAction() {
+        return watchLaterButton != null && mDetailsOverviewRow.getActions().contains(watchLaterButton);
+    }
+
+    private boolean hasRestartProgress() {
+        return mBaseItem.getUserData() != null && mBaseItem.getUserData().getPlaybackPositionTicks() > 0;
+    }
+
     void showMoreButtonIfNeeded() {
         if (moreButton == null) return;
+        boolean hasDelete = hasDeleteAction();
+        boolean hasWatchLater = hasWatchLaterAction();
+        if (deleteButton != null) deleteButton.setVisibility(View.GONE);
+        if (watchLaterButton != null) watchLaterButton.setVisibility(View.GONE);
+        if (restartButton != null) restartButton.setVisibility(hasRestartProgress() ? View.VISIBLE : View.GONE);
         List<TextUnderButton> optional = new ArrayList<>();
         if (mWatchedToggleButton != null) optional.add(mWatchedToggleButton);
         if (favButton != null) optional.add(favButton);
         if (queueButton != null) optional.add(queueButton);
-        if (watchLaterButton != null) optional.add(watchLaterButton);
         if (extrasButton != null) optional.add(extrasButton);
         if (trailerButton != null) optional.add(trailerButton);
         if (shuffleButton != null) optional.add(shuffleButton);
@@ -1227,8 +1247,10 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
             if (action != moreButton && !optional.contains(action) && ViewKt.isVisible(action)) fixed++;
         }
         int available = Math.max(0, detailsActionCapacity - fixed);
-        int visibleOptional = optional.size() <= available ? optional.size() : Math.max(0, available - 1);
-        collapsedOptions = optional.size() - visibleOptional;
+        int overflowActions = (hasDelete ? 1 : 0) + (hasWatchLater ? 1 : 0);
+        int visibleOptional = optional.size() + (overflowActions > 0 ? 1 : 0) <= available
+                ? optional.size() : Math.max(0, available - 1);
+        collapsedOptions = optional.size() - visibleOptional + overflowActions;
         for (int index = 0; index < optional.size(); index++) {
             optional.get(index).setVisibility(index < visibleOptional ? View.VISIBLE : View.GONE);
         }

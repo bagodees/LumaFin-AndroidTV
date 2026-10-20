@@ -1,7 +1,6 @@
 package org.jellyfin.androidtv.ui.itemhandling
 
 import android.content.Context
-import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
@@ -136,8 +135,10 @@ class RuntimeFilterController(
 		job?.cancel()
 		val identity = api.accessToken
 		var finished = false
-		val dialog = if (showProgress) AlertDialog.Builder(context).setTitle(R.string.runtime_filter_title)
-			.setMessage(R.string.runtime_check_starting).setNegativeButton(android.R.string.cancel, null).create() else null
+		val dialog = if (showProgress) org.jellyfin.androidtv.ui.base.dialog.LumaFinMenuDialog(context, owner,
+			context.getString(R.string.runtime_filter_title), context.getString(R.string.runtime_check_starting)).apply {
+			button(context.getString(android.R.string.cancel)) { dismiss() }
+		} else null
 		job = owner.lifecycleScope.launch {
 			try {
 				// Saved filters are retrieved from onViewCreated, before the view is
@@ -146,7 +147,7 @@ class RuntimeFilterController(
 				checkIdentity(identity)
 				dialog?.show()
 				withTimeout(180_000L) {
-					block({ checked, total -> dialog?.setMessage(context.getString(R.string.runtime_check_progress, checked, total)) }, identity)
+					block({ checked, total -> dialog?.description(context.getString(R.string.runtime_check_progress, checked, total)) }, identity)
 				}
 			} catch (timeout: TimeoutCancellationException) {
 				if (current == generation && active(identity)) onFailure(RuntimeScanLimit())
@@ -159,7 +160,7 @@ class RuntimeFilterController(
 				dialog?.dismiss()
 			}
 		}
-		dialog?.setOnDismissListener {
+		dialog?.onDismiss {
 			if (!finished && current == generation) {
 				generation++
 				job?.cancel()
@@ -214,8 +215,15 @@ class RuntimeFilterController(
 			is RuntimeLibraryChanged -> R.string.runtime_check_changed
 			else -> R.string.runtime_check_failed
 		}
-		AlertDialog.Builder(context).setTitle(R.string.runtime_filter_title).setMessage(message)
-			.setPositiveButton(R.string.runtime_filter_retry) { _, _ -> retry() }
-			.setNegativeButton(android.R.string.cancel) { _, _ -> onOpenFilters() }.show()
+		val identity = api.accessToken
+		val dialog = org.jellyfin.androidtv.ui.base.dialog.LumaFinMenuDialog(context, owner,
+			context.getString(R.string.runtime_filter_title), context.getString(message))
+		var retrying = false
+		dialog.button(context.getString(android.R.string.cancel)) { dialog.dismiss() }
+		dialog.button(context.getString(R.string.runtime_filter_retry), true) {
+			retrying = true; dialog.dismiss(); if (active(identity)) retry()
+		}
+		dialog.onDismiss { if (!retrying && active(identity)) onOpenFilters() }
+		dialog.show()
 	}
 }

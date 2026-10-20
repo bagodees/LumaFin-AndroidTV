@@ -17,9 +17,9 @@ import kotlinx.coroutines.launch
 import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.preference.SettingsSync
 import org.jellyfin.androidtv.ui.base.Text
-import org.jellyfin.androidtv.ui.base.form.Checkbox
-import org.jellyfin.androidtv.ui.base.list.ListButton
-import org.jellyfin.androidtv.ui.base.list.ListSection
+import org.jellyfin.androidtv.ui.settings.composable.SettingsSwitch
+import org.jellyfin.androidtv.ui.settings.composable.SettingsButton as ListButton
+import org.jellyfin.androidtv.ui.settings.composable.SettingsSection as ListSection
 import org.jellyfin.androidtv.ui.navigation.focus.focusKey
 import org.jellyfin.androidtv.ui.settings.SettingsSyncReviewDialog
 import org.jellyfin.androidtv.ui.settings.composable.SettingsColumn
@@ -62,6 +62,7 @@ fun SettingsSyncScreen() {
 		}
 		item {
 			ListButton(
+				toggleState = state.enabled,
 				headingContent = { Text(stringResource(R.string.settings_sync_toggle)) },
 				captionContent = {
 					Text(when {
@@ -73,7 +74,7 @@ fun SettingsSyncScreen() {
 						else -> stringResource(R.string.settings_sync_last, DateUtils.getRelativeTimeSpanString(state.lastSynced!!).toString())
 					})
 				},
-				trailingContent = { Checkbox(checked = state.enabled) },
+				trailingContent = { SettingsSwitch(checked = state.enabled) },
 				onClick = { if (state.enabled) sync.disable() else run { sync.enable() } },
 				modifier = Modifier.focusKey("settings_sync_toggle"),
 			)

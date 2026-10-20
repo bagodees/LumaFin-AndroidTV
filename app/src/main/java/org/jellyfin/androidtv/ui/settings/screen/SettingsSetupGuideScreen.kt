@@ -6,8 +6,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.ui.base.Text
-import org.jellyfin.androidtv.ui.base.list.ListButton
-import org.jellyfin.androidtv.ui.base.list.ListSection
+import org.jellyfin.androidtv.ui.settings.composable.SettingsButton as ListButton
+import org.jellyfin.androidtv.ui.settings.composable.SettingsSection as ListSection
 import org.jellyfin.androidtv.ui.navigation.LocalRouter
 import org.jellyfin.androidtv.ui.navigation.focus.focusKey
 import org.jellyfin.androidtv.ui.settings.Routes
@@ -31,17 +31,17 @@ fun SettingsSetupGuideScreen(firstRun: Boolean = false) {
 				onClick = close, modifier = Modifier.focusKey("setup_skip", initialFocus = true))
 		}
 		item {
-			ListButton(headingContent = { Text(stringResource(R.string.setup_guide_layout)) },
+			ListButton(navigates = true, headingContent = { Text(stringResource(R.string.setup_guide_layout)) },
 				captionContent = { Text(stringResource(R.string.setup_guide_layout_description)) },
 				onClick = { router.push(Routes.HOME) }, modifier = Modifier.focusKey("setup_layout"))
 		}
 		item {
-			ListButton(headingContent = { Text(stringResource(R.string.setup_guide_subtitles)) },
+			ListButton(navigates = true, headingContent = { Text(stringResource(R.string.setup_guide_subtitles)) },
 				captionContent = { Text(stringResource(R.string.setup_guide_subtitles_description)) },
 				onClick = { router.push(Routes.SETUP_SUBTITLES) }, modifier = Modifier.focusKey("setup_subtitles"))
 		}
 		item {
-			ListButton(headingContent = { Text(stringResource(R.string.setup_guide_autoplay)) },
+			ListButton(navigates = true, headingContent = { Text(stringResource(R.string.setup_guide_autoplay)) },
 				captionContent = { Text(stringResource(R.string.setup_guide_autoplay_description)) },
 				onClick = { router.push(Routes.PLAYBACK_AUTOPLAY) }, modifier = Modifier.focusKey("setup_autoplay"))
 		}
@@ -61,7 +61,7 @@ fun SettingsSetupSubtitlesScreen() {
 				captionContent = { Text(stringResource(R.string.setup_subtitle_language)) })
 		}
 		item {
-			ListButton(headingContent = { Text(stringResource(R.string.setup_subtitle_appearance)) },
+			ListButton(navigates = true, headingContent = { Text(stringResource(R.string.setup_subtitle_appearance)) },
 				captionContent = { Text(stringResource(R.string.setup_subtitle_appearance_description)) },
 				onClick = { router.push(Routes.CUSTOMIZATION_SUBTITLES) },
 				modifier = Modifier.focusKey("setup_subtitle_appearance", initialFocus = true))

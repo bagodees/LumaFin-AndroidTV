@@ -9,7 +9,7 @@ import androidx.compose.ui.unit.dp
 import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.ui.base.Icon
 import org.jellyfin.androidtv.ui.base.Text
-import org.jellyfin.androidtv.ui.base.list.ListButton
+import org.jellyfin.androidtv.ui.settings.composable.SettingsButton as ListButton
 import org.jellyfin.androidtv.ui.navigation.LocalRouter
 import org.jellyfin.androidtv.ui.navigation.focus.focusKey
 import org.jellyfin.androidtv.ui.settings.Routes
@@ -21,6 +21,7 @@ fun SettingsMainScreen() {
 		items(settingsMainGroups.size, key = { settingsMainGroups[it].route }) { index ->
 			val group = settingsMainGroups[index]
 			ListButton(
+				navigates = true,
 				leadingContent = { Icon(painterResource(group.icon), contentDescription = null, modifier = Modifier.size(24.dp)) },
 				headingContent = { Text(stringResource(group.title)) },
 				captionContent = { Text(stringResource(group.description)) },

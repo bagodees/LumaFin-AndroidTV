@@ -19,9 +19,9 @@ import org.jellyfin.androidtv.auth.store.AuthenticationPreferences
 import org.jellyfin.androidtv.preference.constant.UserSelectBehavior
 import org.jellyfin.androidtv.ui.base.Icon
 import org.jellyfin.androidtv.ui.base.Text
-import org.jellyfin.androidtv.ui.base.form.Checkbox
-import org.jellyfin.androidtv.ui.base.list.ListButton
-import org.jellyfin.androidtv.ui.base.list.ListSection
+import org.jellyfin.androidtv.ui.settings.composable.SettingsSwitch
+import org.jellyfin.androidtv.ui.settings.composable.SettingsButton as ListButton
+import org.jellyfin.androidtv.ui.settings.composable.SettingsSection as ListSection
 import org.jellyfin.androidtv.ui.navigation.LocalRouter
 import org.jellyfin.androidtv.ui.navigation.focus.focusKey
 import org.jellyfin.androidtv.ui.settings.Routes
@@ -67,6 +67,8 @@ fun SettingsAuthenticationScreen(launchedFromLogin: Boolean = false) {
 			}
 
 			ListButton(
+
+				navigates = true,
 				headingContent = { Text(stringResource(R.string.auto_sign_in)) },
 				captionContent = {
 					when (autoLoginUserBehavior) {
@@ -83,6 +85,7 @@ fun SettingsAuthenticationScreen(launchedFromLogin: Boolean = false) {
 		item {
 			var sortBy by rememberPreference(authenticationPreferences, AuthenticationPreferences.sortBy)
 			ListButton(
+				navigates = true,
 				headingContent = { Text(stringResource(R.string.sort_accounts_by)) },
 				captionContent = { Text(stringResource(sortBy.nameRes)) },
 				onClick = { router.push(Routes.AUTHENTICATION_SORT_BY) },
@@ -95,6 +98,7 @@ fun SettingsAuthenticationScreen(launchedFromLogin: Boolean = false) {
 
 			items(storedServers) { server ->
 				ListButton(
+					navigates = true,
 					leadingContent = { Icon(painterResource(R.drawable.ic_house), contentDescription = null) },
 					headingContent = { Text(server.name) },
 					captionContent = { Text(server.address) },
@@ -119,8 +123,9 @@ fun SettingsAuthenticationScreen(launchedFromLogin: Boolean = false) {
 			item {
 				var alwaysAuthenticate by rememberPreference(authenticationPreferences, AuthenticationPreferences.alwaysAuthenticate)
 				ListButton(
+					toggleState = alwaysAuthenticate,
 					headingContent = { Text(stringResource(R.string.always_authenticate)) },
-					trailingContent = { Checkbox(checked = alwaysAuthenticate) },
+					trailingContent = { SettingsSwitch(checked = alwaysAuthenticate) },
 					captionContent = { Text(stringResource(R.string.always_authenticate_description)) },
 					onClick = { alwaysAuthenticate = !alwaysAuthenticate },
 					modifier = Modifier.focusKey("always_authenticate")
@@ -130,6 +135,7 @@ fun SettingsAuthenticationScreen(launchedFromLogin: Boolean = false) {
 
 		if (launchedFromLogin) item {
 			ListButton(
+				navigates = true,
 				leadingContent = { Icon(painterResource(R.drawable.ic_jellyfin), contentDescription = null, modifier = Modifier.size(24.dp)) },
 				headingContent = { Text(stringResource(R.string.pref_about_title)) },
 				onClick = { router.push(Routes.ABOUT, mapOf("fromLogin" to "true")) },

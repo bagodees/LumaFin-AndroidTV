@@ -1,6 +1,6 @@
 package org.jellyfin.androidtv.ui.playback
 
-import android.app.AlertDialog
+import org.jellyfin.androidtv.ui.base.dialog.LumaFinMenuDialog
 import android.content.Context
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
@@ -49,7 +49,7 @@ class SubtitleLookupDialog(
 	private val servers = koin.get<ServerRepository>()
 	private val session = sessions.currentSession.value
 	private val server = servers.currentServer.value
-	private var dialog: AlertDialog? = null
+	private var dialog: LumaFinMenuDialog? = null
 	private var job: Job? = null
 	private var closed = false
 	// Jellyfin's download route has no mediaSourceId parameter. Address the selected
@@ -66,8 +66,9 @@ class SubtitleLookupDialog(
 		if (!isCurrent()) { dismiss(); return }
 		owner.lifecycle.addObserver(this)
 		if (lookup == null || sourceId.isBlank()) {
-			replace(AlertDialog.Builder(context).setTitle(R.string.subtitle_lookup_more).setMessage(R.string.subtitle_lookup_unsupported)
-				.setNegativeButton(android.R.string.ok, null).create())
+			replace(panel(R.string.subtitle_lookup_more, R.string.subtitle_lookup_unsupported).apply {
+				button(context.getString(android.R.string.ok)) { dismiss() }
+			})
 			return
 		}
 		languages()
@@ -78,46 +79,37 @@ class SubtitleLookupDialog(
 		if (closed) return
 		closed = true
 		job?.cancel()
-		dialog?.setOnDismissListener(null)
+		dialog?.onDismiss {}
 		dialog?.dismiss()
 		owner.lifecycle.removeObserver(this)
 		onDismiss()
 	}
-	private fun replace(next: AlertDialog) {
+	private fun replace(next: LumaFinMenuDialog, focus: Int = 0) {
 		if (!isCurrent()) { dismiss(); return }
-		dialog?.setOnDismissListener(null)
+		dialog?.onDismiss {}
 		dialog?.dismiss()
 		dialog = next
-		next.setOnDismissListener { dismiss() }
-		next.show()
+		next.onDismiss { dismiss() }
+		next.show(focus)
 	}
+	private fun panel(title: Int, message: Int? = null) = LumaFinMenuDialog(context, owner, context.getString(title), message?.let(context::getString), fitContent = true)
 	private fun languages() {
 		val choices = Locale.getISOLanguages().mapNotNull { code -> runCatching {
 			val locale = Locale.forLanguageTag(code)
 			locale.isO3Language to locale.getDisplayLanguage(Locale.getDefault())
 		}.getOrNull() }.filter { it.first.matches(Regex("[a-z]{3}")) }.distinctBy { it.first }.sortedBy { it.second }
-		val list = android.widget.ArrayAdapter(context, android.R.layout.simple_list_item_1, choices.map { it.second })
-		val languages = android.widget.ListView(context).apply { adapter = list }
-		val body = android.widget.LinearLayout(context).apply {
-			orientation = android.widget.LinearLayout.VERTICAL
-			setPadding(24, 8, 24, 8)
-			addView(android.widget.TextView(context).apply { setText(R.string.subtitle_lookup_help); setPadding(0, 0, 0, 12) })
-			addView(languages, android.widget.LinearLayout.LayoutParams(-1, (context.resources.displayMetrics.heightPixels * .5).toInt()))
-		}
-		val next = AlertDialog.Builder(context).setTitle(R.string.subtitle_lookup_language).setView(body)
-			.setNegativeButton(android.R.string.cancel, null).create()
-		languages.setOnItemClickListener { _, _, position, _ -> search(choices[position].first) }
-		replace(next)
 		val configured = koin.get<UserRepository>().currentUser.value?.configuration?.subtitleLanguagePreference
 		val preferred = if (configured?.length == 3) configured else runCatching {
 			(if (configured?.length == 2) Locale.forLanguageTag(configured) else Locale.getDefault()).isO3Language
 		}.getOrDefault("eng")
-		val index = choices.indexOfFirst { it.first == preferred }.takeIf { it >= 0 }
-		languages.requestFocus()
-		if (index != null) languages.setSelection(index)
+		val next = panel(R.string.subtitle_lookup_language, R.string.subtitle_lookup_help)
+		choices.forEach { (code, name) -> next.row(name) { search(code) } }
+		next.button(context.getString(android.R.string.cancel)) { dismiss() }
+		replace(next, choices.indexOfFirst { it.first == preferred }.coerceAtLeast(0))
 	}
-	private fun busy(message: Int) = replace(AlertDialog.Builder(context).setTitle(R.string.subtitle_lookup_more)
-		.setMessage(message).setNegativeButton(android.R.string.cancel, null).create())
+	private fun busy(message: Int) = replace(panel(R.string.subtitle_lookup_more, message).apply {
+		button(context.getString(android.R.string.cancel)) { dismiss() }
+	})
 	private fun failure(error: Exception, retry: (() -> Unit)?) {
 		if (!isCurrent()) { dismiss(); return }
 		val message = when ((error as? InvalidStatusException)?.status) {
@@ -125,10 +117,11 @@ class SubtitleLookupDialog(
 			404, 405 -> R.string.subtitle_lookup_unsupported
 			else -> R.string.subtitle_lookup_error
 		}
-		val builder = AlertDialog.Builder(context).setTitle(R.string.subtitle_lookup_more).setMessage(message)
-			.setNegativeButton(android.R.string.cancel, null)
-		if (retry != null && message == R.string.subtitle_lookup_error) builder.setPositiveButton(R.string.connection_retry) { _, _ -> retry() }
-		replace(builder.create())
+		replace(panel(R.string.subtitle_lookup_more, message).apply {
+			button(context.getString(android.R.string.cancel)) { dismiss() }
+			if (retry != null && message == R.string.subtitle_lookup_error)
+				button(context.getString(R.string.connection_retry), true) { retry() }
+		})
 	}
 	private fun search(language: String) {
 		busy(R.string.subtitle_lookup_busy)
@@ -136,29 +129,35 @@ class SubtitleLookupDialog(
 			try {
 				val results = lookup!!.search(language).take(100)
 				if (!isCurrent()) { dismiss(); return@launch }
-				if (results.isEmpty()) replace(AlertDialog.Builder(context).setTitle(R.string.subtitle_lookup_more)
-					.setMessage(R.string.subtitle_lookup_empty).setPositiveButton(R.string.subtitle_lookup_language) { _, _ -> languages() }
-					.setNegativeButton(android.R.string.cancel, null).create())
-				else replace(AlertDialog.Builder(context).setTitle(context.resources.getQuantityString(R.plurals.subtitle_lookup_results, results.size, results.size))
-					.setItems(results.map(::label).toTypedArray()) { _, index -> confirm(results[index], language) }
-					.setNegativeButton(android.R.string.cancel, null).create())
+				if (results.isEmpty()) replace(panel(R.string.subtitle_lookup_more, R.string.subtitle_lookup_empty).apply {
+					button(context.getString(android.R.string.cancel)) { dismiss() }
+					button(context.getString(R.string.subtitle_lookup_language), true) { languages() }
+				}) else {
+					val next = LumaFinMenuDialog(context, owner,
+						context.resources.getQuantityString(R.plurals.subtitle_lookup_results, results.size, results.size), fitContent = true)
+					results.forEach { result -> next.row(result.name?.take(180)?.takeIf { it.isNotBlank() }
+						?: context.getString(R.string.subtitle_lookup_provider_unknown), label(result, includeName = false)) { confirm(result, language) } }
+					next.button(context.getString(android.R.string.cancel)) { dismiss() }
+					replace(next)
+				}
 			} catch (error: TimeoutCancellationException) { failure(error) { search(language) } }
 			catch (error: CancellationException) { dismiss(); throw error }
 			catch (error: Exception) { failure(error) { search(language) } }
 		}
 	}
-	private fun label(result: RemoteSubtitleInfo) = listOfNotNull(
-		result.name?.take(180), result.providerName?.take(80) ?: context.getString(R.string.subtitle_lookup_provider_unknown),
+	private fun label(result: RemoteSubtitleInfo, includeName: Boolean = true) = listOfNotNull(
+		result.name?.take(180)?.takeIf { includeName }, result.providerName?.take(80) ?: context.getString(R.string.subtitle_lookup_provider_unknown),
 		result.format?.take(20),
 		context.getString(R.string.subtitle_lookup_hash_match).takeIf { result.isHashMatch == true },
 		context.getString(R.string.subtitle_lookup_hearing_impaired).takeIf { result.hearingImpaired == true },
 		context.getString(R.string.subtitle_lookup_forced).takeIf { result.forced == true },
 	).joinToString(" · ")
 	private fun confirm(result: RemoteSubtitleInfo, language: String) {
-		replace(AlertDialog.Builder(context).setTitle(R.string.subtitle_lookup_download)
-			.setMessage(context.getString(R.string.subtitle_lookup_confirm, label(result)))
-			.setPositiveButton(R.string.subtitle_lookup_download) { _, _ -> download(requireNotNull(result.id), language) }
-			.setNegativeButton(android.R.string.cancel) { _, _ -> search(language) }.create())
+		replace(LumaFinMenuDialog(context, owner, context.getString(R.string.subtitle_lookup_download),
+			context.getString(R.string.subtitle_lookup_confirm, label(result)), fitContent = true).apply {
+			button(context.getString(android.R.string.cancel)) { search(language) }
+			button(context.getString(R.string.subtitle_lookup_download), true) { download(requireNotNull(result.id), language) }
+		})
 	}
 	private fun download(id: String, language: String) {
 		busy(R.string.subtitle_lookup_verifying)
@@ -166,14 +165,14 @@ class SubtitleLookupDialog(
 			try {
 				val refreshed = lookup!!.download(id, sourceId, language)
 				if (!isCurrent()) { dismiss(); return@launch }
-				val builder = AlertDialog.Builder(context).setTitle(R.string.subtitle_lookup_more)
-					.setMessage(if (refreshed == null) R.string.subtitle_lookup_uncertain else if (playback) R.string.subtitle_lookup_playback_help else R.string.subtitle_lookup_verified)
-					.setNegativeButton(android.R.string.ok, null)
+				val next = panel(R.string.subtitle_lookup_more,
+					if (refreshed == null) R.string.subtitle_lookup_uncertain else if (playback) R.string.subtitle_lookup_playback_help else R.string.subtitle_lookup_verified)
+				next.button(context.getString(android.R.string.ok)) { dismiss() }
 				if (refreshed != null) {
-					if (playback) builder.setPositiveButton(R.string.subtitle_lookup_reload) { _, _ -> if (isCurrent()) onRefreshed(refreshed) }
+					if (playback) next.button(context.getString(R.string.subtitle_lookup_reload), true) { if (isCurrent()) onRefreshed(refreshed); dismiss() }
 					else onRefreshed(refreshed)
 				}
-				replace(builder.create())
+				replace(next)
 			} catch (error: CancellationException) {
 				if (error is TimeoutCancellationException && isCurrent()) uncertain() else { dismiss(); throw error }
 			} catch (error: Exception) {
@@ -182,6 +181,7 @@ class SubtitleLookupDialog(
 			}
 		}
 	}
-	private fun uncertain() = replace(AlertDialog.Builder(context).setTitle(R.string.subtitle_lookup_more)
-		.setMessage(R.string.subtitle_lookup_uncertain).setNegativeButton(android.R.string.ok, null).create())
+	private fun uncertain() = replace(panel(R.string.subtitle_lookup_more, R.string.subtitle_lookup_uncertain).apply {
+		button(context.getString(android.R.string.ok)) { dismiss() }
+	})
 }

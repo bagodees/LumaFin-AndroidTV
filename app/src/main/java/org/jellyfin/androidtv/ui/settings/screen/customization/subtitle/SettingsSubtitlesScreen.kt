@@ -25,9 +25,9 @@ import org.jellyfin.androidtv.preference.UserPreferences
 import org.jellyfin.androidtv.ui.base.Text
 import org.jellyfin.androidtv.ui.base.form.ColorSwatch
 import org.jellyfin.androidtv.ui.base.form.RangeControl
-import org.jellyfin.androidtv.ui.base.list.ListButton
-import org.jellyfin.androidtv.ui.base.list.ListControl
-import org.jellyfin.androidtv.ui.base.list.ListSection
+import org.jellyfin.androidtv.ui.settings.composable.SettingsButton as ListButton
+import org.jellyfin.androidtv.ui.settings.composable.SettingsControl as ListControl
+import org.jellyfin.androidtv.ui.settings.composable.SettingsSection as ListSection
 import org.jellyfin.androidtv.ui.navigation.LocalRouter
 import org.jellyfin.androidtv.ui.navigation.focus.focusKey
 import org.jellyfin.androidtv.ui.settings.Routes
@@ -177,6 +177,7 @@ fun SettingsSubtitlesScreen() {
 
 		item {
 			ListButton(
+				navigates = true,
 				headingContent = { Text(stringResource(R.string.lbl_subtitle_text_color)) },
 				trailingContent = { ColorSwatch(color = Color(subtitlesTextColor.toInt())) },
 				onClick = { router.push(Routes.CUSTOMIZATION_SUBTITLES_TEXT_COLOR) },
@@ -186,6 +187,7 @@ fun SettingsSubtitlesScreen() {
 
 		item {
 			ListButton(
+				navigates = true,
 				headingContent = { Text(stringResource(R.string.lbl_subtitle_background_color)) },
 				trailingContent = { ColorSwatch(color = Color(subtitlesBackgroundColor.toInt())) },
 				onClick = { router.push(Routes.CUSTOMIZATION_SUBTITLES_BACKGROUND_COLOR) },
@@ -195,6 +197,7 @@ fun SettingsSubtitlesScreen() {
 
 		item {
 			ListButton(
+				navigates = true,
 				headingContent = { Text(stringResource(R.string.lbl_subtitle_text_stroke_color)) },
 				trailingContent = { ColorSwatch(color = Color(subtitleTextStrokeColor.toInt())) },
 				onClick = { router.push(Routes.CUSTOMIZATION_SUBTITLES_EDGE_COLOR) },
@@ -263,7 +266,7 @@ fun SettingsSubtitlesScreen() {
 				captionContent = { Text(stringResource(R.string.settings_subtitle_timing_help_description)) })
 		}
 		item {
-			ListButton(headingContent = { Text(stringResource(R.string.settings_subtitle_compatibility)) },
+			ListButton(navigates = true, headingContent = { Text(stringResource(R.string.settings_subtitle_compatibility)) },
 				captionContent = { Text(stringResource(R.string.settings_subtitle_compatibility_link)) },
 				onClick = { router.push(Routes.PLAYBACK_SUBTITLE_COMPATIBILITY) },
 				modifier = Modifier.focusKey(Routes.PLAYBACK_SUBTITLE_COMPATIBILITY))

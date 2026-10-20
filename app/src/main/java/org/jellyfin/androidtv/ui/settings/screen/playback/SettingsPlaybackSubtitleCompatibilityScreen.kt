@@ -8,9 +8,9 @@ import androidx.compose.ui.res.stringResource
 import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.preference.UserPreferences
 import org.jellyfin.androidtv.ui.base.Text
-import org.jellyfin.androidtv.ui.base.form.Checkbox
-import org.jellyfin.androidtv.ui.base.list.ListButton
-import org.jellyfin.androidtv.ui.base.list.ListSection
+import org.jellyfin.androidtv.ui.settings.composable.SettingsSwitch
+import org.jellyfin.androidtv.ui.settings.composable.SettingsButton as ListButton
+import org.jellyfin.androidtv.ui.settings.composable.SettingsSection as ListSection
 import org.jellyfin.androidtv.ui.navigation.focus.focusKey
 import org.jellyfin.androidtv.ui.settings.compat.rememberPreference
 import org.jellyfin.androidtv.ui.settings.composable.SettingsColumn
@@ -33,9 +33,11 @@ fun SettingsPlaybackSubtitleCompatibilityScreen() {
 			var pgsDirectPlay by rememberPreference(userPreferences, UserPreferences.pgsDirectPlay)
 
 			ListButton(
+
+				toggleState = pgsDirectPlay,
 				headingContent = { Text(stringResource(R.string.preference_enable_pgs)) },
 				captionContent = { Text(stringResource(R.string.preference_enable_pgs_description)) },
-				trailingContent = { Checkbox(checked = pgsDirectPlay) },
+				trailingContent = { SettingsSwitch(checked = pgsDirectPlay) },
 				onClick = { pgsDirectPlay = !pgsDirectPlay },
 				modifier = Modifier.focusKey("pgs_direct_play")
 			)
@@ -45,9 +47,11 @@ fun SettingsPlaybackSubtitleCompatibilityScreen() {
 			var assDirectPlay by rememberPreference(userPreferences, UserPreferences.assDirectPlay)
 
 			ListButton(
+
+				toggleState = assDirectPlay,
 				headingContent = { Text(stringResource(R.string.preference_enable_ass)) },
 				captionContent = { Text(stringResource(R.string.preference_enable_ass_description)) },
-				trailingContent = { Checkbox(checked = assDirectPlay) },
+				trailingContent = { SettingsSwitch(checked = assDirectPlay) },
 				onClick = { assDirectPlay = !assDirectPlay },
 				modifier = Modifier.focusKey("ass_direct_play")
 			)
@@ -57,9 +61,11 @@ fun SettingsPlaybackSubtitleCompatibilityScreen() {
 			var subtitlesBurnDuringTranscode by rememberPreference(userPreferences, UserPreferences.subtitlesBurnDuringTranscode)
 
 			ListButton(
+
+				toggleState = subtitlesBurnDuringTranscode,
 				headingContent = { Text(stringResource(R.string.pref_burn_subtitles_when_transcoding)) },
 				captionContent = { Text(stringResource(R.string.pref_burn_subtitles_when_transcoding_description)) },
-				trailingContent = { Checkbox(checked = subtitlesBurnDuringTranscode) },
+				trailingContent = { SettingsSwitch(checked = subtitlesBurnDuringTranscode) },
 				onClick = { subtitlesBurnDuringTranscode = !subtitlesBurnDuringTranscode },
 				modifier = Modifier.focusKey("subtitles_burn_during_transcode")
 			)

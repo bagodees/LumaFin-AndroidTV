@@ -11,9 +11,9 @@ import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.preference.SystemPreferences
 import org.jellyfin.androidtv.preference.UserPreferences
 import org.jellyfin.androidtv.ui.base.Text
-import org.jellyfin.androidtv.ui.base.form.Checkbox
-import org.jellyfin.androidtv.ui.base.list.ListButton
-import org.jellyfin.androidtv.ui.base.list.ListSection
+import org.jellyfin.androidtv.ui.settings.composable.SettingsSwitch
+import org.jellyfin.androidtv.ui.settings.composable.SettingsButton as ListButton
+import org.jellyfin.androidtv.ui.settings.composable.SettingsSection as ListSection
 import org.jellyfin.androidtv.ui.navigation.focus.focusKey
 import org.jellyfin.androidtv.ui.settings.compat.rememberPreference
 import org.jellyfin.androidtv.ui.settings.composable.SettingsColumn
@@ -40,8 +40,9 @@ fun SettingsDeveloperScreen() {
 			// Not in use by much components anymore
 			var debuggingEnabled by rememberPreference(userPreferences, UserPreferences.debuggingEnabled)
 			ListButton(
+				toggleState = debuggingEnabled,
 				headingContent = { Text(stringResource(R.string.lbl_enable_debug)) },
-				trailingContent = { Checkbox(checked = debuggingEnabled) },
+				trailingContent = { SettingsSwitch(checked = debuggingEnabled) },
 				captionContent = { Text(stringResource(R.string.desc_debug)) },
 				onClick = { debuggingEnabled = !debuggingEnabled },
 				modifier = Modifier.focusKey("debugging_enabled")
@@ -52,8 +53,9 @@ fun SettingsDeveloperScreen() {
 		if (!isTvDevice) item {
 			var disableUiModeWarning by rememberPreference(systemPreferences, SystemPreferences.disableUiModeWarning)
 			ListButton(
+				toggleState = disableUiModeWarning,
 				headingContent = { Text(stringResource(R.string.disable_ui_mode_warning)) },
-				trailingContent = { Checkbox(checked = disableUiModeWarning) },
+				trailingContent = { SettingsSwitch(checked = disableUiModeWarning) },
 				onClick = { disableUiModeWarning = !disableUiModeWarning },
 				modifier = Modifier.focusKey("disable_ui_mode_warning")
 			)

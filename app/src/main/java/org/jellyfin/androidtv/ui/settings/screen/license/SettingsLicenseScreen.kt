@@ -12,9 +12,9 @@ import com.mikepenz.aboutlibraries.util.withContext
 import com.mikepenz.aboutlibraries.util.withJson
 import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.ui.base.Text
-import org.jellyfin.androidtv.ui.base.list.ListButton
+import org.jellyfin.androidtv.ui.settings.composable.SettingsButton as ListButton
 import org.jellyfin.androidtv.ui.base.list.ListMessage
-import org.jellyfin.androidtv.ui.base.list.ListSection
+import org.jellyfin.androidtv.ui.settings.composable.SettingsSection as ListSection
 import org.jellyfin.androidtv.ui.navigation.focus.focusKey
 import org.jellyfin.androidtv.ui.settings.composable.SettingsColumn
 import org.jellyfin.androidtv.ui.settings.util.copyAction

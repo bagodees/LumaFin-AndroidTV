@@ -11,8 +11,8 @@ import androidx.compose.ui.res.stringResource
 import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.preference.UserPreferences
 import org.jellyfin.androidtv.ui.base.Text
-import org.jellyfin.androidtv.ui.base.list.ListSection
-import org.jellyfin.androidtv.ui.base.list.ListButton
+import org.jellyfin.androidtv.ui.settings.composable.SettingsSection as ListSection
+import org.jellyfin.androidtv.ui.settings.composable.SettingsButton as ListButton
 import org.jellyfin.androidtv.ui.navigation.LocalRouter
 import org.jellyfin.androidtv.ui.settings.Routes
 import org.jellyfin.androidtv.ui.navigation.focus.focusKey
@@ -40,7 +40,7 @@ fun SettingsPlaybackTroubleshootingScreen() {
 		}
 
 		item {
-			ListButton(headingContent = { Text(stringResource(R.string.speed_test_title)) },
+			ListButton(navigates = true, headingContent = { Text(stringResource(R.string.speed_test_title)) },
 				captionContent = { Text(stringResource(R.string.speed_test_description)) },
 				onClick = { router.push(Routes.STREAMING_SPEED) }, modifier = Modifier.focusKey("streaming_speed"))
 		}

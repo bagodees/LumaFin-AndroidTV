@@ -22,9 +22,9 @@ import org.jellyfin.androidtv.preference.constant.NEXTUP_TIMER_IMMEDIATE
 import org.jellyfin.androidtv.ui.base.Text
 import org.jellyfin.androidtv.ui.base.form.RangeControl
 import org.jellyfin.androidtv.ui.base.form.RadioButton
-import org.jellyfin.androidtv.ui.base.list.ListButton
-import org.jellyfin.androidtv.ui.base.list.ListControl
-import org.jellyfin.androidtv.ui.base.list.ListSection
+import org.jellyfin.androidtv.ui.settings.composable.SettingsButton as ListButton
+import org.jellyfin.androidtv.ui.settings.composable.SettingsControl as ListControl
+import org.jellyfin.androidtv.ui.settings.composable.SettingsSection as ListSection
 import org.jellyfin.androidtv.ui.navigation.LocalRouter
 import org.jellyfin.androidtv.ui.navigation.focus.focusKey
 import org.jellyfin.androidtv.ui.settings.Routes
@@ -52,6 +52,8 @@ fun SettingsPlaybackNextUpScreen() {
 			var nextUpBehavior by rememberPreference(userPreferences, UserPreferences.nextUpBehavior)
 
 			ListButton(
+
+				navigates = true,
 				headingContent = { Text(stringResource(R.string.pref_next_up_behavior_title)) },
 				captionContent = { Text(stringResource(nextUpBehavior.nameRes)) },
 				onClick = { router.push(Routes.PLAYBACK_NEXT_UP_BEHAVIOR) },

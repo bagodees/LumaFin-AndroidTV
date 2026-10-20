@@ -16,11 +16,11 @@ import org.jellyfin.androidtv.ui.navigation.Destinations
 import org.jellyfin.androidtv.ui.navigation.NavigationRepository
 import org.jellyfin.androidtv.util.TimeUtils
 import org.jellyfin.androidtv.util.apiclient.getSeriesOverview
-import org.jellyfin.androidtv.util.popupMenu
+import org.jellyfin.androidtv.ui.base.dialog.LumaFinMenuDialog
 import org.jellyfin.androidtv.util.sdk.TrailerUtils.getExternalTrailerIntent
 import org.jellyfin.androidtv.util.sdk.compat.canResume
 import org.jellyfin.androidtv.util.sdk.compat.copyWithUserData
-import org.jellyfin.androidtv.util.showIfNotEmpty
+import androidx.lifecycle.Lifecycle
 import org.jellyfin.sdk.api.client.ApiClient
 import org.jellyfin.sdk.api.client.exception.ApiClientException
 import org.jellyfin.sdk.api.client.extensions.libraryApi
@@ -73,9 +73,9 @@ fun FullDetailsFragment.deleteItem(
 fun FullDetailsFragment.showDetailsMenu(
 	view: View,
 	baseItemDto: BaseItemDto,
-) = popupMenu(requireContext(), view) {
+) = DetailsMenu(view, getString(R.string.details_more), baseItemDto.name).apply {
 	if (org.jellyfin.androidtv.ui.browsing.canSelectWatchTitles(view)) {
-		item(getString(R.string.bulk_watch_title)) {
+		item(getString(R.string.bulk_watch_title), navigates = true) {
 			view.post { org.jellyfin.androidtv.ui.browsing.showBulkWatchSelection(view, null) }
 		}
 	}
@@ -91,7 +91,7 @@ fun FullDetailsFragment.showDetailsMenu(
 		item(getString(R.string.lbl_shuffle_all)) { shufflePlay() }
 	}
 
-	if (watchLaterButton?.isVisible == false) {
+	if (hasWatchLaterAction()) {
         val watchLater = org.koin.core.context.GlobalContext.get().get<org.jellyfin.androidtv.preference.WatchLaterPreferences>()
         item(getString(if (watchLater.contains(baseItemDto.id)) R.string.watch_later_remove else R.string.watch_later_add)) {
             org.jellyfin.androidtv.util.toggleWatchLater(requireContext(), baseItemDto)
@@ -100,7 +100,7 @@ fun FullDetailsFragment.showDetailsMenu(
     }
 
     if (extrasButton?.isVisible == false) {
-		item(getString(R.string.extras_title)) { showExtras(view) }
+		item(getString(R.string.extras_title), navigates = true) { showExtras(view) }
 	}
 
 	if (trailerButton?.isVisible == false) {
@@ -117,9 +117,12 @@ fun FullDetailsFragment.showDetailsMenu(
 	}
 
 	if (goToSeriesButton?.isVisible == false) {
-		item(getString(R.string.lbl_goto_series)) { gotoSeries() }
+		item(getString(R.string.lbl_goto_series), navigates = true) { gotoSeries() }
 	}
-}.showIfNotEmpty()
+	if (hasDeleteAction()) {
+		item(getString(R.string.lbl_delete)) { deleteButton?.performClick() }
+	}
+}.showIfNotEmpty().let { Unit }
 
 fun FullDetailsFragment.createFakeSeriesTimerBaseItemDto(timer: SeriesTimerInfoDto) = BaseItemDto(
 	id = requireNotNull(timer.id).toUUID(),
@@ -302,7 +305,7 @@ fun FullDetailsFragment.resumePlayback(v: View) {
 fun FullDetailsFragment.showResumeMenu(
 	view: View,
 	nextUpEpisode: BaseItemDto
-) = popupMenu(requireContext(), view) {
+) = DetailsMenu(view, nextUpEpisode.name.orEmpty()).apply {
 	val pos = (nextUpEpisode.userData?.playbackPositionTicks?.ticks
 		?: Duration.ZERO) - resumePreroll.milliseconds
 	item(
@@ -316,7 +319,7 @@ fun FullDetailsFragment.showResumeMenu(
 	item(getString(R.string.lbl_from_beginning)) {
 		play(nextUpEpisode, 0, false)
 	}
-}.showIfNotEmpty()
+}.showIfNotEmpty().let { Unit }
 
 fun FullDetailsFragment.getLiveTvSeriesTimer(
 	id: String,
@@ -422,14 +425,14 @@ fun FullDetailsFragment.getLiveTvChannel(
 
 fun FullDetailsFragment.showExtras(anchor: View) {
     val selectedItem = mBaseItem
+    val owner = viewLifecycleOwner
+    fun current() = isAdded && mBaseItem.id == selectedItem.id && anchor.isAttachedToWindow &&
+        owner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)
     var loading = true
-    val dialog = android.app.AlertDialog.Builder(requireContext())
-        .setTitle(R.string.extras_title)
-        .setMessage(R.string.loading)
-        .setNegativeButton(android.R.string.cancel, null)
-        .create()
+    val dialog = LumaFinMenuDialog(requireContext(), owner, getString(R.string.extras_title), getString(R.string.loading), fitContent = true)
+    dialog.button(getString(android.R.string.cancel)) { dialog.dismiss() }
     val api by inject<ApiClient>()
-    val job = lifecycleScope.launch {
+    val job = owner.lifecycleScope.launch(start = kotlinx.coroutines.CoroutineStart.LAZY) {
         try {
             val entries = withContext(Dispatchers.IO) {
                 val features = if ((selectedItem.specialFeatureCount ?: 0) > 0)
@@ -438,42 +441,42 @@ fun FullDetailsFragment.showExtras(anchor: View) {
                     api.userLibraryApi.getLocalTrailers(selectedItem.id).content else emptyList()
                 org.jellyfin.androidtv.util.combineExtras(features, trailers)
             }
-            if (!dialog.isShowing || !isAdded) return@launch
+            if (!dialog.isShowing || !current()) return@launch
             loading = false
             dialog.dismiss()
             if (entries.isEmpty()) {
                 Toast.makeText(requireContext(), R.string.extras_empty, Toast.LENGTH_LONG).show()
                 return@launch
             }
-            val labels = entries.map { extra ->
+            val menu = LumaFinMenuDialog(requireContext(), owner, getString(R.string.extras_title), selectedItem.name, fitContent = true)
+            entries.forEach { extra ->
                 val type = if (extra.type == BaseItemKind.TRAILER) R.string.extra_trailer
                     else org.jellyfin.androidtv.util.extraTypeLabel(extra.extraType)
                 val runtime = extra.runTimeTicks?.takeIf { it >= 10_000_000L }
                     ?.let { TimeUtils.formatMillis(it / 10_000L) }
                 val details = listOfNotNull(getString(type), runtime).joinToString(" · ")
-                "${extra.name?.takeIf { it.isNotBlank() } ?: getString(type)}\n$details"
-            }.toTypedArray()
-            android.app.AlertDialog.Builder(requireContext())
-                .setTitle(R.string.extras_title)
-                .setAdapter(android.widget.ArrayAdapter(requireContext(), R.layout.extras_menu_item, labels)) { _, index ->
-                    returnToExtras = true
-                    play(listOf(entries[index]), 0, false)
+                menu.row(extra.name?.takeIf { it.isNotBlank() } ?: getString(type), details, navigates = false) {
+                    menu.dismiss()
+                    if (current()) {
+                        returnToExtras = true
+                        play(listOf(extra), 0, false)
+                    }
                 }
-                .setNegativeButton(android.R.string.cancel, null)
-                .create().apply {
-                    setOnDismissListener { anchor.requestFocus() }
-                    show()
-                }
+            }
+            menu.button(getString(android.R.string.cancel)) { menu.dismiss() }
+            menu.onDismiss { if (anchor.isAttachedToWindow) anchor.requestFocus() }
+            menu.show()
         } catch (cancelled: kotlinx.coroutines.CancellationException) {
             throw cancelled
         } catch (error: ApiClientException) {
             Timber.w(error, "Unable to load extras")
-            if (dialog.isShowing) dialog.setMessage(getString(R.string.extras_error))
+            if (dialog.isShowing && current()) dialog.description(getString(R.string.extras_error))
         }
     }
-    dialog.setOnDismissListener {
+    dialog.onDismiss {
         if (loading && job.isActive) job.cancel()
-        anchor.requestFocus()
+        if (anchor.isAttachedToWindow) anchor.requestFocus()
     }
     dialog.show()
+    job.start()
 }

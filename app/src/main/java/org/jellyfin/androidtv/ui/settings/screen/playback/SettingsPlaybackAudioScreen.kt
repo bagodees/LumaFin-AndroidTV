@@ -8,9 +8,9 @@ import androidx.compose.ui.res.stringResource
 import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.preference.UserPreferences
 import org.jellyfin.androidtv.ui.base.Text
-import org.jellyfin.androidtv.ui.base.form.Checkbox
-import org.jellyfin.androidtv.ui.base.list.ListButton
-import org.jellyfin.androidtv.ui.base.list.ListSection
+import org.jellyfin.androidtv.ui.settings.composable.SettingsSwitch
+import org.jellyfin.androidtv.ui.settings.composable.SettingsButton as ListButton
+import org.jellyfin.androidtv.ui.settings.composable.SettingsSection as ListSection
 import org.jellyfin.androidtv.ui.navigation.LocalRouter
 import org.jellyfin.androidtv.ui.navigation.focus.focusKey
 import org.jellyfin.androidtv.ui.settings.Routes
@@ -36,6 +36,8 @@ fun SettingsPlaybackAudioScreen() {
 			var audioBehaviour by rememberPreference(userPreferences, UserPreferences.audioBehaviour)
 
 			ListButton(
+
+				navigates = true,
 				headingContent = { Text(stringResource(R.string.lbl_audio_output)) },
 				captionContent = { Text(stringResource(audioBehaviour.nameRes)) },
 				onClick = { router.push(Routes.PLAYBACK_AUDIO_BEHAVIOR) },
@@ -47,9 +49,11 @@ fun SettingsPlaybackAudioScreen() {
 			var audioNightMode by rememberPreference(userPreferences, UserPreferences.audioNightMode)
 
 			ListButton(
+
+				toggleState = audioNightMode,
 				headingContent = { Text(stringResource(R.string.pref_audio_night_mode)) },
 				captionContent = { Text(stringResource(R.string.settings_night_audio_description)) },
-				trailingContent = { Checkbox(checked = audioNightMode) },
+				trailingContent = { SettingsSwitch(checked = audioNightMode) },
 				onClick = { audioNightMode = !audioNightMode },
 				modifier = Modifier.focusKey("audio_night_mode")
 			)
@@ -58,8 +62,9 @@ fun SettingsPlaybackAudioScreen() {
 		item {
 			var preferExoPlayerFfmpeg by rememberPreference(userPreferences, UserPreferences.preferExoPlayerFfmpeg)
 			ListButton(
+				toggleState = preferExoPlayerFfmpeg,
 				headingContent = { Text(stringResource(R.string.prefer_exoplayer_ffmpeg)) },
-				trailingContent = { Checkbox(checked = preferExoPlayerFfmpeg) },
+				trailingContent = { SettingsSwitch(checked = preferExoPlayerFfmpeg) },
 				captionContent = { Text(stringResource(R.string.prefer_exoplayer_ffmpeg_content)) },
 				onClick = { preferExoPlayerFfmpeg = !preferExoPlayerFfmpeg },
 				modifier = Modifier.focusKey("prefer_exoplayer_ffmpeg")

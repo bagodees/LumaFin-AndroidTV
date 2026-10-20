@@ -9,9 +9,9 @@ import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.preference.UserPreferences
 import org.jellyfin.androidtv.preference.constant.BitstreamAudioFormat
 import org.jellyfin.androidtv.ui.base.Text
-import org.jellyfin.androidtv.ui.base.form.Checkbox
-import org.jellyfin.androidtv.ui.base.list.ListButton
-import org.jellyfin.androidtv.ui.base.list.ListSection
+import org.jellyfin.androidtv.ui.settings.composable.SettingsSwitch
+import org.jellyfin.androidtv.ui.settings.composable.SettingsButton as ListButton
+import org.jellyfin.androidtv.ui.settings.composable.SettingsSection as ListSection
 import org.jellyfin.androidtv.ui.navigation.LocalRouter
 import org.jellyfin.androidtv.ui.navigation.focus.focusKey
 import org.jellyfin.androidtv.ui.settings.Routes
@@ -38,6 +38,8 @@ fun SettingsPlaybackCodecScreen() {
 			var userAVCLevel by rememberPreference(userPreferences, UserPreferences.userAVCLevel)
 
 			ListButton(
+
+				navigates = true,
 				headingContent = { Text(stringResource(R.string.user_avc_level)) },
 				captionContent = { Text(stringResource(userAVCLevel.nameRes)) },
 				onClick = { router.push(Routes.PLAYBACK_AVC_LEVEL) },
@@ -49,6 +51,8 @@ fun SettingsPlaybackCodecScreen() {
 			var userHEVCLevel by rememberPreference(userPreferences, UserPreferences.userHEVCLevel)
 
 			ListButton(
+
+				navigates = true,
 				headingContent = { Text(stringResource(R.string.user_hevc_level)) },
 				captionContent = { Text(stringResource(userHEVCLevel.nameRes)) },
 				onClick = { router.push(Routes.PLAYBACK_HEVC_LEVEL) },
@@ -61,6 +65,8 @@ fun SettingsPlaybackCodecScreen() {
 			val mode by rememberPreference(userPreferences, format.preference)
 
 			ListButton(
+
+				navigates = true,
 				headingContent = { Text(stringResource(format.nameRes)) },
 				captionContent = { Text(stringResource(mode.nameRes)) },
 				onClick = {
@@ -78,9 +84,11 @@ fun SettingsPlaybackCodecScreen() {
 				var softwareCodecsEnabled by rememberPreference(userPreferences, UserPreferences.softwareCodecsEnabled)
 
 				ListButton(
+
+					toggleState = softwareCodecsEnabled,
 					headingContent = { Text(stringResource(R.string.pref_software_codecs_enabled)) },
 					captionContent = { Text(stringResource(R.string.pref_software_codecs_enabled_description)) },
-					trailingContent = { Checkbox(checked = softwareCodecsEnabled) },
+					trailingContent = { SettingsSwitch(checked = softwareCodecsEnabled) },
 					onClick = { softwareCodecsEnabled = !softwareCodecsEnabled },
 					modifier = Modifier.focusKey("software_codecs_enabled")
 				)

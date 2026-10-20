@@ -20,9 +20,9 @@ import org.jellyfin.androidtv.preference.UserPreferences
 import org.jellyfin.androidtv.preference.UserSettingPreferences
 import org.jellyfin.androidtv.ui.base.Text
 import org.jellyfin.androidtv.ui.base.form.RangeControl
-import org.jellyfin.androidtv.ui.base.list.ListButton
-import org.jellyfin.androidtv.ui.base.list.ListControl
-import org.jellyfin.androidtv.ui.base.list.ListSection
+import org.jellyfin.androidtv.ui.settings.composable.SettingsButton as ListButton
+import org.jellyfin.androidtv.ui.settings.composable.SettingsControl as ListControl
+import org.jellyfin.androidtv.ui.settings.composable.SettingsSection as ListSection
 import org.jellyfin.androidtv.ui.navigation.LocalRouter
 import org.jellyfin.androidtv.ui.navigation.focus.focusKey
 import org.jellyfin.androidtv.ui.settings.Routes
@@ -54,6 +54,8 @@ fun SettingsPlaybackSeekingScreen() {
 			val options = getResumeSubtractDurationOptions()
 
 			ListButton(
+
+				navigates = true,
 				headingContent = { Text(stringResource(R.string.settings_resume_rewind)) },
 				captionContent = { Text(options[resumeSubtractDuration].orEmpty()) },
 				onClick = { router.push(Routes.PLAYBACK_RESUME_SUBTRACT_DURATION) },
