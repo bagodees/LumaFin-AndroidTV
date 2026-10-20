@@ -1,7 +1,6 @@
 package org.jellyfin.androidtv.ui.playback.overlay.action
 
 import android.content.Context
-import android.app.AlertDialog
 import android.view.View
 import android.widget.Toast
 import org.jellyfin.androidtv.util.trackLabels
@@ -13,7 +12,6 @@ import org.jellyfin.androidtv.ui.playback.setSubtitleIndex
 import org.jellyfin.androidtv.ui.playback.subtitleTimingAvailable
 import org.jellyfin.androidtv.ui.playback.subtitleDelayMs
 import org.jellyfin.androidtv.ui.playback.adjustSubtitleTiming
-import java.util.Locale
 import org.jellyfin.sdk.model.api.MediaStreamType
 import timber.log.Timber
 import org.jellyfin.androidtv.ui.playback.SubtitleLookupDialog
@@ -26,7 +24,7 @@ class ClosedCaptionsAction(
 	customPlaybackTransportControlGlue: CustomPlaybackTransportControlGlue,
 ) : CustomAction(context, customPlaybackTransportControlGlue) {
 	private var popup: org.jellyfin.androidtv.ui.base.dialog.LumaFinMenuDialog? = null
-	private var timingDialog: AlertDialog? = null
+	private var timingDialog: org.jellyfin.androidtv.ui.base.dialog.LumaFinMenuDialog? = null
 	private var lookupDialog: SubtitleLookupDialog? = null
 	private var choicesDialog: org.jellyfin.androidtv.ui.base.dialog.LumaFinMenuDialog? = null
 
@@ -97,29 +95,13 @@ class ClosedCaptionsAction(
 	}
 
 	private fun showTiming(controller: PlaybackController, adapter: VideoPlayerAdapter, context: Context) {
-		adapter.leanbackOverlayFragment.setFading(false)
-		val dialog = AlertDialog.Builder(context)
-			.setTitle(R.string.subtitle_timing)
-			.setMessage(R.string.settings_subtitle_timing_dialog)
-			.setNegativeButton(R.string.subtitle_earlier, null)
-			.setPositiveButton(R.string.subtitle_later, null)
-			.setNeutralButton(R.string.subtitle_timing_reset, null)
-			.create()
-		fun updateTitle() {
-			val seconds = String.format(Locale.getDefault(), "%+.1f", controller.subtitleDelayMs() / 1000.0)
-			dialog.setTitle(context.getString(R.string.subtitle_timing_value, seconds))
-		}
-		dialog.setOnDismissListener {
-			adapter.leanbackOverlayFragment.setFading(true)
-			timingDialog = null
-		}
-		dialog.setOnShowListener {
-			updateTitle()
-			dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener { controller.adjustSubtitleTiming(-100); updateTitle() }
-			dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener { controller.adjustSubtitleTiming(100); updateTitle() }
-			dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener { controller.adjustSubtitleTiming(0, reset = true); updateTitle() }
-		}
-		timingDialog = dialog
-		dialog.show()
+		timingDialog?.dismiss()
+		timingDialog = timingMenu(controller, adapter, context,
+			heading = { context.getString(R.string.subtitle_timing_value, it) },
+			description = context.getString(R.string.settings_subtitle_timing_dialog),
+			earlier = context.getString(R.string.subtitle_earlier), later = context.getString(R.string.subtitle_later),
+			currentMs = { controller.subtitleDelayMs() },
+			adjust = { ms, reset -> controller.adjustSubtitleTiming(ms.toLong(), reset = reset) },
+			onDismiss = { timingDialog = null })
 	}
 }

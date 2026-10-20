@@ -27,7 +27,8 @@ import org.koin.core.context.GlobalContext
 /** Shared, remote-first menu panel. Rows show labels and values without native list-dialog chrome. */
 internal class LumaFinMenuDialog(
 	private val context: Context,
-	private val owner: LifecycleOwner,
+	/** Closes the panel when this owner stops; null for callers that dismiss it themselves. */
+	private val owner: LifecycleOwner?,
 	title: String,
 	description: String? = null,
 	private val fitContent: Boolean = false,
@@ -43,12 +44,15 @@ internal class LumaFinMenuDialog(
 	private val targets = mutableListOf<View>()
 	private var dismissed: (() -> Unit)? = null
 	private var message: TextView? = null
+	private val heading: TextView
+	private val rowTargets = mutableListOf<View>()
 	private val strongFocus = runCatching { GlobalContext.get().get<UserPreferences>()[UserPreferences.strongFocus] }.getOrDefault(false)
 	private val highContrast = runCatching { GlobalContext.get().get<UserPreferences>()[UserPreferences.highContrast] }.getOrDefault(false)
 
 	init {
 		dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
-		root.addView(text(title, 24f, true).apply { setTextColor(color(R.color.lumafin_text)) })
+		heading = text(title, 24f, true).apply { setTextColor(color(R.color.lumafin_text)) }
+		root.addView(heading)
 		if (!description.isNullOrBlank()) root.addView(text(description, 13f).apply {
 			message = this
 			setPadding(0, 6.dp(context), 0, 12.dp(context))
@@ -64,11 +68,11 @@ internal class LumaFinMenuDialog(
 		root.addView(scroll, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
 		root.addView(footer, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
 		dialog.setContentView(root)
-		dialog.setOnDismissListener { owner.lifecycle.removeObserver(this); dismissed?.invoke() }
-		owner.lifecycle.addObserver(this)
+		dialog.setOnDismissListener { owner?.lifecycle?.removeObserver(this); dismissed?.invoke() }
+		owner?.lifecycle?.addObserver(this)
 	}
 
-	fun row(label: String, value: String? = null, selected: Boolean? = null, navigates: Boolean = true, action: () -> Unit) {
+	fun row(label: String, value: String? = null, selected: Boolean? = null, navigates: Boolean = true, enabled: Boolean = true, action: () -> Unit): View {
 		val row = LinearLayout(context).apply {
 			orientation = LinearLayout.HORIZONTAL
 			gravity = Gravity.CENTER_VERTICAL
@@ -78,6 +82,8 @@ internal class LumaFinMenuDialog(
 			isClickable = true
 			isSelected = selected == true
 			background = focusBackground()
+			isEnabled = enabled
+			alpha = if (enabled) 1f else 0.5f
 			setOnClickListener { action() }
 		}
 		val labels = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
@@ -108,7 +114,31 @@ internal class LumaFinMenuDialog(
 			bottomMargin = 6.dp(context)
 		})
 		targets += row
+		rowTargets += row
+		return row
 	}
+
+	/** Scrollable read-only text; it takes focus so the remote can scroll long content. */
+	fun body(value: CharSequence): TextView = text("", 16f).apply {
+		text = value
+		setTextColor(color(R.color.lumafin_text))
+		setLineSpacing(4.dp(context).toFloat(), 1f)
+		isFocusable = true
+		rows.addView(this, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+		targets += this
+	}
+
+	fun title(value: String) { heading.text = value }
+
+	/** Removes all rows (not footer buttons), e.g. before rebuilding a live list. */
+	fun clearRows() {
+		targets.removeAll(rowTargets.toSet()); rowTargets.clear()
+		rows.removeAllViews()
+	}
+
+	/** Index of the focused row, or -1. */
+	fun focusedRow() = rowTargets.indexOfFirst { it.hasFocus() }
+	fun focusRow(index: Int) { rowTargets.getOrNull(index.coerceIn(0, (rowTargets.size - 1).coerceAtLeast(0)))?.requestFocus() }
 
 	/** On/off row matching the settings switch. Flips in place; the switch position and color carry the state. */
 	fun toggle(label: String, checked: Boolean, onChange: (Boolean) -> Unit) {
@@ -145,7 +175,7 @@ internal class LumaFinMenuDialog(
 		targets += row
 	}
 
-	fun button(label: String, primary: Boolean = false, action: () -> Unit) {
+	fun button(label: String, primary: Boolean = false, action: () -> Unit): TextView {
 		val button = text(label, 15f, true).apply {
 			gravity = Gravity.CENTER
 			minimumHeight = 42.dp(context)
@@ -160,6 +190,7 @@ internal class LumaFinMenuDialog(
 			marginStart = 8.dp(context); topMargin = 8.dp(context)
 		})
 		if (targets.isEmpty()) targets += button
+		return button
 	}
 
 	fun onDismiss(action: () -> Unit) { dismissed = action }
@@ -167,9 +198,10 @@ internal class LumaFinMenuDialog(
 	fun description(value: String) { message?.text = value }
 	override fun dismiss() = dialog.dismiss()
 	override fun cancel() = dialog.cancel()
-	fun show(focus: Int = 0) {
+	/** [fullHeight] reserves the full panel height for content that is filled in after showing (e.g. live lists). */
+	fun show(focus: Int = 0, fullHeight: Boolean = false) {
 		val width = minOf(560.dp(context), context.resources.displayMetrics.widthPixels - 48.dp(context))
-		var height = (if (rows.childCount == 0) 220 else 480).dp(context)
+		var height = (if (rows.childCount == 0 && !fullHeight) 220 else 480).dp(context)
 		if (fitContent) {
 			val measureWidth = View.MeasureSpec.makeMeasureSpec(width - root.paddingLeft - root.paddingRight, View.MeasureSpec.EXACTLY)
 			val unbounded = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)

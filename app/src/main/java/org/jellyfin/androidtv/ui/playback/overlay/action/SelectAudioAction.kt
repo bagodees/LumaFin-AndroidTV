@@ -1,7 +1,5 @@
 package org.jellyfin.androidtv.ui.playback.overlay.action
 
-import android.app.AlertDialog
-import java.util.Locale
 import android.content.Context
 import android.view.View
 import org.jellyfin.androidtv.util.trackLabels
@@ -20,7 +18,7 @@ class SelectAudioAction(
 	customPlaybackTransportControlGlue: CustomPlaybackTransportControlGlue,
 ) : CustomAction(context, customPlaybackTransportControlGlue) {
 	private var popup: org.jellyfin.androidtv.ui.base.dialog.LumaFinMenuDialog? = null
-	private var timingDialog: AlertDialog? = null
+	private var timingDialog: org.jellyfin.androidtv.ui.base.dialog.LumaFinMenuDialog? = null
 	private var choicesDialog: org.jellyfin.androidtv.ui.base.dialog.LumaFinMenuDialog? = null
 
 	init {
@@ -68,34 +66,15 @@ class SelectAudioAction(
 			choicesDialog = null
 		})
 	}
-    private fun showTiming(controller: PlaybackController, adapter: VideoPlayerAdapter, context: Context) {
-        adapter.leanbackOverlayFragment.setFading(false)
-        val dialog = AlertDialog.Builder(context)
-            .setTitle(R.string.audio_timing)
-            .setMessage(R.string.settings_audio_timing_dialog)
-            .setNegativeButton(R.string.audio_earlier, null)
-            .setPositiveButton(R.string.audio_later, null)
-            .setNeutralButton(R.string.subtitle_timing_reset, null)
-            .create()
-        fun refresh() {
-            dialog.setTitle(context.getString(R.string.audio_timing_value,
-                String.format(Locale.getDefault(), "%+.1f", controller.audioDelayMs() / 1000.0)))
-        }
-        dialog.setOnDismissListener { adapter.leanbackOverlayFragment.setFading(true); timingDialog = null }
-        dialog.setOnShowListener {
-            refresh()
-            dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener {
-                controller.adjustAudioTiming(-100); refresh()
-            }
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                controller.adjustAudioTiming(100); refresh()
-            }
-            dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener {
-                controller.adjustAudioTiming(0, reset = true); refresh()
-            }
-        }
-        timingDialog = dialog
-        dialog.show()
-    }
+	private fun showTiming(controller: PlaybackController, adapter: VideoPlayerAdapter, context: Context) {
+		timingDialog?.dismiss()
+		timingDialog = timingMenu(controller, adapter, context,
+			heading = { context.getString(R.string.audio_timing_value, it) },
+			description = context.getString(R.string.settings_audio_timing_dialog),
+			earlier = context.getString(R.string.audio_earlier), later = context.getString(R.string.audio_later),
+			currentMs = { controller.audioDelayMs() },
+			adjust = { ms, reset -> controller.adjustAudioTiming(ms.toLong(), reset = reset) },
+			onDismiss = { timingDialog = null })
+	}
 
 }
