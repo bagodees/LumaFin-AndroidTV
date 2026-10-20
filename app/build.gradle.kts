@@ -109,11 +109,18 @@ base.archivesName.set("LumaFin-AndroidTV-v${project.getVersionName()}")
 // couldn't tell which release is installed, so refuse to package one.
 tasks.matching { it.name == "packageRelease" || it.name == "packageReleaseBundle" }.configureEach {
 	val versionName = project.getVersionName()
+	val releaseVersion = project.property("lumafin.releaseVersion").toString()
 	doFirst {
 		if (versionName.startsWith("0.0.0-dev")) {
 			throw GradleException(
 				"Release builds need a real version. Pass -Pjellyfin.version=X.Y.Z " +
 					"(or set the JELLYFIN_VERSION environment variable)."
+			)
+		}
+		if (versionName != releaseVersion) {
+			throw GradleException(
+				"The planned LumaFin release is $releaseVersion, but this build uses $versionName. " +
+					"Pass -Pjellyfin.version=$releaseVersion. For a later release, update lumafin.releaseVersion first."
 			)
 		}
 	}
