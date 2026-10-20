@@ -225,6 +225,9 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
             }
         };
         rowPresenter.setDescriptionPresenter(detailsPresenter);
+        // LumaFin seek bar: cyan progress, muted blue buffer.
+        rowPresenter.setProgressColor(androidx.core.content.ContextCompat.getColor(getContext(), R.color.lumafin_cyan));
+        rowPresenter.setSecondaryProgressColor(androidx.core.content.ContextCompat.getColor(getContext(), R.color.lumafin_blue) & 0x80FFFFFF);
         return rowPresenter;
     }
 

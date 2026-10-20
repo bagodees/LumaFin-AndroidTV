@@ -2,9 +2,7 @@ package org.jellyfin.androidtv.ui.playback.overlay.action
 
 import android.content.Context
 import android.app.AlertDialog
-import android.view.Gravity
 import android.view.View
-import android.widget.PopupMenu
 import android.widget.Toast
 import org.jellyfin.androidtv.util.trackLabels
 import org.jellyfin.androidtv.R
@@ -27,10 +25,10 @@ class ClosedCaptionsAction(
 	context: Context,
 	customPlaybackTransportControlGlue: CustomPlaybackTransportControlGlue,
 ) : CustomAction(context, customPlaybackTransportControlGlue) {
-	private var popup: PopupMenu? = null
+	private var popup: org.jellyfin.androidtv.ui.base.dialog.LumaFinMenuDialog? = null
 	private var timingDialog: AlertDialog? = null
 	private var lookupDialog: SubtitleLookupDialog? = null
-	private var choicesDialog: AlertDialog? = null
+	private var choicesDialog: org.jellyfin.androidtv.ui.base.dialog.LumaFinMenuDialog? = null
 
 	init {
 		initializeWithIcon(R.drawable.ic_select_subtitle)
@@ -48,60 +46,38 @@ class ClosedCaptionsAction(
 			return
 		}
 
-		val labels = playbackController.currentMediaSource.mediaStreams.orEmpty().filter { it.type == MediaStreamType.SUBTITLE }.trackLabels(context)
-		videoPlayerAdapter.leanbackOverlayFragment.setFading(false)
+		val streams = playbackController.currentMediaSource.mediaStreams.orEmpty().filter { it.type == MediaStreamType.SUBTITLE }
+		val labels = streams.trackLabels(context)
+		val current = playbackController.subtitleStreamIndex
 		removePopup()
-		popup = PopupMenu(context, view, Gravity.END).apply {
-			with(menu) {
-				var order = 0
-				add(0, -1, order++, context.getString(R.string.lbl_track_off)).apply {
-					isChecked = playbackController.subtitleStreamIndex == -1
-				}
-
-				for (sub in playbackController.currentMediaSource.mediaStreams.orEmpty()) {
-					if (sub.type != MediaStreamType.SUBTITLE) continue
-
-					add(0, sub.index, order++, labels.getValue(sub.index)).apply {
-						isChecked = sub.index == playbackController.subtitleStreamIndex
-					}
-				}
-
-				setGroupCheckable(0, true, false)
-				add(1, -2, order, context.getString(R.string.subtitle_timing)).isEnabled = playbackController.subtitleTimingAvailable()
-				if (canGetMoreSubtitles(playbackController.currentlyPlayingItem))
-					add(1, -3, order + 1, context.getString(R.string.subtitle_lookup_more))
-				playbackController.currentlyPlayingItem?.takeIf(PlaybackChoiceScopeDialog::available)?.let {
-					add(1, -4, order + 2, PlaybackChoiceScopeDialog.menuLabel(context, it))
-				}
-			}
-			setOnDismissListener {
-				videoPlayerAdapter.leanbackOverlayFragment.setFading(true)
-				popup = null
-			}
-			setOnMenuItemClickListener { item ->
-				if (item.itemId == -3) {
-					view.post {
-						val current = playbackController.currentlyPlayingItem ?: return@post
-						val source = playbackController.currentMediaSource?.id ?: return@post
-						val queueIndex = playbackController.currentQueueIndex
-						videoPlayerAdapter.leanbackOverlayFragment.setFading(false)
-						lookupDialog = SubtitleLookupDialog(context, playbackController.fragment.viewLifecycleOwner, current, source,
-							stillCurrent = { playbackController.currentlyPlayingItem?.id == current.id && playbackController.currentQueueIndex == queueIndex && playbackController.currentMediaSource?.id == source },
-							playback = true, onRefreshed = { playbackController.refreshStream() },
-							onDismiss = { videoPlayerAdapter.leanbackOverlayFragment.setFading(true); lookupDialog = null }).also { it.show() }
-					}
-				} else if (item.itemId == -4) {
-					view.post { showChoices(playbackController, videoPlayerAdapter, context) }
-				} else if (item.itemId == -2) {
-					view.post { showTiming(playbackController, videoPlayerAdapter, context) }
-				} else {
-					PlaybackChoiceRecorder.subtitle(playbackController.currentlyPlayingItem, playbackController.currentMediaSource?.mediaStreams, item.itemId)
-					playbackController.setSubtitleIndex(item.itemId)
-				}
-				true
-			}
+		fun select(index: Int) {
+			PlaybackChoiceRecorder.subtitle(playbackController.currentlyPlayingItem, playbackController.currentMediaSource?.mediaStreams, index)
+			playbackController.setSubtitleIndex(index)
 		}
-		popup?.show()
+		popup = playerMenu(playbackController, videoPlayerAdapter, context, context.getString(R.string.pref_subtitles), onDismiss = { popup = null }).apply {
+			row(context.getString(R.string.lbl_track_off), selected = current == -1) { dismiss(); select(-1) }
+			for (sub in streams) row(labels.getValue(sub.index), selected = sub.index == current) { dismiss(); select(sub.index) }
+			if (playbackController.subtitleTimingAvailable()) row(context.getString(R.string.subtitle_timing)) {
+				dismiss(); view.post { showTiming(playbackController, videoPlayerAdapter, context) }
+			}
+			if (canGetMoreSubtitles(playbackController.currentlyPlayingItem)) row(context.getString(R.string.subtitle_lookup_more)) {
+				dismiss()
+				view.post {
+					val item = playbackController.currentlyPlayingItem ?: return@post
+					val source = playbackController.currentMediaSource?.id ?: return@post
+					val queueIndex = playbackController.currentQueueIndex
+					videoPlayerAdapter.leanbackOverlayFragment.setFading(false)
+					lookupDialog = SubtitleLookupDialog(context, playbackController.fragment.viewLifecycleOwner, item, source,
+						stillCurrent = { playbackController.currentlyPlayingItem?.id == item.id && playbackController.currentQueueIndex == queueIndex && playbackController.currentMediaSource?.id == source },
+						playback = true, onRefreshed = { playbackController.refreshStream() },
+						onDismiss = { videoPlayerAdapter.leanbackOverlayFragment.setFading(true); lookupDialog = null }).also { it.show() }
+				}
+			}
+			playbackController.currentlyPlayingItem?.takeIf(PlaybackChoiceScopeDialog::available)?.let { item ->
+				row(PlaybackChoiceScopeDialog.menuLabel(context, item)) { dismiss(); view.post { showChoices(playbackController, videoPlayerAdapter, context) } }
+			}
+			show((listOf(-1) + streams.map { it.index }).indexOf(current).coerceAtLeast(0))
+		}
 	}
 
 	fun removePopup() {
@@ -114,7 +90,7 @@ class ClosedCaptionsAction(
 	private fun showChoices(controller: PlaybackController, adapter: VideoPlayerAdapter, context: Context) {
 		val item = controller.currentlyPlayingItem ?: return
 		adapter.leanbackOverlayFragment.setFading(false)
-		choicesDialog = PlaybackChoiceScopeDialog.show(context, item, onDismiss = {
+		choicesDialog = PlaybackChoiceScopeDialog.showModern(context, controller.fragment.viewLifecycleOwner, item, onDismiss = {
 			adapter.leanbackOverlayFragment.setFading(true)
 			choicesDialog = null
 		})

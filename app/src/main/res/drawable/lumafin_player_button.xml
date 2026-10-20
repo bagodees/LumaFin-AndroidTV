@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Player transport buttons, matching the details-page controls: navy at rest, cyan outline on focus.
+     Leanback marks every control "activated" while the row is selected, so there is no active state here.
+     Buttons have no surface at rest; only the focused one is drawn. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true">
+        <shape><corners android:radius="12dp" /><solid android:color="@color/lumafin_focus_row" />
+            <stroke android:width="2dp" android:color="@color/lumafin_cyan" /></shape>
+    </item>
+    <item android:state_pressed="true">
+        <shape><corners android:radius="12dp" /><solid android:color="@color/lumafin_focus_row" /></shape>
+    </item>
+    <!-- No surface at rest: icons sit directly on the controls gradient. -->
+    <item><color android:color="@android:color/transparent" /></item>
+</selector>

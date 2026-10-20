@@ -3,9 +3,7 @@ package org.jellyfin.androidtv.ui.playback.overlay.action
 import android.app.AlertDialog
 import java.util.Locale
 import android.content.Context
-import android.view.Gravity
 import android.view.View
-import android.widget.PopupMenu
 import org.jellyfin.androidtv.util.trackLabels
 import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.ui.playback.audioTimingAvailable
@@ -21,9 +19,9 @@ class SelectAudioAction(
 	context: Context,
 	customPlaybackTransportControlGlue: CustomPlaybackTransportControlGlue,
 ) : CustomAction(context, customPlaybackTransportControlGlue) {
-	private var popup: PopupMenu? = null
+	private var popup: org.jellyfin.androidtv.ui.base.dialog.LumaFinMenuDialog? = null
 	private var timingDialog: AlertDialog? = null
-	private var choicesDialog: AlertDialog? = null
+	private var choicesDialog: org.jellyfin.androidtv.ui.base.dialog.LumaFinMenuDialog? = null
 
 	init {
 		initializeWithIcon(R.drawable.ic_select_audio)
@@ -35,41 +33,25 @@ class SelectAudioAction(
 		context: Context,
 		view: View,
 	) {
-		videoPlayerAdapter.leanbackOverlayFragment.setFading(false)
 		val audioTracks = playbackController.currentStreamInfo?.selectableAudioStreams ?: return
 		val labels = audioTracks.trackLabels(context)
 		val currentAudioIndex = playbackController.audioStreamIndex
 
 		dismissPopup()
-		popup = PopupMenu(context, view, Gravity.END).apply {
-			with(menu) {
-				for (track in audioTracks) {
-					add(0, track.index, track.index, labels.getValue(track.index)).apply {
-						isChecked = currentAudioIndex == track.index
-					}
-				}
-				setGroupCheckable(0, true, false)
-				add(1, -2, audioTracks.size, context.getString(R.string.audio_timing)).isEnabled = playbackController.audioTimingAvailable()
-				playbackController.currentlyPlayingItem?.takeIf(PlaybackChoiceScopeDialog::available)?.let {
-					add(1, -4, audioTracks.size + 1, PlaybackChoiceScopeDialog.menuLabel(context, it))
-				}
+		popup = playerMenu(playbackController, videoPlayerAdapter, context, context.getString(R.string.pref_audio), onDismiss = { popup = null }).apply {
+			for (track in audioTracks) row(labels.getValue(track.index), selected = currentAudioIndex == track.index) {
+				dismiss()
+				PlaybackChoiceRecorder.audio(playbackController.currentlyPlayingItem, playbackController.currentMediaSource?.mediaStreams, track.index)
+				playbackController.switchAudioStream(track.index)
 			}
-
-			setOnDismissListener {
-				videoPlayerAdapter.leanbackOverlayFragment.setFading(true)
-				popup = null
+			if (playbackController.audioTimingAvailable()) row(context.getString(R.string.audio_timing)) {
+				dismiss(); view.post { showTiming(playbackController, videoPlayerAdapter, context) }
 			}
-			setOnMenuItemClickListener { item ->
-				if (item.itemId == -2) view.post { showTiming(playbackController, videoPlayerAdapter, context) }
-				else if (item.itemId == -4) view.post { showChoices(playbackController, videoPlayerAdapter, context) }
-				else {
-					PlaybackChoiceRecorder.audio(playbackController.currentlyPlayingItem, playbackController.currentMediaSource?.mediaStreams, item.itemId)
-					playbackController.switchAudioStream(item.itemId)
-				}
-				true
+			playbackController.currentlyPlayingItem?.takeIf(PlaybackChoiceScopeDialog::available)?.let { item ->
+				row(PlaybackChoiceScopeDialog.menuLabel(context, item)) { dismiss(); view.post { showChoices(playbackController, videoPlayerAdapter, context) } }
 			}
+			show(audioTracks.indexOfFirst { it.index == currentAudioIndex }.coerceAtLeast(0))
 		}
-		popup?.show()
 	}
 
 	fun dismissPopup() {
@@ -81,7 +63,7 @@ class SelectAudioAction(
 	private fun showChoices(controller: PlaybackController, adapter: VideoPlayerAdapter, context: Context) {
 		val item = controller.currentlyPlayingItem ?: return
 		adapter.leanbackOverlayFragment.setFading(false)
-		choicesDialog = PlaybackChoiceScopeDialog.show(context, item, onDismiss = {
+		choicesDialog = PlaybackChoiceScopeDialog.showModern(context, controller.fragment.viewLifecycleOwner, item, onDismiss = {
 			adapter.leanbackOverlayFragment.setFading(true)
 			choicesDialog = null
 		})

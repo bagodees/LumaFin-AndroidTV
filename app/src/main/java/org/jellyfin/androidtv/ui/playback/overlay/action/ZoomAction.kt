@@ -1,21 +1,18 @@
 package org.jellyfin.androidtv.ui.playback.overlay.action
 
 import android.content.Context
-import android.view.Gravity
 import android.view.View
-import android.widget.PopupMenu
 import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.preference.constant.ZoomMode
 import org.jellyfin.androidtv.ui.playback.PlaybackController
 import org.jellyfin.androidtv.ui.playback.overlay.CustomPlaybackTransportControlGlue
 import org.jellyfin.androidtv.ui.playback.overlay.VideoPlayerAdapter
-import org.jellyfin.androidtv.util.popupMenu
 
 class ZoomAction(
 	context: Context,
 	customPlaybackTransportControlGlue: CustomPlaybackTransportControlGlue,
 ) : CustomAction(context, customPlaybackTransportControlGlue) {
-	private var popup: PopupMenu? = null
+	private var popup: org.jellyfin.androidtv.ui.base.dialog.LumaFinMenuDialog? = null
 
 	init {
 		initializeWithIcon(R.drawable.ic_aspect_ratio)
@@ -27,33 +24,14 @@ class ZoomAction(
 		context: Context,
 		view: View,
 	) {
-		videoPlayerAdapter.leanbackOverlayFragment.setFading(false)
 		dismissPopup()
-		popup = popupMenu(context, view, Gravity.END) {
-			item(context.getString(R.string.lbl_fit)) {
-				playbackController.setZoom(ZoomMode.FIT)
-			}.apply {
-				isChecked = playbackController.zoomMode == ZoomMode.FIT
+		val modes = listOf(ZoomMode.FIT to R.string.lbl_fit, ZoomMode.AUTO_CROP to R.string.lbl_auto_crop, ZoomMode.STRETCH to R.string.lbl_stretch)
+		popup = playerMenu(playbackController, videoPlayerAdapter, context, context.getString(R.string.lbl_zoom), onDismiss = { popup = null }).apply {
+			modes.forEach { (mode, label) ->
+				row(context.getString(label), selected = playbackController.zoomMode == mode) { playbackController.setZoom(mode); dismiss() }
 			}
-
-			item(context.getString(R.string.lbl_auto_crop)) {
-				playbackController.setZoom(ZoomMode.AUTO_CROP)
-			}.apply {
-				isChecked = playbackController.zoomMode == ZoomMode.AUTO_CROP
-			}
-
-			item(context.getString(R.string.lbl_stretch)) {
-				playbackController.setZoom(ZoomMode.STRETCH)
-			}.apply {
-				isChecked = playbackController.zoomMode == ZoomMode.STRETCH
-			}
+			show(modes.indexOfFirst { it.first == playbackController.zoomMode }.coerceAtLeast(0))
 		}
-		popup?.menu?.setGroupCheckable(0, true, true)
-		popup?.setOnDismissListener {
-			videoPlayerAdapter.leanbackOverlayFragment.setFading(true)
-			popup = null
-		}
-		popup?.show()
 	}
 
 	fun dismissPopup() {

@@ -1,9 +1,7 @@
 package org.jellyfin.androidtv.ui.playback.overlay.action
 
 import android.content.Context
-import android.view.Gravity
 import android.view.View
-import android.widget.PopupMenu
 import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.preference.constant.StreamingQuality
 import org.jellyfin.androidtv.preference.UserPreferences
@@ -16,7 +14,7 @@ class SelectQualityAction(
 	customPlaybackTransportControlGlue: CustomPlaybackTransportControlGlue,
 	private val userPreferences: UserPreferences
 ) : CustomAction(context, customPlaybackTransportControlGlue) {
-	private var popup: PopupMenu? = null
+	private var popup: org.jellyfin.androidtv.ui.base.dialog.LumaFinMenuDialog? = null
 
 	init {
 		initializeWithIcon(R.drawable.ic_select_quality)
@@ -28,34 +26,21 @@ class SelectQualityAction(
 		context: Context,
 		view: View,
 	) {
-		videoPlayerAdapter.leanbackOverlayFragment.setFading(false)
 		dismissPopup()
 		val qualityProfiles = StreamingQuality.entries.filter { it != StreamingQuality.CUSTOM || userPreferences[UserPreferences.streamingQuality] == it }
-		popup = PopupMenu(context, view, Gravity.END).apply {
-			qualityProfiles.forEachIndexed { i, selected ->
-				menu.add(0, i, i, context.getString(selected.nameRes))
-			}
-
-			menu.setGroupCheckable(0, true, true)
-			val currentQualityIndex = qualityProfiles.indexOf(userPreferences[UserPreferences.streamingQuality])
-			if (currentQualityIndex != -1) {
-				menu.getItem(currentQualityIndex)?.let { item ->
-					item.isChecked = true
+		val current = qualityProfiles.indexOf(userPreferences[UserPreferences.streamingQuality])
+		popup = playerMenu(playbackController, videoPlayerAdapter, context, context.getString(R.string.pref_streaming_quality), onDismiss = { popup = null }).apply {
+			qualityProfiles.forEachIndexed { i, profile ->
+				row(context.getString(profile.nameRes), selected = i == current) {
+					dismiss()
+					if (i != current) {
+						userPreferences[UserPreferences.streamingQuality] = profile
+						playbackController.refreshStream()
+					}
 				}
 			}
-
-			setOnDismissListener {
-				videoPlayerAdapter.leanbackOverlayFragment.setFading(true)
-				popup = null
-			}
-			setOnMenuItemClickListener { menuItem ->
-				userPreferences[UserPreferences.streamingQuality] = qualityProfiles[menuItem.itemId]
-				playbackController.refreshStream()
-				dismiss()
-				true
-			}
+			show(current.coerceAtLeast(0))
 		}
-		popup?.show()
 	}
 
 	fun dismissPopup() {

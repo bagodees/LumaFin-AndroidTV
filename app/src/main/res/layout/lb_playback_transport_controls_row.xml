@@ -10,6 +10,8 @@
 	android:clipChildren="false"
 	android:clipToPadding="false"
 	android:orientation="vertical"
+	android:background="@drawable/lumafin_player_scrim"
+	android:paddingTop="160dp"
 	android:paddingBottom="@dimen/lb_playback_transport_control_row_padding_bottom">
 
 	<FrameLayout

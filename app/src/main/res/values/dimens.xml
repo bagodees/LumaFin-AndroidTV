@@ -2,10 +2,11 @@
     <dimen name="overscan_horizontal">27dp</dimen>
     <dimen name="overscan_vertical">48dp</dimen>
 
-    <!-- Compact playback controls leave room for the end time on the button row. -->
-    <dimen name="lb_control_button_diameter">60dp</dimen>
-    <dimen name="lb_control_button_height">48dp</dimen>
-    <dimen name="lb_control_button_secondary_diameter">40dp</dimen>
+    <!-- Compact playback controls leave room for the end time on the button row. Buttons are drawn
+         as rounded LumaFin surfaces, so widths stay below the center-to-center spacing. -->
+    <dimen name="lb_control_button_diameter">48dp</dimen>
+    <dimen name="lb_control_button_height">44dp</dimen>
+    <dimen name="lb_control_button_secondary_diameter">44dp</dimen>
     <dimen name="lb_control_button_secondary_height">40dp</dimen>
     <dimen name="lb_control_icon_width">22dp</dimen>
     <dimen name="lb_control_icon_height">22dp</dimen>
