@@ -25,6 +25,9 @@ internal fun detailsControlBackground(context: Context): StateListDrawable {
 		if (border != null) setStroke((if (strong) 3 else 2).dp(context), border)
 	}
 	return StateListDrawable().apply {
+		// An active toggle (e.g. Watched) stays purple while focused; only the outline shows focus.
+		addState(intArrayOf(android.R.attr.state_focused, android.R.attr.state_activated),
+			shape(Color.rgb(48, 36, 72), if (strong) Color.WHITE else color(R.color.lumafin_cyan)))
 		addState(intArrayOf(android.R.attr.state_focused), shape(color(R.color.lumafin_focus_row), if (strong) Color.WHITE else color(R.color.lumafin_cyan)))
 		addState(intArrayOf(android.R.attr.state_pressed), shape(color(R.color.lumafin_focus_row), color(R.color.lumafin_cyan)))
 		addState(intArrayOf(android.R.attr.state_activated), shape(Color.rgb(48, 36, 72), color(R.color.lumafin_purple)))
@@ -33,8 +36,8 @@ internal fun detailsControlBackground(context: Context): StateListDrawable {
 }
 
 internal fun detailsControlTextColors(context: Context) = ColorStateList(
-	arrayOf(intArrayOf(android.R.attr.state_focused), intArrayOf(android.R.attr.state_activated), intArrayOf()),
-	intArrayOf(ContextCompat.getColor(context, R.color.lumafin_text), ContextCompat.getColor(context, R.color.lumafin_purple),
+	arrayOf(intArrayOf(android.R.attr.state_activated), intArrayOf(android.R.attr.state_focused), intArrayOf()),
+	intArrayOf(ContextCompat.getColor(context, R.color.lumafin_purple), ContextCompat.getColor(context, R.color.lumafin_text),
 		ContextCompat.getColor(context, R.color.lumafin_text)),
 )
 
