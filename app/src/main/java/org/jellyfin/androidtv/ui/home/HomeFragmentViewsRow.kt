@@ -21,7 +21,7 @@ class HomeFragmentViewsRow(
 		val header = HeaderItem(context.getString(R.string.home_section_library))
 		val row = ListRow(header, rowAdapter)
 		rowAdapter.setRow(row)
-		rowAdapter.Retrieve()
+		rowsAdapter.retrieveHomeRow(rowAdapter)
 		rowsAdapter.add(row)
 	}
 }

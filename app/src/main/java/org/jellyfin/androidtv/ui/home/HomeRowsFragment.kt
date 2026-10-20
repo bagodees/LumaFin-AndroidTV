@@ -15,6 +15,8 @@ import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.withTimeoutOrNull
 import android.widget.PopupMenu
 import org.jellyfin.androidtv.util.addHomeShortcutMenu
 import org.jellyfin.androidtv.preference.HomeShortcut
@@ -25,11 +27,10 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeout
 import org.jellyfin.androidtv.auth.repository.UserRepository
+import org.jellyfin.androidtv.auth.repository.SessionRepository
 import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.constant.CustomMessage
 import org.jellyfin.androidtv.constant.HomeSectionType
@@ -56,7 +57,7 @@ import org.jellyfin.androidtv.ui.playback.AudioEventListener
 import org.jellyfin.androidtv.ui.playback.MediaManager
 import org.jellyfin.androidtv.ui.presentation.CardPresenter
 import org.jellyfin.androidtv.ui.presentation.MutableObjectAdapter
-import org.jellyfin.androidtv.ui.presentation.PositionableListRowPresenter
+import java.io.IOException
 import org.jellyfin.androidtv.util.KeyProcessor
 import org.jellyfin.playback.core.PlaybackManager
 import org.jellyfin.sdk.api.client.ApiClient
@@ -69,6 +70,10 @@ import kotlin.time.Duration.Companion.seconds
 
 class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyListener {
 	private val api by inject<ApiClient>()
+	private val sessionRepository by inject<SessionRepository>()
+	private var homeLoadGeneration = 0L
+	private var homeErrorShown = false
+	private var homeErrorDialog: AlertDialog? = null
 	private val backgroundService by inject<BackgroundService>()
 	private val playbackManager by inject<PlaybackManager>()
 	private val mediaManager by inject<MediaManager>()
@@ -119,7 +124,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 
-		adapter = MutableObjectAdapter<Row>(PositionableListRowPresenter())
+		adapter = RecoveringHomeRowsAdapter(lifecycleScope, lifecycle, ::onHomeLoadFailure)
 
 		loadHomeRows()
 
@@ -186,100 +191,141 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 	private fun loadHomeRows() {
 		homeLoadJob?.cancel()
 		cancelRowPages()
+		val generation = ++homeLoadGeneration
+		val session = sessionRepository.currentSession.value
+		val current = { generation == homeLoadGeneration && session == sessionRepository.currentSession.value }
+		homeErrorShown = false
+		homeErrorDialog?.dismiss()
+		homeErrorDialog = null
+		(adapter as RecoveringHomeRowsAdapter).beginLoad(current)
 		homeLoadJob = lifecycleScope.launch(Dispatchers.IO) {
-			val currentUser = withTimeout(30.seconds) {
-				userRepository.currentUser.filterNotNull().first()
+			try {
+				recoverHomeLoad(current) { buildHomeRows(current) }
+			} catch (cancelled: CancellationException) {
+				throw cancelled
+			} catch (failure: Exception) {
+				withContext(Dispatchers.Main) { if (current()) onHomeLoadFailure(failure) }
+			}
+		}
+	}
+
+	private suspend fun buildHomeRows(current: () -> Boolean) {
+		val currentUser = withTimeoutOrNull(30.seconds) {
+			userRepository.currentUser.filterNotNull().first()
+		} ?: throw IOException("Home user not ready")
+
+		val shortcutScope = shortcutPreferences.scope
+		loadedShortcuts = shortcutPreferences.shortcuts
+		loadedWatchLater = watchLaterPreferences.items
+		val shortcuts = if (loadedShortcuts.isEmpty()) emptyList() else loadHomeShortcuts(api, loadedShortcuts, userViewsRepository.views.first())
+
+		// Start out with default sections
+		val homesections = userSettingPreferences.activeHomesections
+		loadedHomeSections = homesections
+		loadedHiddenRecommendations = recommendationPreferences.hiddenRows
+		loadedLatestMoviesLimit = userSettingPreferences[UserSettingPreferences.latestMoviesItemLimit]
+		loadedLatestShowsLimit = userSettingPreferences[UserSettingPreferences.latestShowsItemLimit]
+		loadedRecentlyAddedMoviesLimit = userSettingPreferences[UserSettingPreferences.recentlyAddedMoviesItemLimit]
+		loadedRecentlyAddedShowsLimit = userSettingPreferences[UserSettingPreferences.recentlyAddedShowsItemLimit]
+		loadedHideWatchedLatestMovies = userSettingPreferences[UserSettingPreferences.hideWatchedLatestMovies]
+		loadedHideWatchedRecentlyAddedMovies = userSettingPreferences[UserSettingPreferences.hideWatchedRecentlyAddedMovies]
+
+		// Make sure the rows are empty
+		val rows = mutableListOf<HomeFragmentRow>(HomeFragmentShortcutsRow(shortcuts))
+
+		// Check for coroutine cancellation
+		if (!current()) throw CancellationException("Home load replaced")
+
+		// Actually add the sections
+		for (section in homesections) when (section) {
+			HomeSectionType.LATEST_MEDIA -> rows.add(helper.loadRecentlyAdded(userViewsRepository.views.first(), loadedRecentlyAddedMoviesLimit, loadedRecentlyAddedShowsLimit, loadedHideWatchedRecentlyAddedMovies))
+			HomeSectionType.LIBRARY_TILES_SMALL -> rows.add(HomeFragmentViewsRow(small = false))
+			HomeSectionType.LIBRARY_BUTTONS -> rows.add(HomeFragmentViewsRow(small = true))
+			HomeSectionType.RESUME -> rows.add(helper.loadResumeVideo())
+			HomeSectionType.RESUME_AUDIO -> rows.add(helper.loadResumeAudio())
+			HomeSectionType.RESUME_BOOK -> Unit // Books are not (yet) supported
+			HomeSectionType.ACTIVE_RECORDINGS -> rows.add(helper.loadLatestLiveTvRecordings())
+			HomeSectionType.NEXT_UP -> rows.add(helper.loadNextUp())
+			HomeSectionType.LIVE_TV -> if (currentUser.policy?.enableLiveTvAccess == true) {
+				rows.add(HomeFragmentLiveTVRow(requireActivity(), userRepository))
+				rows.add(helper.loadOnNow())
 			}
 
-			val shortcutScope = shortcutPreferences.scope
-			loadedShortcuts = shortcutPreferences.shortcuts
-			loadedWatchLater = watchLaterPreferences.items
-			val shortcuts = if (loadedShortcuts.isEmpty()) emptyList() else loadHomeShortcuts(api, loadedShortcuts, userViewsRepository.views.first())
+			HomeSectionType.LATEST_MOVIES -> rows.add(helper.loadLatestMovies(loadedLatestMoviesLimit, loadedHideWatchedLatestMovies))
+			HomeSectionType.LATEST_SHOWS -> rows.add(helper.loadLatestShows(loadedLatestShowsLimit))
+			HomeSectionType.BECAUSE_YOU_WATCHED -> rows.add(HomeFragmentBecauseYouWatchedRow(api, loadedHiddenRecommendations))
+			HomeSectionType.COLLECTIONS -> rows.add(HomeFragmentCollectionsRow(api, userViewsRepository.views.first()))
+			HomeSectionType.WATCH_AGAIN -> rows.add(helper.loadWatchAgain())
+			HomeSectionType.GENRES -> rows.add(HomeFragmentGenreRow(api))
+			HomeSectionType.CONTINUE_WATCHING_NEXT_UP -> rows.add(HomeFragmentContinueWatchingNextUpRow(api))
+			HomeSectionType.WATCH_LATER -> rows.add(HomeFragmentShortcutsRow(loadHomeShortcuts(api, loadedWatchLater, emptyList(), true), R.string.watch_later))
+			HomeSectionType.FAVORITES -> rows.add(helper.loadFavorites())
+			HomeSectionType.RECENTLY_ADDED_MOVIES -> rows.add(helper.loadRecentlyAddedMovies(loadedRecentlyAddedMoviesLimit, loadedHideWatchedRecentlyAddedMovies))
+			HomeSectionType.RECENTLY_ADDED_SHOWS -> rows.add(helper.loadRecentlyAddedShows(loadedRecentlyAddedShowsLimit))
+			HomeSectionType.RECENTLY_ADDED_ALBUMS -> rows.add(helper.loadRecentlyAddedAlbums())
+			HomeSectionType.RECENTLY_ADDED_ARTISTS -> rows.add(helper.loadRecentlyAddedArtists())
+			HomeSectionType.RECENTLY_ADDED_MUSIC_VIDEOS -> rows.add(helper.loadRecentlyAddedMusicVideos())
+			HomeSectionType.RECENTLY_ADDED_BOOKS -> rows.add(helper.loadRecentlyAddedBooks())
+			HomeSectionType.RECENTLY_ADDED_AUDIOBOOKS -> rows.add(helper.loadRecentlyAddedAudiobooks())
+			HomeSectionType.LATEST_ALBUMS -> rows.add(helper.loadLatestAlbums())
+			HomeSectionType.LATEST_MUSIC_VIDEOS -> rows.add(helper.loadLatestMusicVideos())
+			HomeSectionType.LATEST_BOOKS -> rows.add(helper.loadLatestBooks())
+			HomeSectionType.LATEST_AUDIOBOOKS -> rows.add(helper.loadLatestAudiobooks())
 
-			// Start out with default sections
-			val homesections = userSettingPreferences.activeHomesections
-			loadedHomeSections = homesections
-			loadedHiddenRecommendations = recommendationPreferences.hiddenRows
-			loadedLatestMoviesLimit = userSettingPreferences[UserSettingPreferences.latestMoviesItemLimit]
-			loadedLatestShowsLimit = userSettingPreferences[UserSettingPreferences.latestShowsItemLimit]
-			loadedRecentlyAddedMoviesLimit = userSettingPreferences[UserSettingPreferences.recentlyAddedMoviesItemLimit]
-			loadedRecentlyAddedShowsLimit = userSettingPreferences[UserSettingPreferences.recentlyAddedShowsItemLimit]
-			loadedHideWatchedLatestMovies = userSettingPreferences[UserSettingPreferences.hideWatchedLatestMovies]
-			loadedHideWatchedRecentlyAddedMovies = userSettingPreferences[UserSettingPreferences.hideWatchedRecentlyAddedMovies]
+			HomeSectionType.NONE -> Unit
+		}
 
-			// Make sure the rows are empty
-			val rows = mutableListOf<HomeFragmentRow>(HomeFragmentShortcutsRow(shortcuts))
+		// Add sections to layout
+		withContext(Dispatchers.Main) {
+			if (!current() || shortcutScope != shortcutPreferences.scope) throw CancellationException("Home account changed")
+			@Suppress("UNCHECKED_CAST")
+			val rowsAdapter = adapter as MutableObjectAdapter<Row>
+			val cardPresenter = CardPresenter.homeRows()
 
-			// Check for coroutine cancellation
-			if (!isActive) return@launch
+			(rowsAdapter as RecoveringHomeRowsAdapter).beginLoad(current)
 
-			// Actually add the sections
-			for (section in homesections) when (section) {
-				HomeSectionType.LATEST_MEDIA -> rows.add(helper.loadRecentlyAdded(userViewsRepository.views.first(), loadedRecentlyAddedMoviesLimit, loadedRecentlyAddedShowsLimit, loadedHideWatchedRecentlyAddedMovies))
-				HomeSectionType.LIBRARY_TILES_SMALL -> rows.add(HomeFragmentViewsRow(small = false))
-				HomeSectionType.LIBRARY_BUTTONS -> rows.add(HomeFragmentViewsRow(small = true))
-				HomeSectionType.RESUME -> rows.add(helper.loadResumeVideo())
-				HomeSectionType.RESUME_AUDIO -> rows.add(helper.loadResumeAudio())
-				HomeSectionType.RESUME_BOOK -> Unit // Books are not (yet) supported
-				HomeSectionType.ACTIVE_RECORDINGS -> rows.add(helper.loadLatestLiveTvRecordings())
-				HomeSectionType.NEXT_UP -> rows.add(helper.loadNextUp())
-				HomeSectionType.LIVE_TV -> if (currentUser.policy?.enableLiveTvAccess == true) {
-					rows.add(HomeFragmentLiveTVRow(requireActivity(), userRepository))
-					rows.add(helper.loadOnNow())
-				}
+			// Clear any rows from a previous load (e.g. rebuilding after a home section preference change)
+			rowsAdapter.clear()
+			currentItem = null
+			currentRow = null
 
-				HomeSectionType.LATEST_MOVIES -> rows.add(helper.loadLatestMovies(loadedLatestMoviesLimit, loadedHideWatchedLatestMovies))
-				HomeSectionType.LATEST_SHOWS -> rows.add(helper.loadLatestShows(loadedLatestShowsLimit))
-				HomeSectionType.BECAUSE_YOU_WATCHED -> rows.add(HomeFragmentBecauseYouWatchedRow(api, loadedHiddenRecommendations))
-				HomeSectionType.COLLECTIONS -> rows.add(HomeFragmentCollectionsRow(api, userViewsRepository.views.first()))
-				HomeSectionType.WATCH_AGAIN -> rows.add(helper.loadWatchAgain())
-				HomeSectionType.GENRES -> rows.add(HomeFragmentGenreRow(api))
-				HomeSectionType.CONTINUE_WATCHING_NEXT_UP -> rows.add(HomeFragmentContinueWatchingNextUpRow(api))
-				HomeSectionType.WATCH_LATER -> rows.add(HomeFragmentShortcutsRow(loadHomeShortcuts(api, loadedWatchLater, emptyList(), true), R.string.watch_later))
-				HomeSectionType.FAVORITES -> rows.add(helper.loadFavorites())
-				HomeSectionType.RECENTLY_ADDED_MOVIES -> rows.add(helper.loadRecentlyAddedMovies(loadedRecentlyAddedMoviesLimit, loadedHideWatchedRecentlyAddedMovies))
-				HomeSectionType.RECENTLY_ADDED_SHOWS -> rows.add(helper.loadRecentlyAddedShows(loadedRecentlyAddedShowsLimit))
-				HomeSectionType.RECENTLY_ADDED_ALBUMS -> rows.add(helper.loadRecentlyAddedAlbums())
-				HomeSectionType.RECENTLY_ADDED_ARTISTS -> rows.add(helper.loadRecentlyAddedArtists())
-				HomeSectionType.RECENTLY_ADDED_MUSIC_VIDEOS -> rows.add(helper.loadRecentlyAddedMusicVideos())
-				HomeSectionType.RECENTLY_ADDED_BOOKS -> rows.add(helper.loadRecentlyAddedBooks())
-				HomeSectionType.RECENTLY_ADDED_AUDIOBOOKS -> rows.add(helper.loadRecentlyAddedAudiobooks())
-				HomeSectionType.LATEST_ALBUMS -> rows.add(helper.loadLatestAlbums())
-				HomeSectionType.LATEST_MUSIC_VIDEOS -> rows.add(helper.loadLatestMusicVideos())
-				HomeSectionType.LATEST_BOOKS -> rows.add(helper.loadLatestBooks())
-				HomeSectionType.LATEST_AUDIOBOOKS -> rows.add(helper.loadLatestAudiobooks())
+			// Add rows in order
+			notificationsRow.addToRowsAdapter(requireContext(), cardPresenter, rowsAdapter)
+			nowPlaying.addToRowsAdapter(requireContext(), cardPresenter, rowsAdapter)
+			for (row in rows) row.addToRowsAdapter(requireContext(), cardPresenter, rowsAdapter)
 
-				HomeSectionType.NONE -> Unit
-			}
-
-			// Add sections to layout
-			withContext(Dispatchers.Main) {
-				if (shortcutScope != shortcutPreferences.scope) return@withContext
-				@Suppress("UNCHECKED_CAST")
-				val rowsAdapter = adapter as MutableObjectAdapter<Row>
-				val cardPresenter = CardPresenter.homeRows()
-
-				// Clear any rows from a previous load (e.g. rebuilding after a home section preference change)
-				rowsAdapter.clear()
-				currentItem = null
-				currentRow = null
-
-				// Add rows in order
-				notificationsRow.addToRowsAdapter(requireContext(), cardPresenter, rowsAdapter)
-				nowPlaying.addToRowsAdapter(requireContext(), cardPresenter, rowsAdapter)
-				for (row in rows) row.addToRowsAdapter(requireContext(), cardPresenter, rowsAdapter)
-
-				// Wire up Live TV sibling rows so the On Now row removes the buttons row when empty
-				for (i in 0 until rowsAdapter.size()) {
-					val listRow = rowsAdapter.get(i) as? ListRow ?: continue
-					val itemAdapter = listRow.adapter as? ItemRowAdapter ?: continue
-					if (itemAdapter.queryType == QueryType.LiveTvProgram && i > 0) {
-						val previousRow = rowsAdapter.get(i - 1)
-						if (previousRow != null) itemAdapter.setSiblingRow(previousRow)
-					}
+			// Wire up Live TV sibling rows so the On Now row removes the buttons row when empty
+			for (i in 0 until rowsAdapter.size()) {
+				val listRow = rowsAdapter.get(i) as? ListRow ?: continue
+				val itemAdapter = listRow.adapter as? ItemRowAdapter ?: continue
+				if (itemAdapter.queryType == QueryType.LiveTvProgram && i > 0) {
+					val previousRow = rowsAdapter.get(i - 1)
+					if (previousRow != null) itemAdapter.setSiblingRow(previousRow)
 				}
 			}
 		}
+	}
+
+	private fun onHomeLoadFailure(failure: Exception) {
+		Timber.w(failure, "Home loading failed after recovery attempts")
+		val generation = homeLoadGeneration
+		val session = sessionRepository.currentSession.value
+		lifecycleScope.launch {
+			lifecycle.currentStateFlow.first { it.isAtLeast(Lifecycle.State.RESUMED) }
+			if (generation != homeLoadGeneration || session != sessionRepository.currentSession.value || homeErrorShown || !isAdded) return@launch
+			homeErrorShown = true
+			homeErrorDialog = AlertDialog.Builder(requireContext())
+				.setTitle(R.string.home_load_failed_title)
+				.setMessage(R.string.home_load_failed_message)
+				.setPositiveButton(R.string.home_shortcut_retry) { _, _ -> loadHomeRows() }
+				.setNegativeButton(android.R.string.cancel, null)
+				.show()
+		}
+	}
+
+	override fun onStop() {
+		homeErrorDialog?.dismiss()
+		super.onStop()
 	}
 
 	override fun onKey(v: View?, keyCode: Int, event: KeyEvent?): Boolean {
@@ -397,7 +443,10 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 	}
 
 	override fun onDestroy() {
+		homeLoadGeneration++
 		homeLoadJob?.cancel()
+		(adapter as? RecoveringHomeRowsAdapter)?.cancelRequests()
+		homeErrorDialog?.dismiss()
 		cancelRowPages()
 		super.onDestroy()
 
