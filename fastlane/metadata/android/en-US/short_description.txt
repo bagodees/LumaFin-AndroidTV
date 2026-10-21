@@ -1,1 +1,1 @@
-Television client for Jellyfin, the free software media system
+Your Jellyfin movies and shows, made for Android TV.

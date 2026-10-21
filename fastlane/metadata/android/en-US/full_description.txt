@@ -1,14 +1,21 @@
-Your media, on your terms.
+LumaFin brings your Jellyfin library to Android TV and Google TV with a remote-friendly interface built for the big screen.
 
-The Jellyfin project is an open source, free software media server. No fees, no tracking, no hidden agenda. Get our free server to collect all your audio, video, photos, and more in one place.
+Browse your movies and TV shows, pick up where you left off, and make your home screen your own.
 
-To use the app, you must have a Jellyfin server set up and running. Find out more at <a href="https://jellyfin.org/" target="_blank">jellyfin.org</a>.
+• Customize your home screen with the rows you want and the order you prefer.
+• Browse landscape artwork, collections, favorites, and detailed movie and episode pages.
+• Continue watching and find the next episode from your Jellyfin server.
+• Search your library by title or person, with optional voice search on supported devices.
+• Choose audio and subtitle tracks and adjust playback settings.
+• Use playback controls designed for a TV remote, including chapters, quality, and playback speed when available.
 
-With a Jellyfin server, you can:
+A Jellyfin server and an existing account on that server are required. LumaFin does not include movies, TV shows, a streaming subscription, or a public content catalog. Playback features depend on your server, media, and device.
 
-* Watch Live TV and recorded shows from your Jellyfin server (additional hardware/services required)
-* Stream to a Chromecast device on your network
-* Stream your media to your Android device
-* View your collection in an easy to use interface
+LumaFin is free and open source, with no ads or developer-operated tracking service. Your library and playback activity are handled by the Jellyfin server you choose. Optional crash reports go to that server, and optional voice search uses your device’s speech service. See our privacy policy for details.
 
-This is the official Jellyfin companion app for Android TV. Thank you for using Jellyfin!
+LumaFin is an independent project based on Jellyfin for Android TV and is not affiliated with or endorsed by the Jellyfin project.
+
+Learn more: https://getlumafin.com
+Source code: https://github.com/bagodees/LumaFin-AndroidTV
+
+Screenshots feature Creative Commons films by Blender Studio (https://studio.blender.org/films/) and Pioneer One by Josh Bernhard and Bracey Smith. Media is shown for demonstration and is not included with LumaFin.
