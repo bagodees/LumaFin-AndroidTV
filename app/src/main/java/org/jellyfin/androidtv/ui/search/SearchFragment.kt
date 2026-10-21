@@ -95,7 +95,7 @@ class SearchFragment : Fragment() {
 			restoringResults = false
 		}
 
-		Column {
+		Column(Modifier.fillMaxSize()) {
 			MainToolbar(MainToolbarActiveButton.Search)
 
 			Row(

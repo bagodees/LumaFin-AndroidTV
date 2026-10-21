@@ -13,6 +13,10 @@
     <dimen name="lb_playback_controls_child_margin_default">32dp</dimen>
     <dimen name="lb_playback_controls_child_margin_bigger">40dp</dimen>
     <dimen name="lb_playback_controls_child_margin_biggest">56dp</dimen>
+    <!-- 28dp total below the focus label: keep a TV-safe inset without the
+         previous stacked 28dp grid + 20dp row padding. -->
+    <dimen name="lb_playback_controls_padding_bottom">16dp</dimen>
+    <dimen name="lumafin_playback_label_clearance">12dp</dimen>
 
     <fraction name="card_scale_default">100%</fraction>
     <!-- Keep focus clear without making the selected card dominate its row. -->

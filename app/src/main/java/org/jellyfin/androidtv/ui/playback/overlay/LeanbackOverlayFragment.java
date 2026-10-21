@@ -10,6 +10,7 @@ import androidx.annotation.Nullable;
 import androidx.leanback.app.PlaybackSupportFragment;
 
 import org.jellyfin.androidtv.preference.UserPreferences;
+import org.jellyfin.androidtv.R;
 import org.jellyfin.androidtv.preference.UserSettingPreferences;
 import org.jellyfin.androidtv.ui.playback.CustomPlaybackOverlayFragment;
 import org.jellyfin.androidtv.ui.playback.PlaybackController;
@@ -51,6 +52,10 @@ public class LeanbackOverlayFragment extends PlaybackSupportFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        // Use Leanback's full-screen background so its normal fade also covers
+        // the area below the controls, independently of row padding/alignment.
+        view.findViewById(androidx.leanback.R.id.playback_fragment_background)
+                .setBackgroundResource(R.drawable.lumafin_player_scrim);
         super.hideControlsOverlay(false);
     }
 
