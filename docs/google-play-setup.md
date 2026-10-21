@@ -8,6 +8,7 @@ Status checked October 21, 2026. No release has been uploaded or sent for review
 - Privacy policy: https://getlumafin.com/privacy/
 - Reviewer instructions saved in Play Console, with access limited to Demo-Movies and Demo-TV. Credentials belong only in Play Console, never this repository.
 - No ads; intended audience 18 and over (separate from content rating).
+- Advertising ID declaration: No. Checked app source, dependency declarations, and the merged release manifest for advertising-ID APIs, ads SDKs, and `com.google.android.gms.permission.AD_ID`; none found. Saved after Play's pre-review check surfaced the missing declaration.
 - IARC: All Other App Types, no bundled or developer-promoted catalog. Returned ESRB Everyone and PEGI 3.
 - Not a government app; no financial or health features.
 - Category: Video Players & Editors.
