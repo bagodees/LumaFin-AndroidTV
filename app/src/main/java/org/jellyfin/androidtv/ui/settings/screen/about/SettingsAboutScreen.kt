@@ -1,10 +1,13 @@
 package org.jellyfin.androidtv.ui.settings.screen.about
 
 import android.content.ClipData
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -59,6 +62,24 @@ fun SettingsAboutScreen(launchedFromLogin: Boolean = false) {
 				captionContent = { Text(caption) },
 				onClick = copyAction(ClipData.newPlainText(heading, caption)),
 				modifier = Modifier.focusKey("device_model")
+			)
+		}
+
+		item {
+			val context = LocalContext.current
+			val heading = stringResource(R.string.privacy_policy)
+			val url = stringResource(R.string.privacy_policy_url)
+			val copy = copyAction(ClipData.newPlainText(heading, url))
+			ListButton(
+				leadingContent = { Icon(painterResource(R.drawable.ic_guide), contentDescription = null) },
+				headingContent = { Text(heading) },
+				captionContent = { Text(url.removePrefix("https://")) },
+				// Many TVs have no browser; the address stays visible and is copied when nothing can open it.
+				onClick = {
+					val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+					if (runCatching { context.startActivity(intent) }.isFailure) copy()
+				},
+				modifier = Modifier.focusKey("privacy_policy")
 			)
 		}
 
