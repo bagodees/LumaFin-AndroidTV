@@ -30,7 +30,7 @@ This is not an officially supported Jellyfin project - it's built for personal u
 ### Home screen
 
 <p align="center">
-  <img alt="LumaFin home screen" src="docs/screenshots/home-screen.png" width="100%" />
+  <img alt="LumaFin home screen with Continue Watching and Latest Movies rows" src="docs/screenshots/home-screen.png" width="100%" />
 </p>
 
 ### Details screens
@@ -39,15 +39,27 @@ This is not an officially supported Jellyfin project - it's built for personal u
 | --- | --- |
 | <img alt="LumaFin movie details screen" src="docs/screenshots/movie-details.png" /> | <img alt="LumaFin episode details screen" src="docs/screenshots/episode-details.png" /> |
 
-### Home customization
+### Playback
 
-<p align="center">
-  <img alt="LumaFin home customization panel with a visibility toggle and move handle on each section" src="docs/screenshots/home-customization.png" width="100%" />
-</p>
+| Player controls | Player menus |
+| --- | --- |
+| <img alt="LumaFin player controls on a dark gradient band" src="docs/screenshots/player-controls.png" /> | <img alt="LumaFin subtitles menu during playback" src="docs/screenshots/player-menu.png" /> |
 
-<sub>Screenshots show Creative Commons films: Elephants Dream, Cosmos Laundromat, Spring and Sprite Fright
-© Blender Foundation ([studio.blender.org](https://studio.blender.org/films/)), CC BY; Pioneer One by Josh Bernhard and
-Bracey Smith, Creative Commons.</sub>
+### Libraries
+
+| Library grid | Filters |
+| --- | --- |
+| <img alt="LumaFin library grid" src="docs/screenshots/library-grid.png" /> | <img alt="LumaFin library Filters panel with switches" src="docs/screenshots/library-filters.png" /> |
+
+### Home customization and profiles
+
+| Home customization | Who's watching |
+| --- | --- |
+| <img alt="LumaFin Home customization panel with a visibility toggle and move handle on each section" src="docs/screenshots/home-customization.png" /> | <img alt="LumaFin profile picker with the LumaFin logo" src="docs/screenshots/account-picker.png" /> |
+
+<sub>Screenshots show Creative Commons films from Blender Studio ([studio.blender.org](https://studio.blender.org/films/)),
+CC BY: Elephants Dream, Big Buck Bunny, Sintel, Tears of Steel, Caminandes, Cosmos Laundromat, Agent 327, Spring,
+Sprite Fright and Charge; and Pioneer One by Josh Bernhard and Bracey Smith, Creative Commons.</sub>
 
 ## What's different from upstream
 
