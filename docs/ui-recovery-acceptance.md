@@ -48,3 +48,18 @@ subsequent fixes or broader hardware/codec acceptance.
   connections timed out and test-user login could not complete. Actual Search and
   playback visual checks are blocked by that connection, not recorded as passed.
   Physical-TV confirmation of both gradient fixes and the lower labels is pending.
+
+### Emulator follow-up after server recovery
+
+The user restored the server after nginx was down. Retrying the connection
+succeeded, then all playback checks used the saved test account. Search's empty
+results with keyboard open and populated results with keyboard closed both showed
+continuous full-screen coverage. Playback of Pioneer One S1:E4 showed the gradient
+reaching the bottom edge with no uncovered strip, and the focused Skip forward
+label remained fully visible below the lower controls. During normal playback the
+controls timed out and the entire gradient disappeared, leaving unobstructed video.
+Playback was stopped and the original cocarte account was restored; its playback
+history was not changed. No additional code change or APK rebuild was necessary.
+Both issues remain open for physical-TV confirmation. Screenshots are in ignored
+build outputs: search-gradient-empty.png, search-gradient-results.png,
+player-gradient-label.png and player-auto-hidden.png.
