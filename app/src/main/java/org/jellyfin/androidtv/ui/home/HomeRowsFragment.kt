@@ -26,6 +26,8 @@ import org.jellyfin.androidtv.preference.HomeShortcutPreferences
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -33,6 +35,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jellyfin.androidtv.auth.repository.UserRepository
 import org.jellyfin.androidtv.auth.repository.SessionRepository
+import org.jellyfin.androidtv.auth.repository.SessionRepositoryState
 import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.constant.CustomMessage
 import org.jellyfin.androidtv.constant.HomeSectionType
@@ -128,7 +131,21 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 
 		adapter = RecoveringHomeRowsAdapter(lifecycleScope, lifecycle, ::onHomeLoadFailure)
 
-		loadHomeRows()
+		// Session publication and preference restoration can finish after this fragment
+		// is created. Restart for the ready session instead of abandoning a stale load.
+		combine(sessionRepository.currentSession, sessionRepository.state) { session, state ->
+			session.takeIf { state == SessionRepositoryState.READY }
+		}.distinctUntilChanged().onEach { session ->
+			if (session != null) {
+				loadHomeRows()
+			} else {
+				homeLoadGeneration++
+				homeLoadJob?.cancel()
+				(adapter as RecoveringHomeRowsAdapter).cancelRequests()
+				cancelRowPages()
+				homeErrorDialog?.dismiss()
+			}
+		}.launchIn(lifecycleScope)
 
 		onItemViewClickedListener = CompositeClickedListener().apply {
 			registerListener(ItemViewClickedListener())
@@ -191,11 +208,15 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 	}
 
 	private fun loadHomeRows() {
+		val session = sessionRepository.currentSession.value ?: return
+		if (sessionRepository.state.value != SessionRepositoryState.READY) return
 		homeLoadJob?.cancel()
 		cancelRowPages()
 		val generation = ++homeLoadGeneration
-		val session = sessionRepository.currentSession.value
-		val current = { generation == homeLoadGeneration && session == sessionRepository.currentSession.value }
+		val current = {
+			generation == homeLoadGeneration && session == sessionRepository.currentSession.value &&
+				sessionRepository.state.value == SessionRepositoryState.READY
+		}
 		homeErrorShown = false
 		homeErrorDialog?.dismiss()
 		homeErrorDialog = null
