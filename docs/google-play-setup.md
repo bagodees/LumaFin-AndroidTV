@@ -48,8 +48,11 @@ Official definitions: https://support.google.com/googleplay/android-developer/an
 - Signed 1.0.0 bundle built successfully, including release lint: `app/build/outputs/bundle/release/LumaFin-AndroidTV-v1.0.0-release.aab` (version code 1000099). Merged release manifest confirms required Leanback support.
 - Bundle signing certificate SHA-256 matches the existing 0.2.1 release APK: `A5:24:4C:B8:85:42:EC:BE:8E:94:25:57:92:B2:E9:15:12:FA:C4:F6:C7:AD:BF:3A:8F:69:93:B4:75:CF:68:55`.
 - All inspected arm64-v8a and x86_64 native ELF LOAD segments have 16384-byte alignment. Actual Play device compatibility and bundle delivery validation remain pending upload.
-- User approved securely exporting the existing release key to Google Play and completed the encrypted ZIP upload and Save. User reports app-signing key changed; verify the Console fingerprint matches the certificate above before uploading the AAB. No private key or password is stored in this repository.
-- Closed-testing Alpha release draft created, named `1.0.0 - first closed test`, with English release notes. No bundle uploaded yet. Countries and testers remain unconfigured; the user does not yet have 12 testers.
+- User approved securely exporting the existing release key to Google Play and completed the encrypted ZIP upload and Save. Verified Console's app-signing fingerprint matches the certificate above. No private key or password is stored in this repository.
+- Closed-testing Alpha release draft saved, named `1.0.0 - first closed test`, with English release notes and bundle 1000099 uploaded. Bundle SHA-256: `1F7EC9989116AE00123D71A4E57A1DA947B7F3987DC4D54157280D2F0CD1BA0E`.
+- Google reports support for 16 KB pages and four ABIs (arm64-v8a, armeabi-v7a, x86, x86_64). Device Catalog terms accepted with explicit user approval. All 3,075 supported models remain when filtered to TV, confirming TV-only targeting without manual exclusions.
+- United States-only closed-test availability saved with explicit user approval. Release preview now has no errors and two warnings (no testers; optional native debug symbols missing). Release saved to Publishing overview, ready for review submission. Nothing submitted or rolled out.
+- Tester list remains unconfigured; the user does not yet have 12 testers. Gather their Google account emails or a suitable Google Group before starting the closed test.
 - Finish pending physical-TV checks, including playback and Search gradient fixes.
 - Configure closed testing. The dashboard requires at least 12 testers opted in continuously for 14 days before applying for production access.
 - Obtain approval before sending the release for review or publishing.
