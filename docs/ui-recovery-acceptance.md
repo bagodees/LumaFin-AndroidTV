@@ -151,3 +151,18 @@ control normally. User confirmed a brief 4K HDR title started normally with
 correct-looking brightness/colors and smooth picture/sound. Exact HDR format,
 codec, bitrate and output mode were not captured; this is not exhaustive HDR or
 hardware-decoder certification.
+
+### Paused at user's request — 2026-10-21
+
+Resume one check at a time. Next unanswered check: play a title with 5.1/surround
+audio through the soundbar/receiver and check clear dialogue, missing voices,
+distortion/dropouts; note the receiver's reported audio mode if available.
+Do not mark surround audio passed yet. Earlier multiple-track switching was
+unavailable because the user had no suitable title.
+
+Outstanding V1 failures from this session: #69 unresponsive Home after sleep/wake
+(Back out/re-entry restores responsiveness), #73 stalled reload when selecting
+130% text, #74 clipped first subtitle-settings row despite pressing Up, and #75
+crash immediately on pressing remote Home during playback. These remain unresolved.
+Playback/Search gradient physical-TV checks passed. No fixes for the new failures
+have been implemented during this acceptance session.
