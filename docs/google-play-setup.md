@@ -1,6 +1,23 @@
 # Google Play setup
 
-Status checked October 21, 2026. No release has been uploaded or sent for review.
+Latest update: October 22, 2026. The first closed test is published; worldwide
+availability (178 country/region options, including Rest of World) is active.
+The approved tester group is `lumafin-testers@googlegroups.com`. Public testers
+must supply their own permitted Jellyfin server access; the restricted demo
+account remains for Google reviewers only. Earlier setup notes below record the
+initial submission and may describe steps that have since completed.
+
+## Second closed-test build
+
+- Public version 1.0.0, version code 1000100; replaces 1000099 on Alpha.
+- Includes Home/session recovery, text-size recreation, subtitle-settings focus
+  clearance, playback lifecycle hardening, Play-installed update-notice handling,
+  and explicit Up-to-Home navigation from details actions and Audio.
+- All 374 app unit tests passed. Details navigation passed emulator checks and
+  user confirmation. The physical-TV recovery/crash checks remain pending.
+- Signed bundle SHA-256: `DA05349D8A599BDABEDEEDC51FC0F436015901431346769503E89C131BA74C27`.
+- Certificate matches the first Play bundle. Upload/review status is recorded
+  after completing Console validation below.
 
 ## Saved declarations
 

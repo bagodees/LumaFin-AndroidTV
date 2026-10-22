@@ -206,3 +206,15 @@ Website update notices now skip installations whose installer is Google Play
 This detects update source, not whether the user enabled Play automatic updates.
 Installer detection still needs a Play-installed release retest; the emulator
 build is a debug build and does not show website update notifications.
+
+### Details action-row Up navigation — 2026-10-22
+
+Reported: Up from Resume/Play/Restart and the other actions selected Audio;
+Up from Audio returned to the remembered action, creating a navigation loop.
+Setting nextFocusUpId alone did not resolve the report: Leanback still redirected
+Up inside the row. DetailRowView now handles Up from actions and Audio before
+the grid's geometric focus search, requesting the visible header Home button.
+Debug build/install passed. On the emulator, Up from Resume, Play, Restart,
+Watched, Favorite, Previous episode and More each selected Home. Down from Home
+restored the last action; Left reached Subtitles, and Up then selected Audio and
+Home in sequence. Physical-TV confirmation remains pending.

@@ -1,6 +1,11 @@
 # Google Play release version
 
-The first planned Google Play release is **1.0.0**, with version code **1000099** from the existing semantic-version calculation.
+The Google Play closed test uses public version **1.0.0**. The first bundle used code
+**1000099**; the next test update uses **1000100**. `lumafin.releaseVersionCode` in
+`gradle.properties` supplies the code when building `lumafin.releaseVersion`, so
+test updates can retain the planned 1.0.0 public version. Other versions keep the
+semantic-version calculation. The configured release code cannot be lower than
+that calculation; increase it for every Play upload and check the Console first.
 
 Build the release app bundle with the configured release signing credentials:
 

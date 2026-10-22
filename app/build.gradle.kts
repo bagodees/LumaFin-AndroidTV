@@ -19,7 +19,12 @@ android {
 		// Release version
 		applicationId = appId
 		versionName = project.getVersionName()
-		versionCode = getVersionCode(versionName!!)
+		val semanticVersionCode = getVersionCode(versionName!!)
+		versionCode = if (versionName == project.property("lumafin.releaseVersion").toString()) {
+			project.property("lumafin.releaseVersionCode").toString().toInt().also {
+				require(it >= semanticVersionCode) { "Release version code must be at least $semanticVersionCode" }
+			}
+		} else semanticVersionCode
 
 		// Only used for the version label shown in dev builds
 		buildConfigField("String", "NEXT_VERSION", "\"${project.property("lumafin.nextVersion")}\"")
