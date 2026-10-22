@@ -84,3 +84,15 @@ reloaded normally. This is a failed accessibility transition check, not a passed
 The user subsequently confirmed Home loaded its rows normally on both opens
 without backing out and returning. This is a two-open startup pass on 0.2.1;
 sleep/wake and account-switch startup coverage remain outstanding for #69.
+
+Sleep/wake follow-up on the same physical TV and 0.2.1 failed: after sleeping the
+TV from LumaFin Home and waking/returning, the toolbar and server backdrop were
+visible but Home rows were absent. User photograph confirms the blank content
+area. #69 remains unresolved despite the two normal opens passing. Delay duration,
+navigation recovery, and account-switch behavior had not yet been established
+when the photo was supplied.
+
+The user clarified that nothing responds in this wake state; switching tabs is
+not possible. Backing out and returning restores movement/responsiveness. Record
+this as an unresponsive app after sleep/wake, rather than only absent Home rows.
+The cause is unconfirmed; no ANR or device logs have been captured.
