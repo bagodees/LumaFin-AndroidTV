@@ -139,3 +139,15 @@ After reopening, the same video's Resume position was close to the pre-crash
 position. Playing again and stopping normally with Back returned to details
 without crashing, with remote navigation responsive. The Home-button crash remains
 failed; these recovery/Back passes do not resolve #75.
+
+Additional playback checks passed on 0.2.1: selecting a later chapter jumped
+correctly with responsive playback; lowering Quality resumed picture/sound in
+sync (the requested check included restoring original quality); Sleep Timer
+showed active after setting and off after cancellation. Timer expiry itself has
+not been tested in this pass.
+Subtitle Timing adjustment passed with responsive playback; requested reset was
+to 0. Playback Information text was reachable/readable, and closing returned
+control normally. User confirmed a brief 4K HDR title started normally with
+correct-looking brightness/colors and smooth picture/sound. Exact HDR format,
+codec, bitrate and output mode were not captured; this is not exhaustive HDR or
+hardware-decoder certification.
