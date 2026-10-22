@@ -1,6 +1,7 @@
 package org.jellyfin.androidtv.data.repository
 
 import android.content.Context
+import android.os.Build
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -89,6 +90,17 @@ class NotificationsRepositoryImpl(
 	private fun addUpdateAvailableNotification() {
 		// Development builds have no real version to compare against
 		if (BuildConfig.DEVELOPMENT) return
+		// Play manages its own releases, which may differ from the website channel.
+		// Installer source does not tell us whether automatic updates are enabled.
+		val installer = runCatching {
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+				context.packageManager.getInstallSourceInfo(context.packageName).installingPackageName
+			} else {
+				@Suppress("DEPRECATION")
+				context.packageManager.getInstallerPackageName(context.packageName)
+			}
+		}.getOrNull()
+		if (installer == "com.android.vending") return
 
 		scope.launch {
 			val latestVersion = appUpdateChecker.getLatestVersion() ?: return@launch

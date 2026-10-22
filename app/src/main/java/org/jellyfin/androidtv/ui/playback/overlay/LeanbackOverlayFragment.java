@@ -119,14 +119,6 @@ public class LeanbackOverlayFragment extends PlaybackSupportFragment {
         playerGlue.recordingStateChanged();
     }
 
-    @Override
-    public void onPause() {
-        super.onPause();
-        if (playerAdapter != null) {
-            playerAdapter.getMasterOverlayFragment().onPause();
-        }
-    }
-
     public CustomPlaybackTransportControlGlue getPlayerGlue() {
         return playerGlue;
     }

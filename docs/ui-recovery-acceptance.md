@@ -166,3 +166,43 @@ Outstanding V1 failures from this session: #69 unresponsive Home after sleep/wak
 crash immediately on pressing remote Home during playback. These remain unresolved.
 Playback/Search gradient physical-TV checks passed. No fixes for the new failures
 have been implemented during this acceptance session.
+
+### Fix pass — 2026-10-22
+
+Changes implemented for the four outstanding V1 reports:
+
+- #69: retaining an auto-login account on backgrounding no longer emits a false
+  RESTORING_SESSION transition that invalidates Home requests. Configuration
+  changes also skip the session teardown check in MainActivity.onStop.
+- #73: the navigation host now has a stable view ID so its page history survives
+  text-size recreation. Restored history does not replay the last navigation
+  command (particularly GoBack) into an empty host. Nullable saved fragment state
+  is accepted when restoring history entries.
+- #74: settings lists reserve vertical content padding; focused controls bring
+  their whole row into view instead of only the slider thumb. Visual verification
+  caught and corrected clipping that padding alone did not resolve.
+- #75: navigation commands wait until the activity is RESUMED, avoiding page
+  changes while playback stops and activity/fragment state is being saved. The
+  child playback overlay no longer manually invokes its parent's onPause callback.
+  This is lifecycle hardening: the original physical-TV crash stack has not yet
+  been collected, and the crash was not reproduced on the emulator.
+
+Local verification: debug build and app unit tests passed, including a regression
+test proving repeated retained-session background checks never invalidate Home.
+On LumaFin_TV: default-to-130% reload after details/Back returned to populated Home
+and the remote could open an episode immediately; 130%-to-default reload also
+worked. Sleep/wake returned populated Home. Playing Pioneer One and pressing
+remote Home stopped playback without a fatal exception; reopening loaded Home.
+Subtitle Brightness's complete focus outline was visible after Down/Up.
+
+Physical-TV confirmation remains required for #69, #73, #74 and #75 before closing
+them. Repeat sleep/wake and 130% changes, navigate subtitle settings down/up, and
+press remote Home during playback then reopen and resume. If #75 recurs, collect
+the Jellyfin crash report before changing the player again. The paused surround
+audio check remains untested.
+
+Website update notices now skip installations whose installer is Google Play
+(com.android.vending). Sideloaded/unknown installers keep the existing notice.
+This detects update source, not whether the user enabled Play automatic updates.
+Installer detection still needs a Play-installed release retest; the emulator
+build is a debug build and does not show website update notifications.

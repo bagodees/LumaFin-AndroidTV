@@ -87,10 +87,13 @@ class SessionRepositoryImpl(
 			lastSwitchTarget = null
 			Timber.i("Restoring session")
 
-			_state.value = SessionRepositoryState.RESTORING_SESSION
-
 			val alwaysAuthenticate = authenticationPreferences[AuthenticationPreferences.alwaysAuthenticate]
 			val autoLoginBehavior = authenticationPreferences[AuthenticationPreferences.autoLoginUserBehavior]
+			// Backgrounding an auto-login session keeps the same account. Do not
+			// invalidate Home's in-flight loads for a restoration that never happens.
+			if (destroyOnly && !alwaysAuthenticate && autoLoginBehavior != DISABLED) return@withLock
+
+			_state.value = SessionRepositoryState.RESTORING_SESSION
 
 			when {
 				alwaysAuthenticate -> destroyCurrentSession()

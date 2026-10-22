@@ -45,7 +45,7 @@ private class HistoryEntry(
 			name = Class.forName(parcel.readString()!!) as Class<out Fragment>,
 			arguments = parcel.readBundle(this::class.java.classLoader)!!,
 			fragment = null,
-			savedState = ParcelCompat.readParcelable(parcel, this::class.java.classLoader, Fragment.SavedState::class.java)!!,
+			savedState = ParcelCompat.readParcelable(parcel, this::class.java.classLoader, Fragment.SavedState::class.java),
 		)
 
 		override fun newArray(size: Int): Array<HistoryEntry?> = arrayOfNulls(size)
@@ -56,6 +56,13 @@ class DestinationFragmentView @JvmOverloads constructor(
 	context: Context,
 	attrs: AttributeSet? = null,
 ) : FrameLayout(context, attrs) {
+	init {
+		// AndroidView saves/restores hierarchy state only for views with an ID.
+		id = R.id.navigation_host
+	}
+
+	var hasRestoredHistory = false
+		private set
 	private companion object {
 		private const val FRAGMENT_TAG_CONTENT = "content"
 		private const val BUNDLE_SUPER = "super"
@@ -224,7 +231,10 @@ class DestinationFragmentView @JvmOverloads constructor(
 		if (savedHistory != null) {
 			history.clear()
 			history.addAll(savedHistory)
-			if (history.isNotEmpty()) activateHistoryEntry(history.last(), fragmentManager.beginTransaction())
+			if (history.isNotEmpty()) {
+				hasRestoredHistory = true
+				activateHistoryEntry(history.last(), fragmentManager.beginTransaction())
+			}
 		}
 	}
 }

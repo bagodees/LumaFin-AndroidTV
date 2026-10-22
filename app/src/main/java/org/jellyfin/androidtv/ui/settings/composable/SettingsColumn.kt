@@ -2,6 +2,7 @@ package org.jellyfin.androidtv.ui.settings.composable
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
@@ -20,5 +21,7 @@ fun SettingsColumn(
 	modifier = modifier
 		.padding(Tokens.Space.spaceSm),
 	verticalArrangement = Arrangement.spacedBy(Tokens.Space.spaceXs),
+	// Keep the first/last item's focus outline inside the scrolling viewport.
+	contentPadding = PaddingValues(vertical = Tokens.Space.spaceXs),
 	content = content,
 )

@@ -129,6 +129,8 @@ class MainActivity : FragmentActivity() {
 
 	override fun onStop() {
 		super.onStop()
+		// A theme/text-size reload is not leaving the signed-in session.
+		if (isChangingConfigurations) return
 
 		workManager.enqueue(OneTimeWorkRequestBuilder<LeanbackChannelWorker>().build())
 

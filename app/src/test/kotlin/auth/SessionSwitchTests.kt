@@ -23,11 +23,36 @@ import org.jellyfin.sdk.api.client.ApiClient
 import org.jellyfin.sdk.api.operations.ClientLogApi
 import org.jellyfin.sdk.api.client.exception.TimeoutException
 import java.util.UUID
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.launch
+import org.jellyfin.androidtv.auth.store.AuthenticationPreferences
+import org.jellyfin.androidtv.preference.constant.UserSelectBehavior
 
 class SessionSwitchTests : FunSpec({
 	val server = Server(UUID(0, 1), "Server", "http://localhost:8096", "10.11.0")
 	val first = UUID(0, 2)
 	val second = UUID(0, 3)
+
+	test("backgrounding retained auto-login session never invalidates Home requests") {
+		val preferences = mockk<AuthenticationPreferences>()
+		every { preferences[AuthenticationPreferences.alwaysAuthenticate] } returns false
+		every { preferences[AuthenticationPreferences.autoLoginUserBehavior] } returns UserSelectBehavior.LAST_USER
+		val sessions = SessionRepositoryImpl(preferences, mockk(relaxed = true), mockk(relaxed = true), mockk(relaxed = true),
+			mockk(relaxed = true), UserRepositoryImpl(), mockk(relaxed = true), mockk(relaxed = true), mockk(relaxed = true),
+			mockk(relaxed = true), {}, { _, _, _ -> error("Backgrounding must not authenticate") })
+		val states = mutableListOf<SessionRepositoryState>()
+		val collector = CoroutineScope(Dispatchers.Unconfined).launch(start = CoroutineStart.UNDISPATCHED) {
+			sessions.state.collect { states += it }
+		}
+		try {
+			repeat(3) { sessions.restoreSession(destroyOnly = true) }
+			states shouldBe listOf(SessionRepositoryState.READY)
+		} finally {
+			collector.cancel()
+		}
+	}
 
 	test("validation failure preserves active user preferences queues and session, then allows retry") {
 		val users = UserRepositoryImpl()

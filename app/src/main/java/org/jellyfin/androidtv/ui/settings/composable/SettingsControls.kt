@@ -2,6 +2,8 @@ package org.jellyfin.androidtv.ui.settings.composable
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.InteractionSource
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -17,6 +19,7 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -53,9 +56,14 @@ fun SettingsControl(
 	val source = interactionSource ?: remember { MutableInteractionSource() }
 	val focused by source.collectIsFocusedAsState()
 	val strong = LocalAccessibility.current.strongFocus
+	val bringIntoView = remember { BringIntoViewRequester() }
+	LaunchedEffect(focused) {
+		// A slider's small thumb is not enough: reveal its label and entire outline.
+		if (focused) bringIntoView.bringIntoView()
+	}
 	BaseListControl(
 		headingContent = headingContent,
-		modifier = modifier.heightIn(min = 56.dp).then(
+		modifier = modifier.bringIntoViewRequester(bringIntoView).heightIn(min = 56.dp).then(
 			if (focused && enabled) Modifier.border(
 				if (strong) 3.dp else 2.dp,
 				if (strong) Color.White else JellyfinTheme.colorScheme.inputFocused,
