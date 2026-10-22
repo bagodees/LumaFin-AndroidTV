@@ -96,3 +96,17 @@ The user clarified that nothing responds in this wake state; switching tabs is
 not possible. Backing out and returning restores movement/responsiveness. Record
 this as an unresponsive app after sleep/wake, rather than only absent Home rows.
 The cause is unconfirmed; no ANR or device logs have been captured.
+
+After recovering responsiveness, switching to another saved Jellyfin user passed:
+Home loaded and responded normally. Switching back to the original user also
+passed, with that user's rows and watch progress visible. Sleep/wake remains failed.
+
+Held Right/Down navigation stopped on release without opening an item. Home row
+reordering passed: the moving row was clearly highlighted, normal focus returned
+after dropping it, and the chosen position persisted after closing/reopening.
+
+Subtitle appearance settings failed the preview/first-row spacing check on 0.2.1:
+the user reported the first setting cut off at the top. Photo shows Subtitle
+Brightness focused beneath the pinned preview, with the upper focus outline
+clipped. Its title, description and slider are visible. Whether Up can reveal the
+complete row and whether navigation becomes trapped remain unconfirmed.
