@@ -16,8 +16,17 @@ initial submission and may describe steps that have since completed.
 - All 374 app unit tests passed. Details navigation passed emulator checks and
   user confirmation. The physical-TV recovery/crash checks remain pending.
 - Signed bundle SHA-256: `DA05349D8A599BDABEDEEDC51FC0F436015901431346769503E89C131BA74C27`.
-- Certificate matches the first Play bundle. Upload/review status is recorded
-  after completing Console validation below.
+- Certificate matches the first Play bundle. Release bundle build, unit tests,
+  and release lint tasks completed. Lint is configured not to abort on errors;
+  its existing errors remain, with no error messages absent from the preceding
+  debug report and none reported for the changed navigation/build files.
+- Play accepted build 1000100 with no blocking errors. The only warning is
+  missing optional native debug symbols. TV device support remains 3,080 models;
+  no supported devices were removed, and phones/tablets remain unsupported.
+- Saved for 100% of the Alpha closed test and submitted October 22, 2026.
+  Publishing overview shows **Changes in review**, with preliminary checks
+  running. Managed publishing is off; availability follows Google's approval.
+  This is a closed-test update, not a production release.
 
 ## Saved declarations
 
