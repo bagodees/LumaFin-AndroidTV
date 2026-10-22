@@ -5,6 +5,9 @@ plugins {
 	alias(libs.plugins.kotlin.serialization)
 }
 
+val distribution = providers.gradleProperty("lumafin.distribution").getOrElse("standard")
+require(distribution in setOf("standard", "amazon")) { "Unknown LumaFin distribution: $distribution" }
+
 android {
 	namespace = "org.jellyfin.androidtv"
 	compileSdk = libs.versions.android.compileSdk.get().toInt()
@@ -18,6 +21,9 @@ android {
 
 		// Release version
 		applicationId = appId
+		// Fire OS supports Leanback widgets/launcher intents but uses its own TV platform.
+		// Amazon device targeting must additionally select Fire TV only in its Console.
+		manifestPlaceholders["leanbackRequired"] = (distribution != "amazon").toString()
 		versionName = project.getVersionName()
 		val semanticVersionCode = getVersionCode(versionName!!)
 		versionCode = if (versionName == project.property("lumafin.releaseVersion").toString()) {
@@ -108,7 +114,7 @@ android {
 	}
 }
 
-base.archivesName.set("LumaFin-AndroidTV-v${project.getVersionName()}")
+base.archivesName.set("LumaFin-AndroidTV-v${project.getVersionName()}${if (distribution == "amazon") "-firetv" else ""}")
 
 // Without a version, a release would report itself as 0.0.0-dev and the update notice
 // couldn't tell which release is installed, so refuse to package one.

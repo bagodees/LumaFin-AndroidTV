@@ -1,0 +1,116 @@
+# Amazon Fire TV / Appstore preparation
+
+Started October 22, 2026. No Amazon app has been submitted. The existing developer
+account is signed in and its contact address is saved. Amazon requires account
+identity verification before app submission; the verification page is open for
+the user to complete privately. A friend reports a "Fire TV Stick 4K Manx",
+interpreted as 4K Max; exact model/generation, OS and physical testing are pending.
+The friend reports that the current GitHub APK is already sideloaded and works
+well. Treat this as an initial compatibility report, not a completed Appstore
+installation or acceptance checklist. Prioritize testing the new candidate and
+Amazon Live App Testing delivery rather than assuming a runtime port is needed.
+
+## Initial scope
+
+Target Fire TV devices running Android-based Fire OS, not Fire tablets. Vega OS
+requires a separate VPKG app and is outside this initial Android release. Confirm
+the friend's model/OS before sharing a test APK. With minimum SDK 23, Fire OS 5
+(API 22) is unsupported; do not lower the SDK merely to claim older-device support.
+
+Keep package `io.github.bagodees.lumafin`, public version 1.0.0, and the existing
+release key. Amazon re-signs ingested apps: do not promise seamless upgrades from
+GitHub/Play installations without comparing the Amazon certificate first.
+
+## Build
+
+```powershell
+.\gradlew.bat :app:assembleRelease '-Pjellyfin.version=1.0.0' '-Plumafin.distribution=amazon'
+```
+
+Output: `app/build/outputs/apk/release/LumaFin-AndroidTV-v1.0.0-firetv-release.apk`.
+Candidate built successfully October 22: version code 1000100, min SDK 23, target
+SDK 36, four ABIs (ARM 32/64 and x86 32/64), release signature verified. SHA-256:
+`FAA328D21D538EC6E04A716C38D48829ABA2A7B099885016C4430F85543A23DB`.
+Packaged APK declares Leanback optional; a separate standard manifest-processing
+run confirmed Leanback remains required by default. This is packaging validation,
+not certification on Fire TV hardware.
+This option makes `android.software.leanback` optional, following Amazon's TV
+manifest example. Standard builds still require Leanback. The existing MAIN,
+LAUNCHER and LEANBACK_LAUNCHER intent entries remain. Select Fire TV devices only
+in Amazon Console; an optional Leanback feature alone does not enforce TV-only
+distribution. No new SDK, billing, analytics, account or backend is added.
+
+Current source already suppresses website-update notices for installer
+`com.amazon.venezia` as well as Google Play. The production-signed Amazon-install
+path still needs testing. No direct Google Play links were found in app sources.
+Speech uses Android APIs and checks availability; do not advertise Alexa/global
+search integration. Android launcher channels are guarded by TV-provider support;
+Amazon launcher recommendations are not implemented by that integration.
+
+## Console preparation
+
+- Complete Amazon identity verification privately (contact profile is saved).
+- Create LumaFin as a free Fire OS app and upload the signed candidate.
+- Review actual compatible models and restrict delivery to Fire TV; exclude Vega
+  and untested/incompatible models. Use Live App Testing before public release.
+- Support: support@getlumafin.com; website: https://getlumafin.com;
+  privacy: https://getlumafin.com/privacy/.
+- Complete Amazon's own privacy labels and content declarations from current app
+  behavior. Do not automatically copy Google form answers into different questions.
+- Provide restricted reviewer server access privately if required; no public demo
+  login. Credentials must never be committed here.
+- Confirm signing implications and DRM choice before final submission. The app is
+  free and has no billing integration; automatic DRM is not needed for this scope.
+
+## Listing draft
+
+Title: LumaFin
+
+Short description: Browse and play your Jellyfin library on Fire TV with a remote-friendly interface, customizable Home rows, subtitles and playback controls. Requires access to a Jellyfin server and account.
+
+Long description:
+
+LumaFin connects your Fire TV to a Jellyfin server you own or have permission to
+use. Browse movies and TV shows, continue watching, explore cast details, and
+customize your Home rows using your TV remote.
+
+Playback controls include resume, seeking, subtitle options and playback
+information. Available audio, subtitles and media formats depend on your server,
+media files and Fire TV device.
+
+LumaFin does not provide movies, TV shows, a media library or a streaming
+subscription. You need a Jellyfin server URL and user account to get started.
+
+Features: Remote-friendly browsing; customizable Home rows; resume playback;
+audio/subtitle controls; movie, episode and cast details.
+
+## Artwork
+
+Amazon currently requires a 1280x720 opaque PNG Fire TV app icon, 3–10 1920x1080
+landscape screenshots, and a 1920x1080 opaque background image. Reuse LumaFin's
+approved logo and appropriate sample-media screenshots after Fire TV validation;
+the background must not contain embedded logos or titles. Existing Google
+1024x500 artwork is not the Fire TV icon. Verify requirements in the live form.
+
+## Physical Fire TV checks (not yet passed)
+
+1. Install/launch from the Fire TV app row; sign in with HTTPS server credentials.
+2. D-pad, Select and Back across Home, Libraries, Search and details; Up from actions
+   and Audio reaches Home. Keyboard search works if voice is unavailable.
+3. Resume/play/restart, seek, captions, available audio tracks, volume/audio focus,
+   soundbar surround and supported HDR formats; record exact model and formats.
+4. Remote Home during playback stops cleanly; reopen/resume without a crash.
+5. Sleep/wake and text-size changes preserve a responsive populated Home.
+6. Subtitle settings show complete first-row focus at default and 130% text.
+7. Store-installed update notice, update-in-place, login retention and uninstall.
+8. Capture crash logs and genuine Fire TV screenshots; do not mark Android emulator
+   checks as Fire TV hardware verification.
+
+## Official references
+
+- https://developer.amazon.com/docs/fire-tv/differences-from-android-tv-development.html
+- https://developer.amazon.com/docs/fire-tv/add-tv-support-to-an-existing-react-native-project.html
+- https://developer.amazon.com/docs/app-submission/upload-app-file.html
+- https://developer.amazon.com/docs/app-submission/device-filtering-and-compatibility.html
+- https://developer.amazon.com/docs/app-submission/appstore-details.html
+- https://developer.amazon.com/docs/app-submission/presubmission-checklist.html

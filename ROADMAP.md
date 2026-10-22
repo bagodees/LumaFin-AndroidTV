@@ -33,6 +33,19 @@ Publish LumaFin on Google Play for Android TV and Google TV while continuing to 
 
 Recheck Google Play requirements when this milestone begins, as policies may change.
 
+### Amazon Fire TV distribution
+
+Status: In progress. Preparation started October 22, 2026.
+
+Publish on the Amazon Appstore for supported Fire OS TVs, with a physical Fire TV
+test before submission. Vega OS is a separate platform and is outside the initial
+Android build. Setup, listing draft and device checks: [Amazon preparation](docs/amazon-appstore.md).
+
+- [ ] Complete Amazon developer profile and confirm the test device model/OS.
+- [x] Build and verify the Amazon APK while preserving standard Play TV targeting.
+- [ ] Complete physical Fire TV testing and store artwork/privacy declarations.
+- [ ] Run Live App Testing, then submit the Fire TV listing for review.
+
 ## LumaFin v2 roadmap
 
 Public project: [LumaFin v2 Roadmap](https://github.com/users/bagodees/projects/2).
