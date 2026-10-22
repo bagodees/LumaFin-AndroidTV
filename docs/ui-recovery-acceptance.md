@@ -63,3 +63,24 @@ history was not changed. No additional code change or APK rebuild was necessary.
 Both issues remain open for physical-TV confirmation. Screenshots are in ignored
 build outputs: search-gradient-empty.png, search-gradient-results.png,
 player-gradient-label.png and player-auto-hidden.png.
+
+### Physical-TV confirmation on 0.2.1 — 2026-10-21
+
+The user confirmed playback's gradient reaches the bottom without an uncovered
+strip, and the lowered controls and Playback Information focus label remain
+comfortably visible. The user also confirmed Search's dark background covers the
+whole screen during typing and no-results checks with the keyboard open.
+Physical-TV acceptance of the gradient fixes in #71 and #72 passed.
+The user also confirmed Stronger focus outline (check 23): selected Home cards and
+buttons have a clear, thick white outline visible from the normal seating position.
+High contrast also passed: card titles and secondary text were readable with
+solid title backgrounds and no reported clipping.
+
+Changing Text size to Larger (130%) stalled the app on the physical TV. The user
+had to back out and reopen; 130% was then applied. Switching back to Default
+reloaded normally. This is a failed accessibility transition check, not a passed
+130% layout check. Leave text at Default until fixed and retested.
+
+The user subsequently confirmed Home loaded its rows normally on both opens
+without backing out and returning. This is a two-open startup pass on 0.2.1;
+sleep/wake and account-switch startup coverage remain outstanding for #69.
