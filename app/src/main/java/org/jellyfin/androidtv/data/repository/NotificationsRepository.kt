@@ -90,8 +90,8 @@ class NotificationsRepositoryImpl(
 	private fun addUpdateAvailableNotification() {
 		// Development builds have no real version to compare against
 		if (BuildConfig.DEVELOPMENT) return
-		// Play manages its own releases, which may differ from the website channel.
-		// Installer source does not tell us whether automatic updates are enabled.
+		// App stores (Google Play, Amazon Appstore) manage their own releases, which may differ
+		// from the website channel. Installer source does not tell us whether automatic updates are enabled.
 		val installer = runCatching {
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
 				context.packageManager.getInstallSourceInfo(context.packageName).installingPackageName
@@ -100,7 +100,7 @@ class NotificationsRepositoryImpl(
 				context.packageManager.getInstallerPackageName(context.packageName)
 			}
 		}.getOrNull()
-		if (installer == "com.android.vending") return
+		if (installer in STORE_INSTALLERS) return
 
 		scope.launch {
 			val latestVersion = appUpdateChecker.getLatestVersion() ?: return@launch
@@ -131,5 +131,10 @@ class NotificationsRepositoryImpl(
 					),
 				)
 		}
+	}
+
+	private companion object {
+		/** Installers that update the app themselves: Google Play and the Amazon Appstore. */
+		val STORE_INSTALLERS = setOf("com.android.vending", "com.amazon.venezia")
 	}
 }
