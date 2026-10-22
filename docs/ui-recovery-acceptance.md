@@ -122,3 +122,14 @@ selection retained, plus no-results (`zzzz`) and clearing back to normal setting
 Movie-library Genre filtering updated the grid correctly; clearing the filter
 restored the full library. Combined filters and sort persistence remain untested
 in this resumed pass.
+
+Movie-library sort to Title descending persisted after leaving/reopening. Scrolling
+through several loaded rows, opening details and Back returned to the selected
+card without reported missing/duplicate cards or jumping to the top.
+
+Playback background/foreground check failed on physical TV, 0.2.1. Requested steps
+were start video, press remote Home, then reopen LumaFin. User reported a crash and
+provided a launcher photo showing the LumaFin toast: "Oops! Something went wrong,
+a crash report was sent to your Jellyfin server." Exact timing (on Home press or
+on reopening), media/format, and server-side crash report remain to be collected.
+Do not classify this as an ordinary playback stop or assume it shares #69's cause.
