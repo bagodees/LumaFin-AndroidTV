@@ -109,4 +109,16 @@ Subtitle appearance settings failed the preview/first-row spacing check on 0.2.1
 the user reported the first setting cut off at the top. Photo shows Subtitle
 Brightness focused beneath the pinned preview, with the upper focus outline
 clipped. Its title, description and slider are visible. Whether Up can reveal the
-complete row and whether navigation becomes trapped remain unconfirmed.
+complete row was initially unconfirmed. The user then pressed Up once with
+Subtitle Brightness selected and confirmed it stays clipped. Downward navigation
+was then checked: all other options are visible/selectable, with no reported
+focus trap. Only the first-row clipping remains failed in #74.
+
+Subtitle Brightness preview dimmed immediately while the video/background stayed
+unchanged; user confirmed the requested check (which included restoring the value).
+Settings Search focus did not open the keyboard; OK activated it as expected.
+Settings Search also passed result navigation/Back with the query and visible
+selection retained, plus no-results (`zzzz`) and clearing back to normal settings.
+Movie-library Genre filtering updated the grid correctly; clearing the filter
+restored the full library. Combined filters and sort persistence remain untested
+in this resumed pass.
