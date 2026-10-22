@@ -131,5 +131,11 @@ Playback background/foreground check failed on physical TV, 0.2.1. Requested ste
 were start video, press remote Home, then reopen LumaFin. User reported a crash and
 provided a launcher photo showing the LumaFin toast: "Oops! Something went wrong,
 a crash report was sent to your Jellyfin server." Exact timing (on Home press or
-on reopening), media/format, and server-side crash report remain to be collected.
+on reopening) was initially unknown. The user confirmed the crash occurred when
+pressing Home during playback. Media/format and server-side crash report remain
+to be collected.
 Do not classify this as an ordinary playback stop or assume it shares #69's cause.
+After reopening, the same video's Resume position was close to the pre-crash
+position. Playing again and stopping normally with Back returned to details
+without crashing, with remote navigation responsive. The Home-button crash remains
+failed; these recovery/Back passes do not resolve #75.
