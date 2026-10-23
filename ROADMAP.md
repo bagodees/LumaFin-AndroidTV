@@ -52,6 +52,24 @@ Public project: [LumaFin v2 Roadmap](https://github.com/users/bagodees/projects/
 Future planning after the current v1 work; no release date is set. Inclusion does not
 start implementation or settle details that still need user review.
 
+### Design exploration and possible redesign
+
+Status: Exploratory discussion only. A complete redesign and independent rebuild are
+**not approved for implementation**. These ideas may inform improvements to the current
+app or a future redesign; that decision remains open. No release date or delivery
+commitment is attached to these candidates.
+
+Research and candidate flows: [V2 design exploration](docs/v2-design-exploration.md).
+
+- Compare useful design patterns observed in Wholphin and Moonfin, with inspiration
+  from Plex and Emby, while developing LumaFin's own visual and interaction identity.
+- Explore choosing something that fits the available viewing time, a clear before-Play
+  setup panel, and session planning with finish estimates and stop rules.
+- Consider Home layout previews, series navigation, spoiler-safe browsing and readable
+  playback recovery alongside dependable focus and return navigation.
+- Review concepts and practical benefits before selecting scope or deciding whether
+  to proceed with a complete redesign. Keep current v1 work separate.
+
 ### Playlists
 
 Status: Planned for v2; scope review required before implementation.
