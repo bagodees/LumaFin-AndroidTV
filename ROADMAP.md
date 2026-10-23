@@ -49,15 +49,20 @@ Android build. Setup, listing draft and device checks: [Amazon preparation](docs
 ## LumaFin v2 roadmap
 
 Public project: [LumaFin v2 Roadmap](https://github.com/users/bagodees/projects/2).
-Future planning after the current v1 work; no release date is set. Inclusion does not
-start implementation or settle details that still need user review.
+The independent redesign was approved October 23, 2026. V1 maintenance continues
+separately. No release date is set; individual feature candidates still need prioritization.
 
-### Design exploration and possible redesign
+### Original redesign and independent implementation
 
-Status: Exploratory discussion only. A complete redesign and independent rebuild are
-**not approved for implementation**. These ideas may inform improvements to the current
-app or a future redesign; that decision remains open. No release date or delivery
-commitment is attached to these candidates.
+Status: Planned and approved October 23, 2026. Tracking issue:
+[#77](https://github.com/bagodees/LumaFin-AndroidTV/issues/77).
+
+Build an original v2 client in the separate private LumaFin-v2 repository, without
+reusing implementation from the Jellyfin Android TV fork or other clients. Standard
+libraries and an appropriately licensed Jellyfin SDK are allowed. Public planning
+remains in this repository and the linked v2 project. Foundation scope: original
+design, sign-in, browsing, details, reliable playback/resume and progress reporting,
+followed by physical Android/Google TV and Fire OS validation.
 
 Research and candidate flows: [V2 design exploration](docs/v2-design-exploration.md).
 
@@ -67,8 +72,9 @@ Research and candidate flows: [V2 design exploration](docs/v2-design-exploration
   setup panel, and session planning with finish estimates and stop rules.
 - Consider Home layout previews, series navigation, spoiler-safe browsing and readable
   playback recovery alongside dependable focus and return navigation.
-- Review concepts and practical benefits before selecting scope or deciding whether
-  to proceed with a complete redesign. Keep current v1 work separate.
+- Review two original Home concepts and one details/player flow before implementing
+  the first viewing flow. Prioritize candidate features separately; approval of the
+  redesign does not promise every idea. Keep current v1 work separate.
 
 ### Playlists
 

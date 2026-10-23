@@ -1,10 +1,23 @@
-# V2 design exploration
+# V2 redesign direction and design candidates
 
-Discussion notes, October 22, 2026. These are candidates to evaluate, not approved
-features, an implementation plan, or a commitment to replace the current app. A full
-redesign and independent rebuild remain undecided. Improvements may instead be made
-within the existing app. This document keeps the discussion in the current repository;
-it does not depend on access to the separate private prototype repository.
+Research started October 22, 2026. **Complete redesign and independent implementation
+approved by the maintainer October 23, 2026.** V1 maintenance continues separately;
+no release date is committed. Individual feature ideas below remain candidates to
+evaluate and prioritize, rather than promises to deliver every item.
+
+## Project locations and boundaries
+
+- [Official redesign issue #77](https://github.com/bagodees/LumaFin-AndroidTV/issues/77)
+- [Public v2 planning project](https://github.com/users/bagodees/projects/2)
+- [Current roadmap](../ROADMAP.md#lumafin-v2-roadmap)
+- Independent implementation: separate private LumaFin-v2 repository, foundation
+  milestone "V2 foundation: original design and reliable playback". Public planning
+  remains readable here without access to the private repository.
+
+Implement original screens and remote navigation without reusing source from the
+Jellyfin Android TV fork or other clients. Standard Android libraries and an
+appropriately licensed Jellyfin SDK are allowed. Dependency licensing, package/signing
+identity, settings migration and rollout must be resolved before publication.
 
 ## Intended direction
 
@@ -78,17 +91,19 @@ Reliability, pre-play track selection, favorites and series browsing are baselin
 expectations. More themes, badges, animations or integrations alone do not establish
 a distinct product. Avoid speed, compatibility or leadership claims without evidence.
 
-## Decision gate before implementation
+## First phase and scope review
 
-Keep v1 maintenance and release work separate. If we choose to take this discussion
-further, first review two original Home concepts and one details/player flow using
+Keep v1 maintenance and release work separate. First review two original Home
+concepts and one details/player flow using
 neutral sample content. Compare remote tasks: resume, find a title under 30 minutes,
 choose subtitles before Play, plan two episodes, return to the same card and recover
 from an unavailable server. Include large text and cold launch on physical TVs.
 
-Only then decide which ideas are worth implementing, whether the existing app can
-support them, and whether a complete independent redesign is justified. Create
-implementation issues and revise milestones after that scope decision.
+Then choose the first design direction and implement a foundation slice in the
+independent repository: sign-in, browse, details, play/resume and progress reporting.
+Validate on physical Android/Google TV and Fire OS before broadening toward v1 parity.
+Prioritize additional design candidates after that review; the independent redesign
+decision is approved, while detailed screen layouts and feature scope remain open.
 
 ## References
 
