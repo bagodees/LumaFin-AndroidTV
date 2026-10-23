@@ -1,7 +1,7 @@
 # Google Play release version
 
 The Google Play closed test uses public version **1.0.0**. The first bundle used code
-**1000099**; the next test update uses **1000100**. `lumafin.releaseVersionCode` in
+**1000099**; TV fixes used **1000100**, and the library-footer update uses **1000101**. `lumafin.releaseVersionCode` in
 `gradle.properties` supplies the code when building `lumafin.releaseVersion`, so
 test updates can retain the planned 1.0.0 public version. Other versions keep the
 semantic-version calculation. The configured release code cannot be lower than

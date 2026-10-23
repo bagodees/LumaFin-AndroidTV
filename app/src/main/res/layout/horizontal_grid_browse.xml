@@ -9,7 +9,7 @@
         android:id="@+id/rowsFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@+id/statusText"
+        android:layout_above="@+id/libraryFooter"
         android:layout_below="@+id/infoRow"
         android:layout_alignParentStart="true"
         android:layout_marginTop="8dp"
@@ -56,29 +56,39 @@
         android:orientation="horizontal"
         android:showDividers="middle" />
 
-    <TextView
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/libraryFooter"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        tools:text="0 | 0"
-        android:id="@+id/counter"
-        android:textAlignment="viewEnd"
-        android:textSize="18sp"
         android:layout_alignParentBottom="true"
+        android:layout_alignStart="@+id/title"
         android:layout_alignParentEnd="true"
         android:layout_marginBottom="13sp"
         android:layout_marginEnd="60sp"
-        android:fontFamily="sans-serif-light" />
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/statusText"
-        android:textSize="12sp"
-        android:alpha=".6"
-        android:layout_alignStart="@+id/title"
-        android:layout_alignTop="@+id/counter"
-        android:layout_marginTop="6sp"
-        android:fontFamily="sans-serif-light" />
+        <TextView
+            android:id="@+id/statusText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="16dp"
+            android:textSize="12sp"
+            android:alpha=".85"
+            android:textColor="@color/lumafin_text"
+            android:fontFamily="sans-serif-medium" />
+
+        <TextView
+            android:id="@+id/counter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="0 | 0"
+            android:textAlignment="viewEnd"
+            android:textSize="18sp"
+            android:textColor="@color/lumafin_text"
+            android:fontFamily="sans-serif-medium" />
+    </LinearLayout>
 
     <org.jellyfin.androidtv.ui.ClockUserView
         android:layout_width="wrap_content"
