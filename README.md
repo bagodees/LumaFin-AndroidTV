@@ -86,8 +86,11 @@ Sprite Fright and Charge; and Pioneer One by Josh Bernhard and Bracey Smith, Cre
 
 ## Installing
 
-Download the latest APK and follow the step-by-step guide at **[getlumafin.com](https://getlumafin.com)**. On a TV with
-the free Downloader app, entering `getlumafin.com/android` fetches the newest release directly.
+- **Google TV, Android TV and Nvidia Shield:** install from Google Play by joining the beta at
+  **[getlumafin.com/beta](https://getlumafin.com/beta)**. Play keeps LumaFin updated automatically.
+- **Amazon Fire TV:** Fire TV doesn't have Google Play, so install the APK. In the free Downloader app, enter
+  `getlumafin.com/android` to fetch the newest release. Step-by-step instructions are at
+  **[getlumafin.com](https://getlumafin.com/#install-firetv)**.
 
 ## Building
 
