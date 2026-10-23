@@ -45,3 +45,20 @@ Android build. Setup, listing draft and device checks: [Amazon preparation](docs
 - [x] Build and verify the Amazon APK while preserving standard Play TV targeting.
 - [ ] Complete physical Fire TV testing and store artwork/privacy declarations.
 - [ ] Run Live App Testing, then submit the Fire TV listing for review.
+
+## Interface redesign (1.x to 2.0)
+
+Status: Planned October 23, 2026. No release date is set.
+
+Plan: [Interface redesign](docs/redesign-plan.md).
+
+Replace the visible screens with LumaFin's own layouts one at a time, inside this app,
+keeping the existing playback, sign-in, sync and features. Each new screen ships first
+as an option testers can switch back from, then becomes the default.
+
+- [ ] Review two Home concepts as mockups and choose one.
+- [ ] 1.1: new Home screen available as an option.
+- [ ] 1.2: new Home by default; reorganized full-screen settings; one LumaFin action menu for all cards; new details screen available as an option.
+- [ ] 1.3: "Fits tonight" viewing-time picker; guided first-run setup; new details screen by default.
+- [ ] Remaining screens as needed (series and seasons, library, search).
+- [ ] 2.0: all main screens are new and the old Home and details screens are removed.
