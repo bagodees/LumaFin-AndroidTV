@@ -1,5 +1,22 @@
 # Google Play setup
 
+## 1.0.1 release preparation — October 24, 2026
+
+- Fix #106 in commit `25d302e4d`; version configuration `6fc6d9f3f`.
+- Public version 1.0.1, code 1000199. Signed standard AAB/APK built with
+  `-Pjellyfin.version=1.0.1`; all 377 app unit tests passed. APK retains the
+  LumaFin release certificate and required Leanback feature.
+- AAB SHA-256: `62D53C54158DFD03DC7B75B4A395D6E983EDE452DE3705037D6916065FF9A0B5`.
+- APK SHA-256: `2A097357577BA9BCEB5E2023C6B03995F4699A919C825A23C6F0F25647A0269D`.
+- GitHub release `v1.0.1` published with the APK. Website generated files pushed
+  in `225e9e6`; live `/version.json` and `/android` verified on 1.0.1.
+- Play Alpha draft release 4 has the name and notes. Bundle file selection is
+  awaiting the owner because the Chrome extension did not open Play's chooser.
+  Do not describe this build as uploaded or available on Play until verified.
+- Sony/Beam confirmation remains open in #106. Amazon remains unchanged/in review.
+
+Historical setup details follow.
+
 Latest update: October 22, 2026. The first closed test is published; worldwide
 availability (178 country/region options, including Rest of World) is active.
 The approved tester group is `lumafin-testers@googlegroups.com`. Public testers

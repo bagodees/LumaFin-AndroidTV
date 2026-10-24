@@ -34,6 +34,12 @@ The released app on Google Play, Amazon Appstore and GitHub. No redesign work.
 Closed testing is active with 1.0.0 (code 1000101). Google requires 12 testers opted in
 for 14 days before production access. Details: [Google Play setup](docs/google-play-setup.md).
 
+1.0.1 (code 1000199) packages the TrueHD surround fallback fix
+([#106](https://github.com/bagodees/LumaFin-AndroidTV/issues/106)). Signed builds and
+377 app unit tests passed. GitHub v1.0.1 is published; the website release feed is
+updated. Play Alpha upload is being prepared. Sony/Beam surround confirmation
+remains pending in #106; Amazon's in-review submission is unchanged.
+
 - [x] Play developer account, Play App Signing with the existing key, and a release bundle
 - [x] Store text, screenshots, TV artwork, privacy policy and Data safety
 - [x] Hide the GitHub update notice for Play installs
