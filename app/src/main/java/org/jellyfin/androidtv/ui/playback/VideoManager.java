@@ -217,8 +217,29 @@ public class VideoManager {
             @Override
             public void onTracksChanged(Tracks tracks) {
                 Timber.d("Tracks changed");
+                preferOriginalVideoVariant(tracks);
             }
         });
+    }
+
+    /**
+     * When Jellyfin copies HDR video it also offers SDR re-encoded variants at the same bitrate,
+     * listed after the original. ExoPlayer can rank a Dolby Vision original below them, turning an
+     * audio-only conversion into a full SDR video re-encode, so keep the original when the device
+     * can attempt it. The profile only declares formats the device reported support for.
+     */
+    private void preferOriginalVideoVariant(Tracks tracks) {
+        for (Tracks.Group group : tracks.getGroups()) {
+            if (group.getType() != C.TRACK_TYPE_VIDEO || group.length < 2 || !group.isSelected()) continue;
+            if (group.isTrackSelected(0) || !group.isTrackSupported(0, true)) return;
+            if (mExoPlayer.getTrackSelectionParameters().overrides.containsKey(group.getMediaTrackGroup())) return;
+
+            Timber.i("Selecting the original video variant (%s)", group.getTrackFormat(0).codecs);
+            mExoPlayer.setTrackSelectionParameters(mExoPlayer.getTrackSelectionParameters().buildUpon()
+                    .setOverrideForType(new TrackSelectionOverride(group.getMediaTrackGroup(), 0))
+                    .build());
+            return;
+        }
     }
 
     public void subscribe(@NonNull PlaybackControllerNotifiable notifier) {
@@ -391,6 +412,7 @@ public class VideoManager {
             mExoPlayer.setTrackSelectionParameters(mExoPlayer.getTrackSelectionParameters()
                     .buildUpon()
                     .clearOverridesOfType(C.TRACK_TYPE_AUDIO)
+                    .clearOverridesOfType(C.TRACK_TYPE_VIDEO)
                     .build());
         }
 
