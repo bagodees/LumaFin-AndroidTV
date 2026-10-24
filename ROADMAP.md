@@ -37,7 +37,8 @@ for 14 days before production access. Details: [Google Play setup](docs/google-p
 1.0.1 (code 1000199) packages the TrueHD surround fallback fix
 ([#106](https://github.com/bagodees/LumaFin-AndroidTV/issues/106)). Signed builds and
 377 app unit tests passed. GitHub v1.0.1 is published; the website release feed is
-updated. Play Alpha upload is being prepared. Sony/Beam surround confirmation
+updated. Play Alpha 1.0.1 was submitted for review on October 24; quick checks
+are running and tester availability is not yet confirmed. Sony/Beam surround confirmation
 remains pending in #106; Amazon's in-review submission is unchanged.
 
 - [x] Play developer account, Play App Signing with the existing key, and a release bundle

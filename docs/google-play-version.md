@@ -1,6 +1,6 @@
 # Google Play release version
 
-The next Google Play closed-test release is **1.0.1**, code **1000199**,
+The Google Play closed-test update submitted for review is **1.0.1**, code **1000199**,
 including the Dolby TrueHD surround fallback fix (#106). Version 1.0.0 used codes
 **1000099**, **1000100** (TV fixes), and **1000101** (library footer). `lumafin.releaseVersionCode` in
 `gradle.properties` supplies the code when building `lumafin.releaseVersion`, so

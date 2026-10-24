@@ -10,9 +10,12 @@
 - APK SHA-256: `2A097357577BA9BCEB5E2023C6B03995F4699A919C825A23C6F0F25647A0269D`.
 - GitHub release `v1.0.1` published with the APK. Website generated files pushed
   in `225e9e6`; live `/version.json` and `/android` verified on 1.0.1.
-- Play Alpha draft release 4 has the name and notes. Bundle file selection is
-  awaiting the owner because the Chrome extension did not open Play's chooser.
-  Do not describe this build as uploaded or available on Play until verified.
+- Owner selected the bundle manually; Play verified 1.0.1 / 1000199 in Alpha
+  release 4. Supported devices remain 3,080 TVs and zero other form factors.
+  Only the optional native debug-symbol warning remains.
+- After the owner's explicit approval, submitted the Alpha update on October 24.
+  Publishing overview shows Changes in review, with quick checks running before
+  Google review. Managed publishing is off. Tester availability is not yet verified.
 - Sony/Beam confirmation remains open in #106. Amazon remains unchanged/in review.
 
 Historical setup details follow.
