@@ -6,6 +6,16 @@ have been accepted for the roadmap.
 
 Milestone statuses: **Deferred**, **Planned**, **In progress**, and **Complete**.
 
+Each planned version has a GitHub milestone with one issue per feature:
+[1.0.x](https://github.com/bagodees/LumaFin-AndroidTV/milestone/1),
+[1.1](https://github.com/bagodees/LumaFin-AndroidTV/milestone/2),
+[1.2](https://github.com/bagodees/LumaFin-AndroidTV/milestone/3),
+[1.3](https://github.com/bagodees/LumaFin-AndroidTV/milestone/4),
+[1.x later](https://github.com/bagodees/LumaFin-AndroidTV/milestone/5) and
+[2.0](https://github.com/bagodees/LumaFin-AndroidTV/milestone/6).
+The [By version](https://github.com/users/bagodees/projects/1/views/2) project view shows them together.
+A version's scope is settled before work on it starts; new ideas go to a later milestone.
+
 ## LumaFin v1 roadmap
 
 Public project: [LumaFin v1 Roadmap](https://github.com/users/bagodees/projects/1).
