@@ -72,4 +72,19 @@ as an option testers can switch back from, then becomes the default.
 - [ ] 1.3: "Fits tonight" viewing-time picker; guided first-run setup; new details screen by default; accent color themes.
 - [ ] Remaining screens as needed (series and seasons, library, search).
 - [ ] Light theme, once every main screen supports themes.
+
+## Planned features (1.x)
+
+Status: Planned October 24, 2026. Each feature has an issue in its milestone; scope and
+order can still change before a version's work starts.
+
+- [ ] 1.2: pin genres, studios, playlists and Favorites to Home ([#96](https://github.com/bagodees/LumaFin-AndroidTV/issues/96)); remove a show from Next Up ([#97](https://github.com/bagodees/LumaFin-AndroidTV/issues/97)).
+- [ ] 1.3: PIN lock for switching users ([#98](https://github.com/bagodees/LumaFin-AndroidTV/issues/98)); optional theme music on details pages ([#99](https://github.com/bagodees/LumaFin-AndroidTV/issues/99)).
+- [ ] Later in 1.x:
+  - Request movies and shows through Seerr ([#100](https://github.com/bagodees/LumaFin-AndroidTV/issues/100))
+  - Install updates from inside the app on Fire TV ([#101](https://github.com/bagodees/LumaFin-AndroidTV/issues/101))
+  - Live TV quick channel switching and stall recovery ([#102](https://github.com/bagodees/LumaFin-AndroidTV/issues/102))
+  - Evaluate wider playback format support ([#103](https://github.com/bagodees/LumaFin-AndroidTV/issues/103))
+  - SyncPlay group watching ([#104](https://github.com/bagodees/LumaFin-AndroidTV/issues/104))
+  - Kids mode ([#105](https://github.com/bagodees/LumaFin-AndroidTV/issues/105))
 - [ ] 2.0: all main screens are new and the old Home and details screens are removed.
