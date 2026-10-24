@@ -68,6 +68,21 @@ private val hlsFmp4AudioCodecs = arrayOf(
 	Codec.Audio.DTS,
 )
 
+/**
+ * The server converts audio to the first codec of a transcoding profile. Put Dolby formats the
+ * device passes through first, so a track it can't play (such as TrueHD on a TV without TrueHD
+ * passthrough) stays surround instead of becoming AAC. The filtered list only contains AC3 and
+ * EAC3 when their passthrough is enabled.
+ */
+internal fun preferPassthroughAudioCodecs(codecs: List<String>): Array<String> =
+	codecs.sortedBy { codec ->
+		when (codec) {
+			Codec.Audio.EAC3 -> 0
+			Codec.Audio.AC3 -> 1
+			else -> 2
+		}
+	}.toTypedArray()
+
 private fun UserPreferences.getMaxBitrate(): Int {
 	this[UserPreferences.streamingQuality].bitrate?.let { return it }
 	var maxBitrate = this[UserPreferences.maxBitrate].toFloatOrNull()
@@ -133,7 +148,8 @@ fun createDeviceProfile(
 		when (supportedPassthroughAudioCodecs) {
 			Codec.Audio.AC3 -> isAC3PrefEnabled
 			Codec.Audio.EAC3 -> isEAC3PrefEnabled
-			Codec.Audio.TRUEHD -> isTrueHDPrefEnabled
+			// MLP is the same format family as TrueHD and needs the same passthrough
+			Codec.Audio.TRUEHD, Codec.Audio.MLP -> isTrueHDPrefEnabled
 			Codec.Audio.DTS -> isDTSPrefEnabled
 			else -> true
 		}
@@ -190,7 +206,7 @@ fun createDeviceProfile(
 		protocol = MediaStreamProtocol.HLS
 
 		videoCodec(*hlsVideoCodecs)
-		audioCodec(*hlsMpegTsAudioCodecs.filter(allowedAudioCodecs::contains).toTypedArray())
+		audioCodec(*preferPassthroughAudioCodecs(hlsMpegTsAudioCodecs.filter(allowedAudioCodecs::contains)))
 
 		copyTimestamps = false
 		enableSubtitlesInManifest = true
@@ -204,7 +220,7 @@ fun createDeviceProfile(
 		protocol = MediaStreamProtocol.HLS
 
 		videoCodec(*hlsVideoCodecs)
-		audioCodec(*hlsFmp4AudioCodecs.filter(allowedAudioCodecs::contains).toTypedArray())
+		audioCodec(*preferPassthroughAudioCodecs(hlsFmp4AudioCodecs.filter(allowedAudioCodecs::contains)))
 
 		copyTimestamps = false
 		enableSubtitlesInManifest = true
