@@ -1,5 +1,46 @@
 # Amazon Fire TV / Appstore preparation
 
+## October 24: submitted
+
+The owner submitted LumaFin 1.0.0 (code 1000101) to the Amazon Appstore on
+October 24, 2026. It is waiting for Amazon's review. The draft notes below record
+how the submission was prepared.
+
+## October 23 draft status
+
+Amazon confirmed identity/account review is complete. LumaFin app entry created;
+**not submitted**. The owner explicitly requires personal review before submission.
+
+- App ID: `amzn1.devportal.mobileapp.abef31512d6f4b1f85d1349a847a88f2`
+- Draft release: `amzn1.devportal.apprelease.da93c7ff9356446e93085df227af6b3b`
+- Current Fire TV APK uploaded and processed: version 1.0.0, code 1000101.
+  SHA-256: `FF6786710A9DEDCF0D390B82E4BE67FA209DB54908687919BB6DFC3083DB77B2`.
+  Release signature matches the existing LumaFin key; min SDK 23, target 36,
+  four ABIs, Leanback optional. Build succeeded; no runtime changes in this pass.
+- Fire TV targeting: 91 compatible models selected; zero tablets and zero
+  automotive devices. Free, all available countries, intended audience 18+.
+- Amazon-added DRM: No. English listing text saved. Privacy policy URL saved.
+- Fire TV icon/background created from existing branding and a simple navy
+  background in `docs/amazon-assets/`; three existing sample-media app screenshots
+  uploaded. These are Android TV app screenshots, not new Fire TV hardware captures.
+  Required common 512px/114px icons and screenshot fields are also populated;
+  the review page reports English multimedia Complete. This does not enable tablets.
+- Privacy questionnaire is **unsaved and under review**. The owner correctly
+  notes that the developer receives no users' personal data. Name changed to No
+  in the draft. Other preliminary collection answers must be reconciled with
+  Amazon's app-level definitions before saving; do not treat them as accepted.
+  Automatic approval review rejected saving the earlier proposed Analytics /
+  Personalization answers. No final privacy declaration has been submitted.
+- Account/data deletion answers and private reviewer-access instructions remain
+  to be completed/reviewed. Do not copy credentials to Amazon without specific
+  authorization for that destination. No credentials belong in this document.
+- General reviewer instructions are entered, with an explicit note that credentials
+  still need to be added privately. Export-compliance certification is unchecked.
+  Submit App was not clicked. Review page and unsaved privacy draft left open.
+
+The earlier preparation notes below describe the October 22 starting state and
+candidate; the status and artifact above supersede those historical details.
+
 Started October 22, 2026. No Amazon app has been submitted. The existing developer
 account is signed in and its contact address is saved. Amazon requires account
 identity verification before app submission; the verification page is open for

@@ -45,16 +45,17 @@ Recheck Google Play requirements when this milestone begins, as policies may cha
 
 ### Amazon Fire TV distribution
 
-Status: In progress. Preparation started October 22, 2026.
+Status: In progress. Submitted October 24, 2026; waiting for Amazon's review.
 
 Publish on the Amazon Appstore for supported Fire OS TVs, with a physical Fire TV
 test before submission. Vega OS is a separate platform and is outside the initial
 Android build. Setup, listing draft and device checks: [Amazon preparation](docs/amazon-appstore.md).
 
-- [ ] Complete Amazon developer profile and confirm the test device model/OS.
+- [x] Complete Amazon developer profile and identity review.
 - [x] Build and verify the Amazon APK while preserving standard Play TV targeting.
-- [ ] Complete physical Fire TV testing and store artwork/privacy declarations.
-- [ ] Run Live App Testing, then submit the Fire TV listing for review.
+- [x] Complete store artwork and privacy declarations.
+- [x] Submit the Fire TV listing for review (October 24, 2026; waiting for Amazon's approval).
+- [ ] Confirm the approved listing installs and updates on a physical Fire TV.
 
 ## Interface redesign (1.x to 2.0)
 
