@@ -52,9 +52,9 @@ removed in a later release.
 | --- | --- |
 | 1.0.0 | Google Play launch. GitHub and Fire TV releases move to the same version. No redesign. |
 | 1.1 | New Home screen available as "Try the new Home" in settings. |
-| 1.2 | New Home becomes the default. New settings and action menus. New details screen available as an option. |
-| 1.3 | "Fits tonight" (below). New first-run setup. New details screen becomes the default. |
-| 1.x | Remaining screens as needed: library browsing, search, series and seasons. |
+| 1.2 | New Home becomes the default. New settings and action menus. New details screen available as an option. Video/photo filter. |
+| 1.3 | "Fits tonight" (below). New first-run setup. New details screen becomes the default. Accent color themes. |
+| 1.x | Remaining screens as needed: library browsing, search, series and seasons. Light theme once every main screen supports it. |
 | 2.0 | All main screens are new and the old Home and details screens are removed. |
 
 2.0 is the "all-new LumaFin" release for the store listing and announcements.
@@ -141,6 +141,33 @@ remaining time for partly watched items.
 
 This gives people something to talk about other than the app's origin. Check the
 idea with a mockup before building it.
+
+## Themes
+
+Requested by testers: theme support, or at least a light theme. LumaFin still carries
+the official app's theme picker (Dark, Emerald, Muted Purple), but much of the LumaFin
+styling uses fixed colors rather than theme colors, so those choices only partly apply.
+
+Direction:
+
+- Build every new screen from named color tokens (background, surface, text, accent,
+  focus, watched) instead of fixed colors, so a theme is a set of token values.
+- First themes: LumaFin (default navy, cyan and purple) plus a few accent variations,
+  replacing the inherited Emerald and Muted Purple choices.
+- Light theme: a full set of tokens with readable text over bright artwork, a visible
+  focus outline and dimmed backdrops. Ship it only when every main screen uses tokens;
+  a half-light app with dark leftovers is worse than none.
+- Themes are per user, like other appearance settings, and included in settings
+  backup and sync. High contrast and the stronger focus outline keep working on top.
+- Check each theme at TV distance, with large text and on bright and missing artwork.
+
+## Video/photo filter
+
+Requested by testers: filter a library by file type. Mixed libraries (home videos,
+folders of photos and clips) show videos and photos together. Add a Type choice to the
+library filter menu (All, Videos, Photos) where a library contains both, saved per
+library like the other filters. Hide the choice in movie, show and music libraries,
+where it would do nothing.
 
 ## First step: Home concepts
 

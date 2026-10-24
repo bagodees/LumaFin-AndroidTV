@@ -58,7 +58,8 @@ as an option testers can switch back from, then becomes the default.
 
 - [ ] Review two Home concepts as mockups and choose one.
 - [ ] 1.1: new Home screen available as an option.
-- [ ] 1.2: new Home by default; reorganized full-screen settings; one LumaFin action menu for all cards; new details screen available as an option.
-- [ ] 1.3: "Fits tonight" viewing-time picker; guided first-run setup; new details screen by default.
+- [ ] 1.2: new Home by default; reorganized full-screen settings; one LumaFin action menu for all cards; new details screen available as an option; video/photo filter for mixed libraries.
+- [ ] 1.3: "Fits tonight" viewing-time picker; guided first-run setup; new details screen by default; accent color themes.
 - [ ] Remaining screens as needed (series and seasons, library, search).
+- [ ] Light theme, once every main screen supports themes.
 - [ ] 2.0: all main screens are new and the old Home and details screens are removed.
