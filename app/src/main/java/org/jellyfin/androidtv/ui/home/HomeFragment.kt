@@ -98,7 +98,7 @@ class HomeFragment : Fragment() {
 				rows = {
 					// The rows place the focused row by a share of their height; in this shorter area that
 					// clips the first row's heading, so align rows a fixed distance from the top instead.
-					val rowsTopOffset = with(LocalDensity.current) { 52.dp.roundToPx() }
+					val rowsTopOffset = with(LocalDensity.current) { 40.dp.roundToPx() }
 					HomeRows(rowsFocusRequester, rowsSupportFragment, exitDirections = setOf(FocusDirection.Left, FocusDirection.Up), resetOnUp = false, topOffsetPx = rowsTopOffset)
 				},
 			)

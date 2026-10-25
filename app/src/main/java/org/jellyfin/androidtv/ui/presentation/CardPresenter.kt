@@ -445,7 +445,7 @@ private fun CardViewHolderContent(
 
 		ItemPreview(
 			card = { card() },
-			metadataMinHeight = if (homeRow) with(localDensity) { 50.sp.toDp() } + 12.dp else 0.dp,
+			metadataMinHeight = if (homeRow) with(localDensity) { 50.sp.toDp() } + 2.dp else 0.dp,
 			title = title?.let { text ->
 				{
 					Text(

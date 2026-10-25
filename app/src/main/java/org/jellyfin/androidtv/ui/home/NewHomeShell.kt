@@ -185,13 +185,15 @@ fun HomeFocusedPreview(
 	val playbackHelper = koinInject<PlaybackHelper>()
 	val playbackLauncher = koinInject<PlaybackLauncher>()
 	val userPreferences = koinInject<UserPreferences>()
-	Box(modifier = modifier.fillMaxWidth().height(256.dp).padding(start = 48.dp, top = 20.dp, end = 32.dp)) {
+	Box(modifier = modifier.fillMaxWidth().height(232.dp).padding(start = 48.dp, top = 20.dp, end = 32.dp)) {
 		ToolbarClock(modifier = Modifier.align(Alignment.TopEnd))
 		if (item == null) return@Box
 		val isEpisode = item.type == BaseItemKind.EPISODE
+		// Anchored to the bottom so the buttons keep the same distance to the rows whether or not an
+		// episode line is shown; spare height goes above the title.
 		Column(
 			verticalArrangement = Arrangement.spacedBy(8.dp),
-			modifier = Modifier.widthIn(max = 640.dp),
+			modifier = Modifier.align(Alignment.BottomStart).widthIn(max = 640.dp),
 		) {
 			if (isEpisode && item.name != null) {
 				Text(item.name!!, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = LumaFinPalette.Cyan, maxLines = 1, overflow = TextOverflow.Ellipsis)
