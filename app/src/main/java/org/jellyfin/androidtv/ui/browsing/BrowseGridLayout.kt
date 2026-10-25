@@ -61,7 +61,7 @@ class BrowseGridLayout(private val binding: HorizontalGridBrowseBinding, private
 		const val RIGHT_COLUMNS_WIDTH_DP = 96
 		private const val LETTERS = "#ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 		/** How much taller the preview is than the classic title and info row. */
-		const val EXTRA_PREVIEW_HEIGHT_DP = 100
+		const val EXTRA_PREVIEW_HEIGHT_DP = 32
 
 		@JvmStatic
 		fun isEnabled() = KoinJavaComponent.get<UserPreferences>(UserPreferences::class.java)[UserPreferences.newHomeEnabled]
@@ -111,11 +111,12 @@ class BrowseGridLayout(private val binding: HorizontalGridBrowseBinding, private
 			id = View.generateViewId()
 			setContent {
 				val current by item.collectAsState()
-				Box(modifier = Modifier.fillMaxWidth().height(196.dp).padding(start = 48.dp, top = 20.dp, end = 300.dp)) {
+				Box(modifier = Modifier.fillMaxWidth().height(128.dp).padding(start = 48.dp, top = 2.dp, end = 300.dp)) {
 					current?.let {
 						Column(
 							verticalArrangement = Arrangement.spacedBy(8.dp),
-							modifier = Modifier.align(Alignment.BottomStart).widthIn(max = 640.dp),
+							// Top-aligned so the title lines up with the clock
+							modifier = Modifier.align(Alignment.TopStart).widthIn(max = 640.dp),
 						) { FocusedTitleInfo(it) }
 					}
 				}
