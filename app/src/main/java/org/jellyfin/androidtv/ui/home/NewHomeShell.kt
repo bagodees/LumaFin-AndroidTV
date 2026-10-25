@@ -39,6 +39,11 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -95,11 +100,19 @@ private val RailExpandedWidth = 200.dp
 fun MainSideRail(
 	active: MainToolbarActiveButton,
 	activeFocusRequester: FocusRequester,
-	contentFocusRequester: FocusRequester,
+	contentFocusRequester: FocusRequester?,
 	modifier: Modifier = Modifier,
+	onRight: (() -> Unit)? = null,
 ) {
-	// Right from any menu item returns to where you were in the content, not the nearest control
-	val toRows = Modifier.focusProperties { right = contentFocusRequester }
+	// Right from any menu item returns to where you were in the content, not the nearest control.
+	// View-based content can't take a FocusRequester, so it supplies [onRight] instead.
+	val toRows = when {
+		onRight != null -> Modifier.onPreviewKeyEvent { event ->
+			if (event.type == KeyEventType.KeyDown && event.key == Key.DirectionRight) { onRight(); true } else false
+		}
+		contentFocusRequester != null -> Modifier.focusProperties { right = contentFocusRequester }
+		else -> Modifier
+	}
 	val navigationRepository = koinInject<NavigationRepository>()
 	val settingsViewModel = koinActivityViewModel<SettingsViewModel>()
 	val userRepository = koinInject<UserRepository>()
@@ -206,29 +219,13 @@ fun HomeFocusedPreview(
 	Box(modifier = modifier.fillMaxWidth().height(232.dp).padding(start = 48.dp, top = 20.dp, end = 32.dp)) {
 		ToolbarClock(modifier = Modifier.align(Alignment.TopEnd))
 		if (item == null) return@Box
-		val isEpisode = item.type == BaseItemKind.EPISODE
 		// Anchored to the bottom so the buttons keep the same distance to the rows whether or not an
 		// episode line is shown; spare height goes above the title.
 		Column(
 			verticalArrangement = Arrangement.spacedBy(8.dp),
 			modifier = Modifier.align(Alignment.BottomStart).widthIn(max = 640.dp),
 		) {
-			if (isEpisode && item.name != null) {
-				Text(item.name!!, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = LumaFinPalette.Cyan, maxLines = 1, overflow = TextOverflow.Ellipsis)
-			}
-			Text(
-				text = (if (isEpisode) item.seriesName else null) ?: item.name.orEmpty(),
-				style = JellyfinTheme.typography.default.copy(fontSize = 34.sp, fontWeight = FontWeight.Bold, color = LumaFinPalette.Text),
-				maxLines = 1,
-				overflow = TextOverflow.Ellipsis,
-			)
-			// The info row's badges fill the available height, so give it the intrinsic height of its text.
-			Box(modifier = Modifier.height(IntrinsicSize.Min)) {
-				BaseItemInfoRow(item = item, mediaSource = null, includeRuntime = true)
-			}
-			descriptionForDisplay(context, item)?.takeIf { it.isNotBlank() }?.let { description ->
-				Text(description, fontSize = 15.sp, color = LumaFinPalette.SecondaryText, maxLines = 2, overflow = TextOverflow.Ellipsis)
-			}
+			FocusedTitleInfo(item)
 			Row(
 				horizontalArrangement = Arrangement.spacedBy(12.dp),
 				modifier = Modifier
@@ -258,6 +255,29 @@ fun HomeFocusedPreview(
 				}
 			}
 		}
+	}
+}
+
+/** Episode line, title, info row and description of [item], shared by the Home and library previews. */
+@Composable
+fun FocusedTitleInfo(item: BaseItemDto) {
+	val context = LocalContext.current
+	val isEpisode = item.type == BaseItemKind.EPISODE
+	if (isEpisode && item.name != null) {
+		Text(item.name!!, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = LumaFinPalette.Cyan, maxLines = 1, overflow = TextOverflow.Ellipsis)
+	}
+	Text(
+		text = (if (isEpisode) item.seriesName else null) ?: item.name.orEmpty(),
+		style = JellyfinTheme.typography.default.copy(fontSize = 34.sp, fontWeight = FontWeight.Bold, color = LumaFinPalette.Text),
+		maxLines = 1,
+		overflow = TextOverflow.Ellipsis,
+	)
+	// The info row's badges fill the available height, so give it the intrinsic height of its text.
+	Box(modifier = Modifier.height(IntrinsicSize.Min)) {
+		BaseItemInfoRow(item = item, mediaSource = null, includeRuntime = true)
+	}
+	descriptionForDisplay(context, item)?.takeIf { it.isNotBlank() }?.let { description ->
+		Text(description, fontSize = 15.sp, color = LumaFinPalette.SecondaryText, maxLines = 2, overflow = TextOverflow.Ellipsis)
 	}
 }
 

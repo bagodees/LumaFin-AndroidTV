@@ -489,11 +489,11 @@
     <string name="home_sections_hint">Press OK to pick up a section, then use up/down to move it. Press left to hide.</string>
     <string name="home_layout_reset">Reset home layout</string>
     <string name="home_layout_presets">Home layout presets</string>
-    <string name="new_home_title">Try the new Home</string>
+    <string name="new_home_title">Switch to classic Jellyfin style</string>
     <string name="new_home_details">Details</string>
     <string name="new_home_card_titles">Show titles under cards</string>
     <string name="new_home_card_titles_description">Most artwork already shows the title, and the preview above the rows names the selected card. Turn on to also show titles under every card.</string>
-    <string name="new_home_description">A side menu and a large preview of the selected title. Your Home rows stay the same. Turn off to return to the classic Home.</string>
+    <string name="new_home_description">Use the top toolbar and the original Home instead of the side menu and the preview of the selected title. Your Home rows stay the same.</string>
     <string name="home_item_limits">Home row options</string>
     <string name="home_item_limits_description">Show or hide item limits and the watched-movie filter. Changes apply when you close settings.</string>
     <string name="home_hide_watched_recently_added_movies">Hide watched movies in Recently added</string>

@@ -153,10 +153,10 @@ fun SettingsHomeScreen() {
 
 		item(key = "new_home") {
 			ListButton(
-				toggleState = newHomeEnabled,
+				toggleState = !newHomeEnabled,
 				headingContent = { Text(stringResource(R.string.new_home_title)) },
 				captionContent = { Text(stringResource(R.string.new_home_description)) },
-				trailingContent = { SettingsSwitch(checked = newHomeEnabled) },
+				trailingContent = { SettingsSwitch(checked = !newHomeEnabled) },
 				enabled = grabbed == null,
 				onClick = { newHomeEnabled = !newHomeEnabled },
 				modifier = Modifier.focusKey("new_home")

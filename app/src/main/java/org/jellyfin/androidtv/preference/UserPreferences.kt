@@ -139,8 +139,8 @@ class UserPreferences(context: Context, storage: SharedPreferences = PreferenceM
 
 		val mediaCardSize = enumPreference("media_card_size", MediaCardSize.DEFAULT)
 		val reducedMotion = booleanPreference("reduced_motion", false)
-		/** The redesigned Home (side menu with a preview of the focused title); off keeps the classic Home. */
-		val newHomeEnabled = booleanPreference("new_home_enabled", false)
+		/** The LumaFin layout (side menu, preview of the focused title); off is the classic Jellyfin style. */
+		val newHomeEnabled = booleanPreference("new_home_enabled", true)
 		/** Titles under Home cards on the new Home; off by default since the preview shows the focused title. */
 		val newHomeCardTitles = booleanPreference("new_home_card_titles", false)
 		val textScale = enumPreference("accessibility_text_scale", org.jellyfin.androidtv.preference.constant.TextScale.DEFAULT)

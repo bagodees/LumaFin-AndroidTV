@@ -95,6 +95,7 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
     private PosterSize mPosterSizeSetting = PosterSize.MED;
     private ImageType mImageType = ImageType.POSTER;
     private GridDirection mGridDirection = GridDirection.HORIZONTAL;
+    private BrowseGridLayout mLayout;
     private boolean mCompactList = false;
     private boolean determiningPosterSize = false;
 
@@ -141,6 +142,11 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
         // top + bottom in dp, elements scale with density so adjust accordingly
         mGridHeight = Math.round(display.heightPixels / getResources().getDisplayMetrics().density - 130.6f);
         mGridWidth = Math.round(display.widthPixels / getResources().getDisplayMetrics().density);
+        if (BrowseGridLayout.Companion.isEnabled()) {
+            // The side menu takes the left edge and the taller preview pushes the grid down
+            mGridWidth -= BrowseGridLayout.SIDE_MENU_WIDTH_DP;
+            mGridHeight -= BrowseGridLayout.EXTRA_PREVIEW_HEIGHT_DP;
+        }
 
 
         mActivity = getActivity();
@@ -196,7 +202,8 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         binding = HorizontalGridBrowseBinding.inflate(inflater, container, false);
-        return binding.getRoot();
+        mLayout = new BrowseGridLayout(binding, () -> mGridView);
+        return mLayout.wrap(requireContext());
     }
 
     @Override
@@ -295,9 +302,11 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
         if (item != null) {
             binding.title.setText(item.getFullName(requireContext()));
             InfoLayoutHelper.addInfoRow(requireContext(), item.getBaseItem(), binding.infoRow, true);
+            mLayout.setItem(item.getBaseItem());
         } else {
             binding.title.setText("");
             binding.infoRow.removeAllViews();
+            mLayout.setItem(null);
         }
     }
 
@@ -434,17 +443,18 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
         if (mGridPresenter instanceof VerticalGridPresenter) {
             int numCols;
             switch (posterSize) {
+                // Sized to match the cards of the side-scrolling grid at the same poster size
                 case SMALLEST:
-                    numCols = imageType.equals(ImageType.BANNER) ? 6 : imageType.equals(ImageType.THUMB) ? 11 : 15;
+                    numCols = imageType.equals(ImageType.BANNER) ? 5 : imageType.equals(ImageType.THUMB) ? 7 : 10;
                     break;
                 case SMALL:
-                    numCols = imageType.equals(ImageType.BANNER) ? 5 : imageType.equals(ImageType.THUMB) ? 9 : 13;
+                    numCols = imageType.equals(ImageType.BANNER) ? 4 : imageType.equals(ImageType.THUMB) ? 6 : 8;
                     break;
                 case MED:
-                    numCols = imageType.equals(ImageType.BANNER) ? 4 : imageType.equals(ImageType.THUMB) ? 7 : 11;
+                    numCols = imageType.equals(ImageType.BANNER) ? 3 : imageType.equals(ImageType.THUMB) ? 5 : 7;
                     break;
                 case LARGE:
-                    numCols = imageType.equals(ImageType.BANNER) ? 3 : imageType.equals(ImageType.THUMB) ? 5 : 7;
+                    numCols = imageType.equals(ImageType.BANNER) ? 3 : imageType.equals(ImageType.THUMB) ? 4 : 6;
                     break;
                 case X_LARGE:
                     numCols = imageType.equals(ImageType.BANNER) ? 2 : imageType.equals(ImageType.THUMB) ? 3 : 5;
