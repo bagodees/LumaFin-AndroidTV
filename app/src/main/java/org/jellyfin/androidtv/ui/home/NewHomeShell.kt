@@ -1,5 +1,6 @@
 package org.jellyfin.androidtv.ui.home
 
+import android.view.View
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
@@ -46,6 +47,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.leanback.app.RowsSupportFragment
+import androidx.leanback.widget.HorizontalGridView
 import kotlinx.coroutines.flow.filterNotNull
 import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.auth.repository.UserRepository
@@ -67,6 +70,8 @@ import org.jellyfin.androidtv.ui.browsing.composable.inforow.BaseItemInfoRow
 import org.jellyfin.androidtv.ui.navigation.Destinations
 import org.jellyfin.androidtv.ui.navigation.NavigationRepository
 import org.jellyfin.androidtv.ui.settings.compat.SettingsViewModel
+import org.jellyfin.androidtv.ui.shared.toolbar.MainToolbar
+import org.jellyfin.androidtv.ui.shared.toolbar.MainToolbarActiveButton
 import org.jellyfin.androidtv.ui.shared.toolbar.QuickUserSwitcher
 import org.jellyfin.androidtv.ui.shared.toolbar.ToolbarClock
 import org.jellyfin.androidtv.util.apiclient.getUrl
@@ -83,13 +88,18 @@ internal val RailCollapsedWidth = 64.dp
 private val RailExpandedWidth = 200.dp
 
 /**
- * Side menu for the new Home (concept A): slim and icons-only while browsing, expanding over the rows
- * with labels while it has focus. Home is the active destination.
+ * Side menu for the new navigation (concept A): slim and icons-only while browsing, expanding over the
+ * content with labels while it has focus. [active] is highlighted and is where focus lands on entry.
  */
 @Composable
-fun HomeSideRail(homeFocusRequester: FocusRequester, rowsFocusRequester: FocusRequester, modifier: Modifier = Modifier) {
-	// Right from any menu item returns to the card you left, not the nearest preview button
-	val toRows = Modifier.focusProperties { right = rowsFocusRequester }
+fun MainSideRail(
+	active: MainToolbarActiveButton,
+	activeFocusRequester: FocusRequester,
+	contentFocusRequester: FocusRequester,
+	modifier: Modifier = Modifier,
+) {
+	// Right from any menu item returns to where you were in the content, not the nearest control
+	val toRows = Modifier.focusProperties { right = contentFocusRequester }
 	val navigationRepository = koinInject<NavigationRepository>()
 	val settingsViewModel = koinActivityViewModel<SettingsViewModel>()
 	val userRepository = koinInject<UserRepository>()
@@ -113,7 +123,7 @@ fun HomeSideRail(homeFocusRequester: FocusRequester, rowsFocusRequester: FocusRe
 			// Focus arrives from the Leanback rows through the view system, which picks the nearest item;
 			// entering the menu should always land on Home.
 			.onFocusChanged { state ->
-				if (state.hasFocus && !expanded) homeFocusRequester.requestFocus()
+				if (state.hasFocus && !expanded) activeFocusRequester.requestFocus()
 				expanded = state.hasFocus
 			}
 			.focusGroup(),
@@ -138,9 +148,17 @@ fun HomeSideRail(homeFocusRequester: FocusRequester, rowsFocusRequester: FocusRe
 			}
 		}
 		Spacer(Modifier.height(18.dp))
-		RailItem(R.drawable.ic_house, R.string.lbl_home, expanded, active = true, modifier = toRows.focusRequester(homeFocusRequester)) {}
-		RailItem(R.drawable.ic_search, R.string.lbl_search, expanded, modifier = toRows) { navigationRepository.navigate(Destinations.search()) }
-		RailItem(R.drawable.ic_folder, R.string.home_section_library, expanded, modifier = toRows) { navigationRepository.navigate(Destinations.libraries) }
+		fun item(button: MainToolbarActiveButton) =
+			if (button == active) toRows.focusRequester(activeFocusRequester) else toRows
+		RailItem(R.drawable.ic_house, R.string.lbl_home, expanded, active = active == MainToolbarActiveButton.Home, modifier = item(MainToolbarActiveButton.Home)) {
+			if (active != MainToolbarActiveButton.Home) navigationRepository.navigate(Destinations.home, replace = true)
+		}
+		RailItem(R.drawable.ic_search, R.string.lbl_search, expanded, active = active == MainToolbarActiveButton.Search, modifier = item(MainToolbarActiveButton.Search)) {
+			if (active != MainToolbarActiveButton.Search) navigationRepository.navigate(Destinations.search())
+		}
+		RailItem(R.drawable.ic_folder, R.string.home_section_library, expanded, active = active == MainToolbarActiveButton.Libraries, modifier = item(MainToolbarActiveButton.Libraries)) {
+			if (active != MainToolbarActiveButton.Libraries) navigationRepository.navigate(Destinations.libraries)
+		}
 		RailItem(R.drawable.ic_settings, R.string.settings, expanded, modifier = toRows) { settingsViewModel.show() }
 	}
 }
@@ -280,6 +298,31 @@ private fun PreviewButton(label: String, icon: Int, onClick: () -> Unit) {
 	}
 }
 
+/**
+ * The main navigation for [active] screens: the side menu with [content] beside it when the new
+ * navigation is on, otherwise the classic top toolbar above it. Content gets [contentFocusRequester]
+ * so Right from the menu returns to it.
+ */
+@Composable
+fun MainNavigationFrame(
+	active: MainToolbarActiveButton,
+	contentFocusRequester: FocusRequester,
+	content: @Composable (sideMenu: Boolean) -> Unit,
+) {
+	val userPreferences = koinInject<UserPreferences>()
+	val sideMenu = remember { userPreferences[UserPreferences.newHomeEnabled] }
+	if (sideMenu) {
+		val railFocusRequester = remember { FocusRequester() }
+		Box(modifier = Modifier.fillMaxHeight()) {
+			// The top padding stands in for the toolbar's height, which content was laid out below
+			Box(modifier = Modifier.fillMaxHeight().padding(start = RailCollapsedWidth, top = 40.dp)) { content(true) }
+			MainSideRail(active, railFocusRequester, contentFocusRequester)
+		}
+	} else {
+		Column { MainToolbar(active); content(false) }
+	}
+}
+
 @Composable
 fun NewHomeLayout(rail: @Composable () -> Unit, preview: @Composable () -> Unit, rows: @Composable () -> Unit) {
 	// The rows sit beside the collapsed menu; the menu expands over them so nothing moves.
@@ -290,4 +333,12 @@ fun NewHomeLayout(rail: @Composable () -> Unit, preview: @Composable () -> Unit,
 		}
 		rail()
 	}
+}
+
+/** Whether focus is on the first card of its row, so Left may leave the rows for the side menu. */
+fun RowsSupportFragment.isFirstCardFocused(): Boolean {
+	val focused = view?.findFocus() ?: return false
+	val row = generateSequence(focused.parent) { it.parent }.filterIsInstance<HorizontalGridView>().firstOrNull() ?: return true
+	val card = generateSequence(focused as View?) { it.parent as? View }.firstOrNull { it.parent === row } ?: return true
+	return row.getChildAdapterPosition(card) <= 0
 }

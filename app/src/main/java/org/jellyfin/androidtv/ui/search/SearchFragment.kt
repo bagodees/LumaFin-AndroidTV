@@ -1,5 +1,7 @@
 package org.jellyfin.androidtv.ui.search
 
+import org.jellyfin.androidtv.ui.home.MainNavigationFrame
+import org.jellyfin.androidtv.ui.home.isFirstCardFocused
 import android.os.Bundle
 import android.view.View
 import android.view.LayoutInflater
@@ -95,8 +97,9 @@ class SearchFragment : Fragment() {
 			restoringResults = false
 		}
 
+		val contentFocusRequester = if (state.hasResults) resultFocusRequester else textInputFocusRequester
+		MainNavigationFrame(MainToolbarActiveButton.Search, contentFocusRequester) { sideMenu ->
 		Column(Modifier.fillMaxSize()) {
-			MainToolbar(MainToolbarActiveButton.Search)
 
 			Row(
 				horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -180,7 +183,10 @@ class SearchFragment : Fragment() {
 						.focusProperties {
 							onExit = {
 								val isFirstRowSelected = rowsSupportFragment?.selectedPosition?.let { it <= 0 } ?: false
-								if (requestedFocusDirection != FocusDirection.Up || !isFirstRowSelected) {
+								if (sideMenu && requestedFocusDirection == FocusDirection.Left) {
+									// Left from a row's first card enters the side menu
+									if (rowsSupportFragment?.isFirstCardFocused() != true) cancelFocusChange()
+								} else if (requestedFocusDirection != FocusDirection.Up || !isFirstRowSelected) {
 									cancelFocusChange()
 								} else {
 									rowsSupportFragment?.selectedPosition = 0
@@ -201,6 +207,7 @@ class SearchFragment : Fragment() {
 					}
 				)
 			}
+		}
 		}
 	}
 }

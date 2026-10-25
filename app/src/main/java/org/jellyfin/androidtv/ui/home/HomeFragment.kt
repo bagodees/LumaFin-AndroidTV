@@ -92,7 +92,7 @@ class HomeFragment : Fragment() {
 
 			NewHomeLayout(
 				rail = {
-					HomeSideRail(railFocusRequester, rowsFocusRequester)
+					MainSideRail(MainToolbarActiveButton.Home, railFocusRequester, rowsFocusRequester)
 				},
 				preview = { HomeFocusedPreview(focusedItem, previewButtonsFocusRequester, rowsFocusRequester) },
 				rows = {

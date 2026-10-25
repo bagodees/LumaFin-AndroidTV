@@ -65,14 +65,17 @@ class LibrariesFragment : Fragment() {
 		LaunchedEffect(state) {
 			if (state == LibrariesLoadState.Ready) focusRequester.requestFocus()
 		}
-		Column {
-			MainToolbar(MainToolbarActiveButton.Libraries)
+		MainNavigationFrame(MainToolbarActiveButton.Libraries, focusRequester) { sideMenu ->
 			Box(Modifier.fillMaxSize()) {
 				AndroidFragment<LibrariesRowsFragment>(
 					modifier = Modifier.fillMaxSize().focusGroup().focusRequester(focusRequester).focusProperties {
 						onExit = {
-							if (requestedFocusDirection != FocusDirection.Up) cancelFocusChange()
-							else rows?.verticalGridView?.clearFocus()
+							when {
+								// With the side menu, Left from a row's first card enters it; otherwise Up reaches the toolbar
+								sideMenu && requestedFocusDirection == FocusDirection.Left && rows?.isFirstCardFocused() == true -> Unit
+								!sideMenu && requestedFocusDirection == FocusDirection.Up -> rows?.verticalGridView?.clearFocus()
+								else -> cancelFocusChange()
+							}
 						}
 					},
 					onUpdate = { rows = it },
