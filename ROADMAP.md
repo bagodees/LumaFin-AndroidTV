@@ -65,7 +65,7 @@ Submitted October 24, 2026; waiting for Amazon's review. Details: [Amazon prepar
 
 ### Physical TV checks ([#78](https://github.com/bagodees/LumaFin-AndroidTV/issues/78))
 
-- [ ] Confirm the October fixes on a real TV ([checklist](docs/v1-remaining-checks.md))
+- [x] Confirm the October fixes on a real TV ([checklist](docs/v1-remaining-checks.md)); completed by the owner on the Sony X90J, October 2026
 
 ---
 

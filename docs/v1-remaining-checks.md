@@ -1,5 +1,7 @@
 # Remaining v1 verification
 
+**Status: complete.** The owner completed all priority physical-TV retests below on the Sony X90J (BRAVIA 4K VH2) in October 2026, with no failures reported. Issue #78 is closed.
+
 Audit: October 23, 2026. This is a short follow-up to
 [the detailed acceptance record](ui-recovery-acceptance.md), not a replacement
 for the broader hardware checklist in issue #68.
