@@ -51,8 +51,8 @@ removed in a later release.
 | Version | Change |
 | --- | --- |
 | 1.0.0 | Google Play launch. GitHub and Fire TV releases move to the same version. No redesign. |
-| 1.1 | New Home screen available as "Try the new Home" in settings. |
-| 1.2 | New Home becomes the default. New settings and action menus. New details screen available as an option. Video/photo filter. |
+| 1.1 | New Home screen (concept A: side rail with a preview area) available as "Try the new Home" in settings. |
+| 1.2 | New Home becomes the default, with a Home style option for concept B (top bar with backdrop). New settings and action menus. New details screen available as an option. Video/photo filter. |
 | 1.3 | "Fits tonight" (below). New first-run setup. New details screen becomes the default. Accent color themes. |
 | 1.x | Remaining screens as needed: library browsing, search, series and seasons. Light theme once every main screen supports it. |
 | 2.0 | All main screens are new and the old Home and details screens are removed. |
@@ -170,6 +170,8 @@ library like the other filters. Hide the choice in movie, show and music librari
 where it would do nothing.
 
 ## First step: Home concepts
+
+**Decided October 25, 2026 (#80):** concept A, a labeled side rail with a preview area for the focused title (Resume/Details and the audio/subtitle summary) above the rows, is the new Home. Concept B, a top bar with the focused title's artwork as a full backdrop and an info block, is offered as a Home style option (#110). Both share the rows, cards, focus handling and focused-title data; only the outer layout differs.
 
 Before writing code, make two Home concepts as clickable mockups using neutral
 sample content. Pick one, optionally after showing testers. Check that each concept:
