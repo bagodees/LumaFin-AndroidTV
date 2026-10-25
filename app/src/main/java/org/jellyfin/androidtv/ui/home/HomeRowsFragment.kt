@@ -418,6 +418,9 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 
 	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 		super.onViewCreated(view, savedInstanceState)
+		// Each row keeps Leanback's padding (re-applied on every selection) and the cards reserve two caption
+		// lines, leaving a wide gap before the next heading. Overlap that empty space instead.
+		verticalGridView?.verticalSpacing = -(20 * resources.displayMetrics.density).toInt()
 		fun View?.insideRows() = this != null && generateSequence(this) { it.parent as? View }.any { it === view }
 		val listener = android.view.ViewTreeObserver.OnGlobalFocusChangeListener { old, focused ->
 			if (focused.insideRows() && !old.insideRows()) restoreFocusedBackdrop()
