@@ -41,6 +41,13 @@ updated. Play Alpha 1.0.1 was submitted for review on October 24; quick checks
 are running and tester availability is not yet confirmed. Sony/Beam surround confirmation
 remains pending in #106; Amazon's in-review submission is unchanged.
 
+1.0.2 (code 1000299) shipped under 1.0.x with the Dolby Vision direct-play and
+remote search-navigation fixes ([#108](https://github.com/bagodees/LumaFin-AndroidTV/issues/108),
+[#109](https://github.com/bagodees/LumaFin-AndroidTV/issues/109)). GitHub is published
+and the website download/update links point to 1.0.2. Play Alpha was submitted for
+review on October 24; tester availability awaits approval. Amazon's in-review
+submission remains unchanged. No new Play/Amazon checklist items are completed.
+
 - [x] Play developer account, Play App Signing with the existing key, and a release bundle
 - [x] Store text, screenshots, TV artwork, privacy policy and Data safety
 - [x] Hide the GitHub update notice for Play installs
