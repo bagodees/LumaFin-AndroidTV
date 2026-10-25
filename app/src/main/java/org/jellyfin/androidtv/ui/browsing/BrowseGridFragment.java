@@ -144,7 +144,7 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
         mGridWidth = Math.round(display.widthPixels / getResources().getDisplayMetrics().density);
         if (BrowseGridLayout.Companion.isEnabled()) {
             // The side menu takes the left edge and the taller preview pushes the grid down
-            mGridWidth -= BrowseGridLayout.SIDE_MENU_WIDTH_DP;
+            mGridWidth -= BrowseGridLayout.SIDE_MENU_WIDTH_DP + BrowseGridLayout.GRID_START_MARGIN_DP + BrowseGridLayout.RIGHT_COLUMNS_WIDTH_DP;
             mGridHeight -= BrowseGridLayout.EXTRA_PREVIEW_HEIGHT_DP;
         }
 
@@ -213,6 +213,10 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
         createGrid();
         loadGrid();
         addTools();
+        mLayout.installSideColumns(requireContext(), letter -> {
+            jumpToLetter(letter);
+            return kotlin.Unit.INSTANCE;
+        });
         BulkWatchDialogKt.installBulkWatchHost(view, getViewLifecycleOwner(), () -> mAdapter, () -> {
             if (binding != null && mAdapter != null) {
                 binding.toolBar.requestFocus();
@@ -349,7 +353,8 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
         text += " " + getString(R.string.lbl_from) + " '" + folderName + "' " + getString(R.string.lbl_sorted_by) + " " + getSortOption(mAdapter.getSortBy()).name + " / " + getString(mAdapter.getSortOrder() == SortOrder.ASCENDING
                 ? R.string.library_sort_ascending : R.string.library_sort_descending);
 
-        if (filters != null && filters.getGenre() != null) text += " \u00b7 " + filters.getGenre();
+        if (mAdapter.getJumpLetter() != null) text += " · " + getString(R.string.grid_from_letter, mAdapter.getJumpLetter());
+        if (filters != null && filters.getGenre() != null) text +=" \u00b7 " + filters.getGenre();
         if (filters != null && filters.getYear() != null) text += " \u00b7 " + filters.getYear();
         if (filters != null && filters.getMinimumRating() != null) text += " \u00b7 " + getString(R.string.library_rating_minimum, filters.getMinimumRating());
         if (filters != null && filters.getResolution() != org.jellyfin.androidtv.data.model.LibraryResolution.ANY) {
@@ -445,19 +450,19 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
             switch (posterSize) {
                 // Sized to match the cards of the side-scrolling grid at the same poster size
                 case SMALLEST:
-                    numCols = imageType.equals(ImageType.BANNER) ? 5 : imageType.equals(ImageType.THUMB) ? 7 : 10;
+                    numCols = imageType.equals(ImageType.BANNER) ? 3 : imageType.equals(ImageType.THUMB) ? 5 : 6;
                     break;
                 case SMALL:
-                    numCols = imageType.equals(ImageType.BANNER) ? 4 : imageType.equals(ImageType.THUMB) ? 6 : 8;
+                    numCols = imageType.equals(ImageType.BANNER) ? 3 : imageType.equals(ImageType.THUMB) ? 4 : 5;
                     break;
                 case MED:
-                    numCols = imageType.equals(ImageType.BANNER) ? 3 : imageType.equals(ImageType.THUMB) ? 5 : 7;
+                    numCols = imageType.equals(ImageType.BANNER) ? 2 : imageType.equals(ImageType.THUMB) ? 3 : 4;
                     break;
                 case LARGE:
-                    numCols = imageType.equals(ImageType.BANNER) ? 3 : imageType.equals(ImageType.THUMB) ? 4 : 6;
+                    numCols = imageType.equals(ImageType.BANNER) ? 2 : imageType.equals(ImageType.THUMB) ? 3 : 3;
                     break;
                 case X_LARGE:
-                    numCols = imageType.equals(ImageType.BANNER) ? 2 : imageType.equals(ImageType.THUMB) ? 3 : 5;
+                    numCols = imageType.equals(ImageType.BANNER) ? 1 : imageType.equals(ImageType.THUMB) ? 2 : 2;
                     break;
                 default:
                     throw new IllegalStateException("Unexpected value: " + mPosterSizeSetting);
@@ -749,7 +754,11 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
                     setItem(null);
                     updateCounter(mAdapter.getTotalItems() > 0 ? 1 : 0);
                 }
-                mLetterButton.setVisibility(ItemSortBy.SORT_NAME.equals(mAdapter.getSortBy()) ? View.VISIBLE : View.GONE);
+                boolean sortedByName = ItemSortBy.SORT_NAME.equals(mAdapter.getSortBy());
+                // The LumaFin layout's letter strip replaces the filter-by-letter button
+                mLetterButton.setVisibility(sortedByName && !mLayout.getEnabled() ? View.VISIBLE : View.GONE);
+                mLayout.setLettersVisible(sortedByName);
+                mLayout.setJumpLetter(mAdapter.getJumpLetter());
                 if (mAdapter.getItemsLoaded() == 0) {
                     mGridView.setFocusable(false);
                     mHandler.postDelayed(() -> {
@@ -778,6 +787,16 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
         SortOption savedSort = getSortOption(libraryPreferences.get(LibraryPreferences.Companion.getSortBy()));
         mAdapter.setSortBy(new SortOption(savedSort.name, savedSort.value,
                 libraryPreferences.get(LibraryPreferences.Companion.getSortOrder())));
+        mAdapter.Retrieve();
+    }
+
+    /** Shows the list from the letter onward; "#" returns to the start. */
+    private void jumpToLetter(String letter) {
+        if (mAdapter == null) return;
+        mSelectedPosition = 0;
+        mCurrentItem = null;
+        mAdapter.setJumpLetter("#".equals(letter) ? null : letter);
+        mLayout.setJumpLetter(letter);
         mAdapter.Retrieve();
     }
 

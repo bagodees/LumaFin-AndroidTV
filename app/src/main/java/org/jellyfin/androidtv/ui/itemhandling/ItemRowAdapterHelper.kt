@@ -611,6 +611,37 @@ fun setItemsStartLetter(
 	nameLessThan = if (startLetter == "#") ":" else null,
 )
 
+/**
+ * Shows the items from [letter] onward (to the end of the alphabet) instead of only that letter, so a
+ * name-sorted list can be skipped through. "#" or null shows everything, since numbers sort first.
+ */
+fun setItemsJumpLetter(
+	request: GetItemsRequest,
+	letter: String?,
+) = request.copy(
+	nameStartsWith = null,
+	nameLessThan = null,
+	nameStartsWithOrGreater = letter?.takeUnless { it == "#" },
+)
+
+fun setArtistsJumpLetter(
+	request: GetArtistsRequest,
+	letter: String?,
+) = request.copy(
+	nameStartsWith = null,
+	nameLessThan = null,
+	nameStartsWithOrGreater = letter?.takeUnless { it == "#" },
+)
+
+fun setAlbumArtistsJumpLetter(
+	request: GetAlbumArtistsRequest,
+	letter: String?,
+) = request.copy(
+	nameStartsWith = null,
+	nameLessThan = null,
+	nameStartsWithOrGreater = letter?.takeUnless { it == "#" },
+)
+
 @JvmOverloads
 fun ItemRowAdapter.refreshItem(
 	api: ApiClient,

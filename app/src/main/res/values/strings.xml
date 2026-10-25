@@ -491,6 +491,7 @@
     <string name="home_layout_presets">Home layout presets</string>
     <string name="new_home_title">Switch to classic Jellyfin style</string>
     <string name="new_home_details">Details</string>
+    <string name="grid_from_letter">Starting at %1$s</string>
     <string name="new_home_card_titles">Show titles under cards</string>
     <string name="new_home_card_titles_description">Most artwork already shows the title, and the preview above the rows names the selected card. Turn on to also show titles under every card.</string>
     <string name="new_home_description">Use the top toolbar and the original Home instead of the side menu and the preview of the selected title. Your Home rows stay the same.</string>

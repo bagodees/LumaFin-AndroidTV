@@ -462,6 +462,32 @@ public class ItemRowAdapter extends MutableObjectAdapter<Object> {
         }
     }
 
+    /** The letter a name-sorted list was skipped to, or null for the full list. */
+    public @Nullable String getJumpLetter() {
+        switch (queryType) {
+            case Artists:
+                return mArtistsQuery == null ? null : mArtistsQuery.getNameStartsWithOrGreater();
+            case AlbumArtists:
+                return mAlbumArtistsQuery == null ? null : mAlbumArtistsQuery.getNameStartsWithOrGreater();
+            default:
+                return mQuery == null || ":".equals(mQuery.getNameLessThan()) ? null : mQuery.getNameStartsWithOrGreater();
+        }
+    }
+
+    public void setJumpLetter(@Nullable String value) {
+        switch (queryType) {
+            case Artists:
+                mArtistsQuery = ItemRowAdapterHelperKt.setArtistsJumpLetter(mArtistsQuery, value);
+                break;
+            case AlbumArtists:
+                mAlbumArtistsQuery = ItemRowAdapterHelperKt.setAlbumArtistsJumpLetter(mAlbumArtistsQuery, value);
+                break;
+            default:
+                mQuery = ItemRowAdapterHelperKt.setItemsJumpLetter(mQuery, value);
+                break;
+        }
+    }
+
     protected void removeRow() {
         if (mParent == null) {
             // just clear us
