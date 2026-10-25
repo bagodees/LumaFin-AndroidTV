@@ -1,5 +1,8 @@
 package org.jellyfin.androidtv.ui.home
 
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -53,6 +56,7 @@ import org.jellyfin.androidtv.util.TimeUtils
 import org.jellyfin.androidtv.util.apiclient.Response
 import org.jellyfin.androidtv.util.sdk.compat.canResume
 import org.jellyfin.androidtv.ui.base.Icon
+import org.jellyfin.androidtv.ui.composable.rememberReducedMotion
 import org.jellyfin.androidtv.ui.base.JellyfinTheme
 import org.jellyfin.androidtv.ui.base.LumaFinPalette
 import org.jellyfin.androidtv.ui.base.ProfilePicture
@@ -74,9 +78,18 @@ import org.jellyfin.sdk.model.api.BaseItemKind
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinActivityViewModel
 
-/** Labeled side menu for the new Home (concept A). Home is the active destination. */
+/** Width of the side menu while the rows have focus; the rows are laid out beside this. */
+internal val RailCollapsedWidth = 64.dp
+private val RailExpandedWidth = 200.dp
+
+/**
+ * Side menu for the new Home (concept A): slim and icons-only while browsing, expanding over the rows
+ * with labels while it has focus. Home is the active destination.
+ */
 @Composable
-fun HomeSideRail(homeFocusRequester: FocusRequester, modifier: Modifier = Modifier) {
+fun HomeSideRail(homeFocusRequester: FocusRequester, rowsFocusRequester: FocusRequester, modifier: Modifier = Modifier) {
+	// Right from any menu item returns to the card you left, not the nearest preview button
+	val toRows = Modifier.focusProperties { right = rowsFocusRequester }
 	val navigationRepository = koinInject<NavigationRepository>()
 	val settingsViewModel = koinActivityViewModel<SettingsViewModel>()
 	val userRepository = koinInject<UserRepository>()
@@ -85,64 +98,73 @@ fun HomeSideRail(homeFocusRequester: FocusRequester, modifier: Modifier = Modifi
 	val userImage = remember(currentUser) { currentUser?.primaryImage?.getUrl(api) }
 	var showUserSwitcher by remember { mutableStateOf(false) }
 	if (showUserSwitcher) QuickUserSwitcher(onDismissRequest = { showUserSwitcher = false })
-	var hadFocus by remember { mutableStateOf(false) }
+	var expanded by remember { mutableStateOf(false) }
+	val reducedMotion = rememberReducedMotion()
+	val targetWidth = if (expanded) RailExpandedWidth else RailCollapsedWidth
+	val width by animateDpAsState(targetWidth, animationSpec = if (reducedMotion) snap() else tween(180), label = "rail width")
 
 	Column(
-		horizontalAlignment = Alignment.CenterHorizontally,
 		verticalArrangement = Arrangement.spacedBy(6.dp),
 		modifier = modifier
-			.width(96.dp)
+			.width(width)
 			.fillMaxHeight()
 			.background(LumaFinPalette.Surface)
-			.padding(vertical = 24.dp)
+			.padding(horizontal = 8.dp, vertical = 24.dp)
 			// Focus arrives from the Leanback rows through the view system, which picks the nearest item;
 			// entering the menu should always land on Home.
 			.onFocusChanged { state ->
-				if (state.hasFocus && !hadFocus) homeFocusRequester.requestFocus()
-				hadFocus = state.hasFocus
+				if (state.hasFocus && !expanded) homeFocusRequester.requestFocus()
+				expanded = state.hasFocus
 			}
 			.focusGroup(),
 	) {
 		ButtonBase(
 			onClick = { showUserSwitcher = true },
-			shape = CircleShape,
-			colors = ButtonDefaults.colors(containerColor = LumaFinPalette.Raised),
-			modifier = Modifier.size(48.dp),
+			shape = RoundedCornerShape(24.dp),
+			colors = ButtonDefaults.colors(containerColor = Color.Transparent, contentColor = LumaFinPalette.Text),
+			modifier = toRows.height(48.dp).then(if (expanded) Modifier.fillMaxWidth() else Modifier.width(48.dp)),
 		) {
-			ProfilePicture(
-				url = userImage,
-				contentDescription = stringResource(R.string.lbl_switch_user),
-				modifier = Modifier
-					.aspectRatio(1f)
-					.clip(CircleShape),
-			)
+			Row(
+				verticalAlignment = Alignment.CenterVertically,
+				horizontalArrangement = Arrangement.spacedBy(12.dp),
+				modifier = Modifier.align(Alignment.CenterStart),
+			) {
+				ProfilePicture(
+					url = userImage,
+					contentDescription = stringResource(R.string.lbl_switch_user),
+					modifier = Modifier.size(48.dp).clip(CircleShape),
+				)
+				if (expanded) Text(currentUser?.name.orEmpty(), fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+			}
 		}
 		Spacer(Modifier.height(18.dp))
-		RailItem(R.drawable.ic_house, R.string.lbl_home, active = true, modifier = Modifier.focusRequester(homeFocusRequester)) {}
-		RailItem(R.drawable.ic_search, R.string.lbl_search) { navigationRepository.navigate(Destinations.search()) }
-		RailItem(R.drawable.ic_folder, R.string.home_section_library) { navigationRepository.navigate(Destinations.libraries) }
-		RailItem(R.drawable.ic_settings, R.string.settings) { settingsViewModel.show() }
+		RailItem(R.drawable.ic_house, R.string.lbl_home, expanded, active = true, modifier = toRows.focusRequester(homeFocusRequester)) {}
+		RailItem(R.drawable.ic_search, R.string.lbl_search, expanded, modifier = toRows) { navigationRepository.navigate(Destinations.search()) }
+		RailItem(R.drawable.ic_folder, R.string.home_section_library, expanded, modifier = toRows) { navigationRepository.navigate(Destinations.libraries) }
+		RailItem(R.drawable.ic_settings, R.string.settings, expanded, modifier = toRows) { settingsViewModel.show() }
 	}
 }
 
 @Composable
-private fun RailItem(icon: Int, label: Int, active: Boolean = false, modifier: Modifier = Modifier, onClick: () -> Unit) {
+private fun RailItem(icon: Int, label: Int, expanded: Boolean, active: Boolean = false, modifier: Modifier = Modifier, onClick: () -> Unit) {
+	val text = stringResource(label)
 	ButtonBase(
 		onClick = onClick,
-		shape = RoundedCornerShape(14.dp),
+		shape = RoundedCornerShape(12.dp),
 		colors = ButtonDefaults.colors(
 			containerColor = if (active) LumaFinPalette.Raised else Color.Transparent,
 			contentColor = if (active) LumaFinPalette.Cyan else LumaFinPalette.SecondaryText,
 		),
-		modifier = modifier.width(80.dp).height(64.dp),
+		modifier = modifier.height(48.dp).then(if (expanded) Modifier.fillMaxWidth() else Modifier.width(48.dp)),
 	) {
-		Column(
-			horizontalAlignment = Alignment.CenterHorizontally,
-			verticalArrangement = Arrangement.spacedBy(4.dp),
-			modifier = Modifier.align(Alignment.Center),
+		Row(
+			verticalAlignment = Alignment.CenterVertically,
+			horizontalArrangement = Arrangement.spacedBy(14.dp),
+			modifier = Modifier.align(Alignment.CenterStart).padding(start = 13.dp),
 		) {
-			Icon(imageVector = ImageVector.vectorResource(icon), contentDescription = null, modifier = Modifier.size(22.dp))
-			Text(stringResource(label), fontSize = 12.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+			// The icon carries the label for accessibility while the text is hidden
+			Icon(imageVector = ImageVector.vectorResource(icon), contentDescription = if (expanded) null else text, modifier = Modifier.size(22.dp))
+			if (expanded) Text(text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
 		}
 	}
 }
@@ -258,11 +280,12 @@ private fun PreviewButton(label: String, icon: Int, onClick: () -> Unit) {
 
 @Composable
 fun NewHomeLayout(rail: @Composable () -> Unit, preview: @Composable () -> Unit, rows: @Composable () -> Unit) {
-	Row(modifier = Modifier.fillMaxHeight()) {
-		rail()
-		Column(modifier = Modifier.fillMaxHeight().weight(1f)) {
+	// The rows sit beside the collapsed menu; the menu expands over them so nothing moves.
+	Box(modifier = Modifier.fillMaxHeight()) {
+		Column(modifier = Modifier.fillMaxHeight().padding(start = RailCollapsedWidth)) {
 			preview()
 			rows()
 		}
+		rail()
 	}
 }
