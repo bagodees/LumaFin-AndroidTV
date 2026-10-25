@@ -128,6 +128,8 @@ class UserPreferences(context: Context, storage: SharedPreferences = PreferenceM
 
 		val mediaCardSize = enumPreference("media_card_size", MediaCardSize.DEFAULT)
 		val reducedMotion = booleanPreference("reduced_motion", false)
+		/** The redesigned Home (side menu with a preview of the focused title); off keeps the classic Home. */
+		val newHomeEnabled = booleanPreference("new_home_enabled", false)
 		val textScale = enumPreference("accessibility_text_scale", org.jellyfin.androidtv.preference.constant.TextScale.DEFAULT)
 		val highContrast = booleanPreference("accessibility_high_contrast", false)
 		val strongFocus = booleanPreference("accessibility_strong_focus", false)

@@ -7,6 +7,7 @@ import androidx.leanback.widget.ItemBridgeAdapter
 import androidx.leanback.widget.ListRowPresenter
 import androidx.leanback.app.RowsSupportFragment
 import androidx.leanback.widget.ListRow
+import androidx.leanback.widget.ObjectAdapter
 import androidx.leanback.widget.OnItemViewClickedListener
 import androidx.leanback.widget.OnItemViewSelectedListener
 import androidx.leanback.widget.Presenter
@@ -29,6 +30,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -66,6 +68,7 @@ import java.io.IOException
 import org.jellyfin.androidtv.util.KeyProcessor
 import org.jellyfin.playback.core.PlaybackManager
 import org.jellyfin.sdk.api.client.ApiClient
+import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.api.sockets.subscribe
 import org.jellyfin.sdk.model.api.LibraryChangedMessage
 import org.jellyfin.sdk.model.api.UserDataChangedMessage
@@ -101,6 +104,11 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 	private val helper by lazy { HomeFragmentHelper(requireContext(), userRepository) }
 
 	// Data
+	/** The focused card's item, shown by the new Home's preview area. */
+	val focusedItem = MutableStateFlow<BaseItemDto?>(null)
+	/** Position of the focused card within its row, or -1; Left leaves the rows only from the first card. */
+	var focusedItemIndex = -1
+		private set
 	private var currentItem: BaseRowItem? = null
 	private var currentRow: ListRow? = null
 	private var justLoaded = true
@@ -552,11 +560,15 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 			if (item == null) return
 			if (item !is BaseRowItem) {
 				currentItem = null
+				focusedItem.value = null
+				focusedItemIndex = (row as? ListRow)?.adapter?.positionOf(item) ?: -1
 				//fill in default background
 				backgroundService.clearBackgrounds()
 			} else {
 				currentItem = item
+				focusedItem.value = item.baseItem
 				currentRow = row as ListRow
+				focusedItemIndex = row.adapter.positionOf(item)
 
 				val itemRowAdapter = row.adapter as? ItemRowAdapter
 				itemRowAdapter?.loadMoreItemsIfNeeded(itemRowAdapter.indexOf(item))
@@ -566,3 +578,5 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 		}
 	}
 }
+
+private fun ObjectAdapter.positionOf(item: Any): Int = (0 until size()).firstOrNull { get(it) == item } ?: -1

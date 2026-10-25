@@ -34,6 +34,7 @@ import org.jellyfin.androidtv.ui.settings.Routes
 import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.constant.HomeSectionType
 import org.jellyfin.androidtv.constant.HomeLayoutPreset
+import org.jellyfin.androidtv.preference.UserPreferences
 import org.jellyfin.androidtv.preference.UserSettingPreferences
 import org.jellyfin.androidtv.ui.base.Icon
 import org.jellyfin.androidtv.ui.base.Text
@@ -74,6 +75,8 @@ fun SettingsHomeScreen() {
 	var recentlyAddedShowsLimit by rememberPreference(userSettingPreferences, UserSettingPreferences.recentlyAddedShowsItemLimit)
 	var hideWatchedLatestMovies by rememberPreference(userSettingPreferences, UserSettingPreferences.hideWatchedLatestMovies)
 	var hideWatchedRecentlyAddedMovies by rememberPreference(userSettingPreferences, UserSettingPreferences.hideWatchedRecentlyAddedMovies)
+	val userPreferences = koinInject<UserPreferences>()
+	var newHomeEnabled by rememberPreference(userPreferences, UserPreferences.newHomeEnabled)
 	val listState = rememberLazyListState()
 	val scope = rememberCoroutineScope()
 	val hiddenSections = remember(visibleSections) {
@@ -144,6 +147,18 @@ fun SettingsHomeScreen() {
 				overlineContent = { Text(stringResource(R.string.pref_customization).uppercase()) },
 				headingContent = { Text(stringResource(R.string.home_prefs)) },
 				captionContent = { Text(stringResource(R.string.home_sections_hint)) },
+			)
+		}
+
+		item(key = "new_home") {
+			ListButton(
+				toggleState = newHomeEnabled,
+				headingContent = { Text(stringResource(R.string.new_home_title)) },
+				captionContent = { Text(stringResource(R.string.new_home_description)) },
+				trailingContent = { SettingsSwitch(checked = newHomeEnabled) },
+				enabled = grabbed == null,
+				onClick = { newHomeEnabled = !newHomeEnabled },
+				modifier = Modifier.focusKey("new_home")
 			)
 		}
 
