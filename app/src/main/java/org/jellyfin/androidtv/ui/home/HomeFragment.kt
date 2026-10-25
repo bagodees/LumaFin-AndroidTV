@@ -20,6 +20,8 @@ import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.compose.AndroidFragment
 import androidx.fragment.compose.content
@@ -48,6 +50,7 @@ class HomeFragment : Fragment() {
 	private val serverRepository by inject<ServerRepository>()
 	private val notificationRepository by inject<NotificationsRepository>()
 	private val userPreferences by inject<UserPreferences>()
+	private val resumeCount = MutableStateFlow(0)
 
 	override fun onCreateView(
 		inflater: LayoutInflater,
@@ -56,6 +59,7 @@ class HomeFragment : Fragment() {
 	) = content {
 		val rowsFocusRequester = remember { FocusRequester() }
 		val railFocusRequester = remember { FocusRequester() }
+		val previewButtonsFocusRequester = remember { FocusRequester() }
 		LaunchedEffect(rowsFocusRequester) { rowsFocusRequester.requestFocus() }
 
 		// The leanback code has its own awful focus handling that doesn't work properly with Compose view inteop to workaround this
@@ -63,6 +67,12 @@ class HomeFragment : Fragment() {
 		// we do switch the focus, we reset the leanback state so it won't cause weird behavior when focus is regained
 		val rowsSupportFragment = remember { mutableStateOf<HomeRowsFragment?>(null) }
 		var newHome by remember { mutableStateOf(userPreferences[UserPreferences.newHomeEnabled]) }
+		// Coming back from details, search or playback, the view system can restore focus to a menu
+		// item; on the new Home return to the rows (the last focused card) instead.
+		val resumes by resumeCount.collectAsState()
+		LaunchedEffect(resumes) {
+			if (newHome && resumes > 1) runCatching { rowsFocusRequester.requestFocus() }
+		}
 
 		// The settings screen is a dialog overlay rather than a separate navigation destination, so
 		// HomeRowsFragment never receives an onResume() call when it closes. Reload manually instead.
@@ -84,26 +94,33 @@ class HomeFragment : Fragment() {
 				rail = {
 					HomeSideRail(railFocusRequester, modifier = Modifier.focusProperties { right = rowsFocusRequester })
 				},
-				preview = { HomeFocusedPreview(focusedItem) },
-				rows = { HomeRows(rowsFocusRequester, rowsSupportFragment, exitDirection = FocusDirection.Left) },
+				preview = { HomeFocusedPreview(focusedItem, previewButtonsFocusRequester, rowsFocusRequester) },
+				rows = {
+					// The rows place the focused row by a share of their height; in this shorter area that
+					// clips the first row's heading, so align rows a fixed distance from the top instead.
+					val rowsTopOffset = with(LocalDensity.current) { 52.dp.roundToPx() }
+					HomeRows(rowsFocusRequester, rowsSupportFragment, exitDirections = setOf(FocusDirection.Left, FocusDirection.Up), resetOnUp = false, topOffsetPx = rowsTopOffset)
+				},
 			)
 		} else {
 			Column {
 				MainToolbar(MainToolbarActiveButton.Home)
-				HomeRows(rowsFocusRequester, rowsSupportFragment, exitDirection = FocusDirection.Up)
+				HomeRows(rowsFocusRequester, rowsSupportFragment, exitDirections = setOf(FocusDirection.Up))
 			}
 		}
 	}
 
 	/**
-	 * The Home rows. Focus may leave them in [exitDirection] only: Up from the first row to the classic
-	 * toolbar, or Left from a row's first card to the new Home's side menu.
+	 * The Home rows. Focus may leave them only in [exitDirections]: Up from the first row (to the classic
+	 * toolbar or the new Home's preview buttons), and Left from a row's first card (to the side menu).
 	 */
 	@Composable
 	private fun HomeRows(
 		focusRequester: FocusRequester,
 		fragment: MutableState<HomeRowsFragment?>,
-		exitDirection: FocusDirection,
+		exitDirections: Set<FocusDirection>,
+		resetOnUp: Boolean = true,
+		topOffsetPx: Int? = null,
 	) {
 		AndroidFragment<HomeRowsFragment>(
 			modifier = Modifier
@@ -114,10 +131,10 @@ class HomeFragment : Fragment() {
 						val isFirstRowSelected = fragment.value?.selectedPosition?.let { it <= 0 } ?: false
 						val isFirstCardSelected = fragment.value?.focusedItemIndex?.let { it <= 0 } ?: false
 						when {
-							requestedFocusDirection != exitDirection -> cancelFocusChange()
-							exitDirection == FocusDirection.Up && !isFirstRowSelected -> cancelFocusChange()
-							exitDirection == FocusDirection.Left && !isFirstCardSelected -> cancelFocusChange()
-							exitDirection == FocusDirection.Up -> {
+							requestedFocusDirection !in exitDirections -> cancelFocusChange()
+							requestedFocusDirection == FocusDirection.Up && !isFirstRowSelected -> cancelFocusChange()
+							requestedFocusDirection == FocusDirection.Left && !isFirstCardSelected -> cancelFocusChange()
+							requestedFocusDirection == FocusDirection.Up && resetOnUp -> {
 								fragment.value?.selectedPosition = 0
 								fragment.value?.verticalGridView?.clearFocus()
 							}
@@ -125,8 +142,16 @@ class HomeFragment : Fragment() {
 					}
 				}
 				.fillMaxSize(),
-			onUpdate = { rows -> fragment.value = rows }
+			onUpdate = { rows ->
+				fragment.value = rows
+				topOffsetPx?.let(rows::setAlignment)
+			}
 		)
+	}
+
+	override fun onResume() {
+		super.onResume()
+		resumeCount.value++
 	}
 
 	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

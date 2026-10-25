@@ -490,6 +490,7 @@
     <string name="home_layout_reset">Reset home layout</string>
     <string name="home_layout_presets">Home layout presets</string>
     <string name="new_home_title">Try the new Home</string>
+    <string name="new_home_details">Details</string>
     <string name="new_home_description">A side menu and a large preview of the selected title. Your Home rows stay the same. Turn off to return to the classic Home.</string>
     <string name="home_item_limits">Home row options</string>
     <string name="home_item_limits_description">Show or hide item limits and the watched-movie filter. Changes apply when you close settings.</string>

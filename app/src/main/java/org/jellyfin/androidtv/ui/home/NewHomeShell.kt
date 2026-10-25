@@ -28,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -41,6 +42,12 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.flow.filterNotNull
 import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.auth.repository.UserRepository
+import org.jellyfin.androidtv.preference.UserPreferences
+import org.jellyfin.androidtv.ui.playback.PlaybackLauncher
+import org.jellyfin.androidtv.util.PlaybackHelper
+import org.jellyfin.androidtv.util.TimeUtils
+import org.jellyfin.androidtv.util.apiclient.Response
+import org.jellyfin.androidtv.util.sdk.compat.canResume
 import org.jellyfin.androidtv.ui.base.Icon
 import org.jellyfin.androidtv.ui.base.JellyfinTheme
 import org.jellyfin.androidtv.ui.base.LumaFinPalette
@@ -141,14 +148,23 @@ private fun RailItem(icon: Int, label: Int, active: Boolean = false, modifier: M
  * their focus positions; the item's backdrop is drawn behind by the background service.
  */
 @Composable
-fun HomeFocusedPreview(item: BaseItemDto?, modifier: Modifier = Modifier) {
+fun HomeFocusedPreview(
+	item: BaseItemDto?,
+	buttonsFocusRequester: FocusRequester,
+	rowsFocusRequester: FocusRequester,
+	modifier: Modifier = Modifier,
+) {
 	val context = LocalContext.current
-	Box(modifier = modifier.fillMaxWidth().height(236.dp).padding(start = 48.dp, top = 28.dp, end = 32.dp)) {
+	val navigationRepository = koinInject<NavigationRepository>()
+	val playbackHelper = koinInject<PlaybackHelper>()
+	val playbackLauncher = koinInject<PlaybackLauncher>()
+	val userPreferences = koinInject<UserPreferences>()
+	Box(modifier = modifier.fillMaxWidth().height(256.dp).padding(start = 48.dp, top = 20.dp, end = 32.dp)) {
 		ToolbarClock(modifier = Modifier.align(Alignment.TopEnd))
 		if (item == null) return@Box
 		val isEpisode = item.type == BaseItemKind.EPISODE
 		Column(
-			verticalArrangement = Arrangement.spacedBy(10.dp),
+			verticalArrangement = Arrangement.spacedBy(8.dp),
 			modifier = Modifier.widthIn(max = 640.dp),
 		) {
 			if (isEpisode && item.name != null) {
@@ -165,9 +181,51 @@ fun HomeFocusedPreview(item: BaseItemDto?, modifier: Modifier = Modifier) {
 				BaseItemInfoRow(item = item, mediaSource = null, includeRuntime = true)
 			}
 			descriptionForDisplay(context, item)?.takeIf { it.isNotBlank() }?.let { description ->
-				Text(description, fontSize = 15.sp, color = LumaFinPalette.SecondaryText, maxLines = 3, overflow = TextOverflow.Ellipsis)
+				Text(description, fontSize = 15.sp, color = LumaFinPalette.SecondaryText, maxLines = 2, overflow = TextOverflow.Ellipsis)
+			}
+			Row(
+				horizontalArrangement = Arrangement.spacedBy(12.dp),
+				modifier = Modifier
+					.padding(top = 4.dp)
+					.focusRequester(buttonsFocusRequester)
+					.focusProperties { down = rowsFocusRequester }
+					.focusGroup(),
+			) {
+				if (item.type in playableTypes) {
+					val resumeMs = if (item.canResume) {
+						val preroll = userPreferences[UserPreferences.resumeSubtractDuration].toIntOrNull()?.times(1000) ?: 0
+						(item.userData!!.playbackPositionTicks / 10_000 - preroll).coerceAtLeast(0)
+					} else 0L
+					PreviewButton(
+						label = if (item.canResume) stringResource(R.string.lbl_resume_from, TimeUtils.formatMillis(resumeMs)) else stringResource(R.string.lbl_play),
+					) {
+						playbackHelper.getItemsToPlay(context, item, resumeMs == 0L && item.type == BaseItemKind.MOVIE, false, object : Response<List<BaseItemDto>>() {
+							override fun onResponse(response: List<BaseItemDto>) {
+								if (response.isNotEmpty()) playbackLauncher.launch(context, response, resumeMs.toInt())
+							}
+						})
+					}
+				}
+				PreviewButton(label = stringResource(R.string.new_home_details)) {
+					navigationRepository.navigate(Destinations.itemDetails(item.id))
+				}
 			}
 		}
+	}
+}
+
+private val playableTypes = setOf(BaseItemKind.MOVIE, BaseItemKind.EPISODE, BaseItemKind.VIDEO)
+
+@Composable
+private fun PreviewButton(label: String, onClick: () -> Unit) {
+	// Unfocused buttons stay dark so the theme's cyan focus color is what marks the focused one
+	ButtonBase(
+		onClick = onClick,
+		shape = RoundedCornerShape(22.dp),
+		colors = ButtonDefaults.colors(containerColor = LumaFinPalette.Raised, contentColor = LumaFinPalette.Text),
+		modifier = Modifier.height(44.dp),
+	) {
+		Text(label, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, modifier = Modifier.align(Alignment.Center).padding(horizontal = 22.dp))
 	}
 }
 
