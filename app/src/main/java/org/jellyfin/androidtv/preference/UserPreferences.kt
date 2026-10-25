@@ -61,6 +61,17 @@ class UserPreferences(context: Context, storage: SharedPreferences = PreferenceM
 		awaitClose { sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener) }
 	}.distinctUntilChanged()
 
+	/** True when Home cards should show artwork only: the new Home is on and titles are not turned back on. */
+	val homeCardTitlesHiddenChanges = callbackFlow {
+		fun current() = this@UserPreferences[newHomeEnabled] && !this@UserPreferences[newHomeCardTitles]
+		val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+			if (key == newHomeEnabled.key || key == newHomeCardTitles.key || key == null) trySend(current())
+		}
+		sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
+		trySend(current())
+		awaitClose { sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener) }
+	}.distinctUntilChanged()
+
 	/** Updates already-visible browsing effects when the setting changes. */
 	val reducedMotionChanges = callbackFlow {
 		val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
@@ -130,6 +141,8 @@ class UserPreferences(context: Context, storage: SharedPreferences = PreferenceM
 		val reducedMotion = booleanPreference("reduced_motion", false)
 		/** The redesigned Home (side menu with a preview of the focused title); off keeps the classic Home. */
 		val newHomeEnabled = booleanPreference("new_home_enabled", false)
+		/** Titles under Home cards on the new Home; off by default since the preview shows the focused title. */
+		val newHomeCardTitles = booleanPreference("new_home_card_titles", false)
 		val textScale = enumPreference("accessibility_text_scale", org.jellyfin.androidtv.preference.constant.TextScale.DEFAULT)
 		val highContrast = booleanPreference("accessibility_high_contrast", false)
 		val strongFocus = booleanPreference("accessibility_strong_focus", false)

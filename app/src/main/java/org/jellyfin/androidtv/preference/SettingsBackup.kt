@@ -56,7 +56,7 @@ internal object SettingsBackup {
 		enumeration("media_card_size", MediaCardSize.DEFAULT.name, MediaCardSize.entries.map { it.name }),
 		enumeration("pref_clock_behavior", ClockBehavior.ALWAYS.name, ClockBehavior.entries.map { it.name }),
 		enumeration("pref_watched_indicator_behavior", WatchedIndicatorBehavior.ALWAYS.name, WatchedIndicatorBehavior.entries.map { it.name }),
-		Field("reduced_motion", false), Field("new_home_enabled", false), Field("hide_unwatched_episode_artwork", false), Field("hide_unwatched_episode_descriptions", false),
+		Field("reduced_motion", false), Field("new_home_enabled", false), Field("new_home_card_titles", false), Field("hide_unwatched_episode_artwork", false), Field("hide_unwatched_episode_descriptions", false),
 		Field("pref_enable_series_thumbnails", true), Field("pref_rating_badges_enabled", true),
 		Field("pref_enable_tv_queuing", true), Field("pref_enable_cinema_mode", true),
 		number("skipBackLength", 10000, 5000..30000), number("skipForwardLength", 30000, 5000..30000),

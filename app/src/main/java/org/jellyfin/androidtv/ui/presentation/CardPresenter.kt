@@ -323,6 +323,9 @@ private fun CardViewHolderContent(
 	val subtitle = remember(item, context) { item?.getSubText(context) }
 	val preferences = koinInject<UserPreferences>()
 	val hideArtwork by preferences.episodeArtworkChanges.collectAsState(initial = preferences[UserPreferences.hideUnwatchedEpisodeArtwork])
+	val homeTitlesHidden by preferences.homeCardTitlesHiddenChanges.collectAsState(
+		initial = preferences[UserPreferences.newHomeEnabled] && !preferences[UserPreferences.newHomeCardTitles]
+	)
 	val displayConfig = remember(item, imageType, uniformAspect, hideArtwork) { item?.getDisplayConfig(imageType, uniformAspect) }
 	if (item == null || displayConfig == null) return
 
@@ -437,7 +440,7 @@ private fun CardViewHolderContent(
 			card = { card() },
 			metadataMinHeight = with(localDensity) { 50.sp.toDp() } + 12.dp,
 		)
-	} else if (usePreview) {
+	} else if (usePreview && !(homeRow && homeTitlesHidden)) {
 		val focusModifier = if (focused) Modifier.basicMarquee(
 			iterations = Int.MAX_VALUE,
 			initialDelayMillis = 0,

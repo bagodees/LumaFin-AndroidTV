@@ -97,9 +97,11 @@ class HomeFragment : Fragment() {
 				preview = { HomeFocusedPreview(focusedItem, previewButtonsFocusRequester, rowsFocusRequester) },
 				rows = {
 					// The rows place the focused row by a share of their height; in this shorter area that
-					// clips the first row's heading, so align rows a fixed distance from the top instead.
+					// clips the first row's heading. Align the focused row's cards just below its heading
+					// instead, with a small positive gap between rows so the row above scrolls fully out of
+					// view behind the preview.
 					val rowsTopOffset = with(LocalDensity.current) { 40.dp.roundToPx() }
-					HomeRows(rowsFocusRequester, rowsSupportFragment, exitDirections = setOf(FocusDirection.Left, FocusDirection.Up), resetOnUp = false, topOffsetPx = rowsTopOffset)
+					HomeRows(rowsFocusRequester, rowsSupportFragment, exitDirections = setOf(FocusDirection.Left, FocusDirection.Up), resetOnUp = false, topOffsetPx = rowsTopOffset, rowSpacingDp = 12)
 				},
 			)
 		} else {
@@ -121,6 +123,7 @@ class HomeFragment : Fragment() {
 		exitDirections: Set<FocusDirection>,
 		resetOnUp: Boolean = true,
 		topOffsetPx: Int? = null,
+		rowSpacingDp: Int = -20,
 	) {
 		AndroidFragment<HomeRowsFragment>(
 			modifier = Modifier
@@ -145,6 +148,7 @@ class HomeFragment : Fragment() {
 			onUpdate = { rows ->
 				fragment.value = rows
 				topOffsetPx?.let(rows::setAlignment)
+				rows.rowSpacingDp = rowSpacingDp
 			}
 		)
 	}

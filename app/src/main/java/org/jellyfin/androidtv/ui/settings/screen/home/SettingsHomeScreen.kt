@@ -77,6 +77,7 @@ fun SettingsHomeScreen() {
 	var hideWatchedRecentlyAddedMovies by rememberPreference(userSettingPreferences, UserSettingPreferences.hideWatchedRecentlyAddedMovies)
 	val userPreferences = koinInject<UserPreferences>()
 	var newHomeEnabled by rememberPreference(userPreferences, UserPreferences.newHomeEnabled)
+	var newHomeCardTitles by rememberPreference(userPreferences, UserPreferences.newHomeCardTitles)
 	val listState = rememberLazyListState()
 	val scope = rememberCoroutineScope()
 	val hiddenSections = remember(visibleSections) {
@@ -159,6 +160,17 @@ fun SettingsHomeScreen() {
 				enabled = grabbed == null,
 				onClick = { newHomeEnabled = !newHomeEnabled },
 				modifier = Modifier.focusKey("new_home")
+			)
+		}
+		if (newHomeEnabled) item(key = "new_home_card_titles") {
+			ListButton(
+				toggleState = newHomeCardTitles,
+				headingContent = { Text(stringResource(R.string.new_home_card_titles)) },
+				captionContent = { Text(stringResource(R.string.new_home_card_titles_description)) },
+				trailingContent = { SettingsSwitch(checked = newHomeCardTitles) },
+				enabled = grabbed == null,
+				onClick = { newHomeCardTitles = !newHomeCardTitles },
+				modifier = Modifier.focusKey("new_home_card_titles")
 			)
 		}
 

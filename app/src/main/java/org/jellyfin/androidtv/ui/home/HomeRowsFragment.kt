@@ -104,6 +104,20 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 	private val helper by lazy { HomeFragmentHelper(requireContext(), userRepository) }
 
 	// Data
+	/**
+	 * Space between rows in dp. Each row keeps Leanback's padding (re-applied on every selection) and
+	 * captioned cards reserve two lines, so the classic Home overlaps that empty space.
+	 */
+	var rowSpacingDp = -20
+		set(value) {
+			field = value
+			applyRowSpacing()
+		}
+
+	private fun applyRowSpacing() {
+		verticalGridView?.verticalSpacing = (rowSpacingDp * resources.displayMetrics.density).toInt()
+	}
+
 	/** The focused card's item, shown by the new Home's preview area. */
 	val focusedItem = MutableStateFlow<BaseItemDto?>(null)
 	/** Position of the focused card within its row, or -1; Left leaves the rows only from the first card. */
@@ -418,9 +432,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 
 	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 		super.onViewCreated(view, savedInstanceState)
-		// Each row keeps Leanback's padding (re-applied on every selection) and the cards reserve two caption
-		// lines, leaving a wide gap before the next heading. Overlap that empty space instead.
-		verticalGridView?.verticalSpacing = -(20 * resources.displayMetrics.density).toInt()
+		applyRowSpacing()
 		fun View?.insideRows() = this != null && generateSequence(this) { it.parent as? View }.any { it === view }
 		val listener = android.view.ViewTreeObserver.OnGlobalFocusChangeListener { old, focused ->
 			if (focused.insideRows() && !old.insideRows()) restoreFocusedBackdrop()
