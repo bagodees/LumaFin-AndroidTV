@@ -19,13 +19,13 @@ project view shows them together. Design details for the redesign are in
 
 Statuses: **Planned**, **In progress**, **Complete**, **Deferred**.
 
-**Current version: 1.0.x.** Next: 1.1.
+**Current version: 1.1.** Next: 1.2. The remaining 1.0.x items wait only on outside steps (Amazon's review and the Google Play testing period); fixes for the released app still go in 1.0.x.
 
 ---
 
 ## 1.0.x: launch and fixes
 
-Status: In progress. Milestone: [1.0.x](https://github.com/bagodees/LumaFin-AndroidTV/milestone/1).
+Status: In progress (waiting on Amazon review and Play production access). Milestone: [1.0.x](https://github.com/bagodees/LumaFin-AndroidTV/milestone/1).
 
 The released app on Google Play, Amazon Appstore and GitHub. No redesign work.
 
@@ -71,7 +71,7 @@ Submitted October 24, 2026; waiting for Amazon's review. Details: [Amazon prepar
 
 ## 1.1: new Home, as an option
 
-Status: Planned. Milestone: [1.1](https://github.com/bagodees/LumaFin-AndroidTV/milestone/2).
+Status: In progress (started October 25, 2026). Milestone: [1.1](https://github.com/bagodees/LumaFin-AndroidTV/milestone/2).
 
 1. [ ] Design two Home concepts and choose one ([#80](https://github.com/bagodees/LumaFin-AndroidTV/issues/80))
 2. [ ] New Home screen behind a "Try the new Home" setting ([#81](https://github.com/bagodees/LumaFin-AndroidTV/issues/81))
