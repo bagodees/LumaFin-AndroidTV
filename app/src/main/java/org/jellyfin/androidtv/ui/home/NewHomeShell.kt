@@ -1,6 +1,9 @@
 package org.jellyfin.androidtv.ui.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
@@ -127,7 +131,7 @@ private fun RailItem(icon: Int, label: Int, active: Boolean = false, modifier: M
 		onClick = onClick,
 		shape = RoundedCornerShape(14.dp),
 		colors = ButtonDefaults.colors(
-			containerColor = if (active) LumaFinPalette.Raised else androidx.compose.ui.graphics.Color.Transparent,
+			containerColor = if (active) LumaFinPalette.Raised else Color.Transparent,
 			contentColor = if (active) LumaFinPalette.Cyan else LumaFinPalette.SecondaryText,
 		),
 		modifier = modifier.width(80.dp).height(64.dp),
@@ -198,6 +202,7 @@ fun HomeFocusedPreview(
 					} else 0L
 					PreviewButton(
 						label = if (item.canResume) stringResource(R.string.lbl_resume_from, TimeUtils.formatMillis(resumeMs)) else stringResource(R.string.lbl_play),
+						icon = if (item.canResume) R.drawable.ic_resume else R.drawable.ic_play,
 					) {
 						playbackHelper.getItemsToPlay(context, item, resumeMs == 0L && item.type == BaseItemKind.MOVIE, false, object : Response<List<BaseItemDto>>() {
 							override fun onResponse(response: List<BaseItemDto>) {
@@ -206,7 +211,7 @@ fun HomeFocusedPreview(
 						})
 					}
 				}
-				PreviewButton(label = stringResource(R.string.new_home_details)) {
+				PreviewButton(label = stringResource(R.string.new_home_details), icon = R.drawable.ic_info) {
 					navigationRepository.navigate(Destinations.itemDetails(item.id))
 				}
 			}
@@ -216,16 +221,38 @@ fun HomeFocusedPreview(
 
 private val playableTypes = setOf(BaseItemKind.MOVIE, BaseItemKind.EPISODE, BaseItemKind.VIDEO)
 
+/** Matches the details page buttons: navy at rest, lighter navy with a cyan outline when focused. */
 @Composable
-private fun PreviewButton(label: String, onClick: () -> Unit) {
-	// Unfocused buttons stay dark so the theme's cyan focus color is what marks the focused one
+private fun PreviewButton(label: String, icon: Int, onClick: () -> Unit) {
+	val strongFocus = koinInject<UserPreferences>()[UserPreferences.strongFocus]
+	val interactionSource = remember { MutableInteractionSource() }
+	val focused by interactionSource.collectIsFocusedAsState()
+	val shape = RoundedCornerShape(12.dp)
 	ButtonBase(
 		onClick = onClick,
-		shape = RoundedCornerShape(22.dp),
-		colors = ButtonDefaults.colors(containerColor = LumaFinPalette.Raised, contentColor = LumaFinPalette.Text),
-		modifier = Modifier.height(44.dp),
+		shape = shape,
+		interactionSource = interactionSource,
+		colors = ButtonDefaults.colors(
+			containerColor = LumaFinPalette.Raised,
+			contentColor = LumaFinPalette.Text,
+			focusedContainerColor = LumaFinPalette.FocusedRow,
+			focusedContentColor = LumaFinPalette.Text,
+		),
+		modifier = Modifier
+			.height(44.dp)
+			.then(
+				if (focused) Modifier.border(if (strongFocus) 3.dp else 2.dp, if (strongFocus) Color.White else LumaFinPalette.Cyan, shape)
+				else Modifier
+			),
 	) {
-		Text(label, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, modifier = Modifier.align(Alignment.Center).padding(horizontal = 22.dp))
+		Row(
+			verticalAlignment = Alignment.CenterVertically,
+			horizontalArrangement = Arrangement.spacedBy(8.dp),
+			modifier = Modifier.align(Alignment.Center).padding(horizontal = 18.dp),
+		) {
+			Icon(imageVector = ImageVector.vectorResource(icon), contentDescription = null, modifier = Modifier.size(20.dp))
+			Text(label, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+		}
 	}
 }
 
