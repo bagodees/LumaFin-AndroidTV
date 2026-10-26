@@ -43,6 +43,9 @@ import android.util.TypedValue
 import org.jellyfin.androidtv.util.dp
 import org.jellyfin.androidtv.ui.home.SideMenuFrame
 import org.jellyfin.androidtv.ui.itemdetail.showLumaFinOverviewLayout
+import org.jellyfin.androidtv.util.apiclient.itemImages
+import org.jellyfin.androidtv.util.apiclient.parentImages
+import org.jellyfin.sdk.model.api.ImageType
 import android.view.Gravity
 import android.widget.LinearLayout
 
@@ -177,7 +180,17 @@ class MyDetailsOverviewRowPresenter(
 						if (index == 0) marginStart = 12.dp(view.context)
 					})
 				}
-				detailRowView.showLumaFinOverviewLayout()
+				val logo = item.itemImages[ImageType.LOGO] ?: item.parentImages[ImageType.LOGO]
+				if (logo != null) {
+					binding.mainImage.background = null
+					binding.mainImage.scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
+					binding.mainImage.layoutParams = binding.mainImage.layoutParams.apply {
+						width = ViewGroup.LayoutParams.MATCH_PARENT
+						height = ViewGroup.LayoutParams.MATCH_PARENT
+					}
+					binding.mainImage.load(logo.getUrl(GlobalContext.get().get<ApiClient>(), maxHeight = 240), null, null, 1.0, 0)
+				}
+				detailRowView.showLumaFinOverviewLayout(hasLogo = logo != null)
 			} else if (item.type in listOf(BaseItemKind.MOVIE, BaseItemKind.EPISODE, BaseItemKind.SERIES, BaseItemKind.SEASON)) {
 				detailRowView.showMediaOverviewLayout(hasThumbnail, row.imageDrawable?.contains("/Logo", ignoreCase = true) == true)
 			}

@@ -71,7 +71,7 @@ internal fun DetailRowView.showMediaOverviewLayout(hasThumbnail: Boolean, imageI
 }
 
 /** LumaFin details header (#85): no poster column, the title lines up with the clock and the actions sit in one row. */
-internal fun DetailRowView.showLumaFinOverviewLayout() {
+internal fun DetailRowView.showLumaFinOverviewLayout(hasLogo: Boolean) {
 	val b = binding
 	b.root.layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
 	b.detailsContent.layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
@@ -103,7 +103,8 @@ internal fun DetailRowView.showLumaFinOverviewLayout() {
 			setHorizontalBias(id, 0f)
 			connect(id, ConstraintSet.TOP, above, if (above == ConstraintSet.PARENT_ID) ConstraintSet.TOP else ConstraintSet.BOTTOM, gap.dp(context))
 		}
-		textColumn(b.fdTitle.id, ConstraintSet.PARENT_ID, 14, maxWidth = 680)
+		// Narrower beside a logo so the two never overlap
+		textColumn(b.fdTitle.id, ConstraintSet.PARENT_ID, 14, maxWidth = if (hasLogo) 560 else 680)
 		textColumn(b.fdSubtitle.id, b.fdTitle.id, 4)
 		textColumn(b.fdMainInfoRow.id, b.fdSubtitle.id, 8)
 		setGoneMargin(b.fdMainInfoRow.id, ConstraintSet.TOP, 8.dp(context))
@@ -117,7 +118,12 @@ internal fun DetailRowView.showLumaFinOverviewLayout() {
 		connect(b.fdButtonRow.id, ConstraintSet.BOTTOM, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM, 16.dp(context))
 		setVerticalBias(b.fdButtonRow.id, 0f)
 		visibility.forEach { (id, value) -> setVisibility(id, value) }
-		setVisibility(b.mainImageContainer.id, View.GONE)
+		// The title's logo sits top-right under the clock, like the Home preview's right third
+		constrainWidth(b.mainImageContainer.id, 260.dp(context))
+		constrainHeight(b.mainImageContainer.id, 104.dp(context))
+		connect(b.mainImageContainer.id, ConstraintSet.END, ConstraintSet.PARENT_ID, ConstraintSet.END, 40.dp(context))
+		connect(b.mainImageContainer.id, ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.TOP, 64.dp(context))
+		setVisibility(b.mainImageContainer.id, if (hasLogo) View.VISIBLE else View.GONE)
 		setVisibility(b.fdThumb.id, View.GONE)
 		setVisibility(b.fdTrackColumn.id, View.GONE)
 		applyTo(b.detailsContent)
