@@ -130,7 +130,7 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
     private Instant mLastUpdated;
     public UUID mPrevItemId;
 
-    private RowsSupportFragment mRowsFragment;
+    RowsSupportFragment mRowsFragment;
     private MutableObjectAdapter<Row> mRowsAdapter;
 
     private MyDetailsOverviewRowPresenter mDorPresenter;
@@ -623,11 +623,16 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
 
                 break;
             case SERIES:
-                ItemRowAdapter nextUpAdapter = new ItemRowAdapter(requireContext(), BrowsingUtils.createSeriesGetNextUpRequest(mBaseItem.getId()), false, new CardPresenter(true, 130), adapter);
-                addItemRow(adapter, nextUpAdapter, 0, getString(R.string.lbl_next_up));
+                if (SideMenuFrame.isEnabled()) {
+                    // Season tabs and episode cards; added once the seasons load
+                    SeasonTabsKt.addSeasonEpisodeRows(this, adapter);
+                } else {
+                    ItemRowAdapter nextUpAdapter = new ItemRowAdapter(requireContext(), BrowsingUtils.createSeriesGetNextUpRequest(mBaseItem.getId()), false, new CardPresenter(true, 130), adapter);
+                    addItemRow(adapter, nextUpAdapter, 0, getString(R.string.lbl_next_up));
 
-                ItemRowAdapter seasonsAdapter = new ItemRowAdapter(requireContext(), BrowsingUtils.createSeasonsRequest(mBaseItem.getId()), new CardPresenter(), adapter);
-                addItemRow(adapter, seasonsAdapter, 1, getString(R.string.lbl_seasons));
+                    ItemRowAdapter seasonsAdapter = new ItemRowAdapter(requireContext(), BrowsingUtils.createSeasonsRequest(mBaseItem.getId()), new CardPresenter(), adapter);
+                    addItemRow(adapter, seasonsAdapter, 1, getString(R.string.lbl_seasons));
+                }
 
                 //Specials
                 if (mBaseItem.getSpecialFeatureCount() != null && mBaseItem.getSpecialFeatureCount() > 0) {
