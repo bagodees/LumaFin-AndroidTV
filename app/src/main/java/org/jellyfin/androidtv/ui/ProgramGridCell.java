@@ -17,6 +17,7 @@ import android.widget.TextView;
 import org.jellyfin.androidtv.R;
 import org.jellyfin.androidtv.preference.LiveTvPreferences;
 import org.jellyfin.androidtv.ui.livetv.LiveTvGuide;
+import org.jellyfin.androidtv.ui.livetv.LiveTvGuideStyle;
 import org.jellyfin.androidtv.util.DateTimeExtensionsKt;
 import org.jellyfin.androidtv.util.Utils;
 import org.jellyfin.androidtv.util.sdk.BaseItemExtensionsKt;
@@ -46,12 +47,15 @@ public class ProgramGridCell extends RelativeLayout implements RecordingIndicato
         LayoutInflater inflater = LayoutInflater.from(context);
         View v = inflater.inflate(R.layout.program_grid_cell, this, false);
         this.addView(v);
+        // The LumaFin cell background (with its focus outline) goes on this view instead of the inner border
+        if (LiveTvGuideStyle.isEnabled()) v.setBackground(null);
 
         setFocusable(true);
 
         mProgramName = findViewById(R.id.programName);
         mInfoRow = findViewById(R.id.infoRow);
         mProgramName.setText(program.getName());
+        if (LiveTvGuideStyle.isEnabled()) LiveTvGuideStyle.styleProgramName(mProgramName);
         mProgram = program;
         mRecIndicator = findViewById(R.id.recIndicator);
 
@@ -135,19 +139,22 @@ public class ProgramGridCell extends RelativeLayout implements RecordingIndicato
                 mBackgroundColor = getResources().getColor(R.color.guide_kids_bg);
             }
 
-            setBackgroundColor(mBackgroundColor);
+            if (!LiveTvGuideStyle.isEnabled()) setBackgroundColor(mBackgroundColor);
         }
+        if (LiveTvGuideStyle.isEnabled()) setBackground(LiveTvGuideStyle.cellBackground(getContext(), mBackgroundColor));
     }
 
     @Override
     protected void onFocusChanged(boolean gainFocus, int direction, Rect previouslyFocusedRect) {
         super.onFocusChanged(gainFocus, direction, previouslyFocusedRect);
 
+        // The LumaFin background shows focus through its own states
+        boolean lumaFin = LiveTvGuideStyle.isEnabled();
         if (gainFocus) {
-            setBackgroundColor(Utils.getThemeColor(getContext(), android.R.attr.colorAccent));
+            if (!lumaFin) setBackgroundColor(Utils.getThemeColor(getContext(), android.R.attr.colorAccent));
 
             mActivity.setSelectedProgram(this);
-        } else {
+        } else if (!lumaFin) {
             setBackgroundColor(mBackgroundColor);
         }
     }

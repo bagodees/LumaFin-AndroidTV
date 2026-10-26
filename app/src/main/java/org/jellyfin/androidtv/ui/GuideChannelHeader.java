@@ -13,6 +13,7 @@ import androidx.core.content.ContextCompat;
 
 import org.jellyfin.androidtv.R;
 import org.jellyfin.androidtv.ui.livetv.LiveTvGuide;
+import org.jellyfin.androidtv.ui.livetv.LiveTvGuideStyle;
 import org.jellyfin.androidtv.ui.livetv.LiveTvGuideFragment;
 import org.jellyfin.androidtv.util.ImageHelper;
 import org.jellyfin.androidtv.util.Utils;
@@ -44,6 +45,11 @@ public class GuideChannelHeader extends RelativeLayout {
         ));
         this.addView(v);
         this.setFocusable(true);
+        if (LiveTvGuideStyle.isEnabled()) {
+            v.setBackground(null);
+            setBackground(LiveTvGuideStyle.cellBackground(context));
+            LiveTvGuideStyle.styleProgramName(findViewById(R.id.channelName));
+        }
         ((TextView) findViewById(R.id.channelName)).setText(channel.getName());
         ((TextView) findViewById(R.id.channelNumber)).setText(channel.getNumber());
         mChannelImage = findViewById(R.id.channelImage);
@@ -78,11 +84,12 @@ public class GuideChannelHeader extends RelativeLayout {
     protected void onFocusChanged(boolean gainFocus, int direction, Rect previouslyFocusedRect) {
         super.onFocusChanged(gainFocus, direction, previouslyFocusedRect);
 
+        boolean lumaFin = LiveTvGuideStyle.isEnabled();
         if (gainFocus) {
-            setBackgroundColor(Utils.getThemeColor(mContext, android.R.attr.colorAccent));
+            if (!lumaFin) setBackgroundColor(Utils.getThemeColor(mContext, android.R.attr.colorAccent));
 
             mTvGuide.setSelectedProgram(this);
-        } else {
+        } else if (!lumaFin) {
             setBackground(ContextCompat.getDrawable(mContext, R.drawable.light_border));
         }
     }

@@ -7,6 +7,9 @@ import android.os.Handler;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
+import org.jellyfin.androidtv.ui.home.SideMenuFrame;
+import org.jellyfin.androidtv.ui.shared.toolbar.MainToolbarActiveButton;
+import org.jellyfin.androidtv.util.Utils;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -141,7 +144,14 @@ public class EnhancedBrowseFragment extends Fragment implements RowLoader, View.
 
         mRowsFragment.setAdapter(mRowsAdapter);
 
-        return binding.getRoot();
+        if (!SideMenuFrame.isEnabled()) return binding.getRoot();
+        // LumaFin layout: side menu instead of the Home button, and the title lined up like Home's
+        binding.clock.getHomeButton().setVisibility(View.GONE);
+        android.view.ViewGroup.MarginLayoutParams titleParams = (android.view.ViewGroup.MarginLayoutParams) mTitle.getLayoutParams();
+        titleParams.setMarginStart(Utils.convertDpToPixel(requireContext(), 48));
+        mTitle.setLayoutParams(titleParams);
+        mTitle.setTypeface(android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL));
+        return SideMenuFrame.wrap(requireContext(), binding.getRoot(), MainToolbarActiveButton.Libraries);
     }
 
     @Override

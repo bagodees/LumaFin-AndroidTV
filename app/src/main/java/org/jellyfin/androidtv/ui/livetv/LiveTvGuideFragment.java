@@ -57,6 +57,9 @@ import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
 
+import org.jellyfin.androidtv.ui.home.SideMenuFrame;
+import org.jellyfin.androidtv.ui.shared.toolbar.MainToolbarActiveButton;
+
 import kotlin.Lazy;
 import kotlinx.coroutines.flow.MutableStateFlow;
 import timber.log.Timber;
@@ -211,7 +214,9 @@ public class LiveTvGuideFragment extends Fragment implements LiveTvGuide, View.O
             return null;
         });
 
-        return binding.getRoot();
+        if (!LiveTvGuideStyle.isEnabled()) return binding.getRoot();
+        LiveTvGuideStyle.apply(binding);
+        return SideMenuFrame.wrap(requireContext(), binding.getRoot(), MainToolbarActiveButton.Libraries);
     }
 
     private int getGuideHours() {
@@ -725,6 +730,7 @@ public class LiveTvGuideFragment extends Fragment implements LiveTvGuide, View.O
             TextView time = new TextView(requireContext());
             time.setText(DateTimeExtensionsKt.getTimeFormatter(getContext()).format(current));
             time.setWidth(interval != 60 ? ( interval < 15 ? 15 * guideRowWidthPerMinPx : interval * guideRowWidthPerMinPx) : oneHour);
+            if (LiveTvGuideStyle.isEnabled()) LiveTvGuideStyle.styleTimeLabel(time);
             mTimeline.addView(time);
             current = current.plusMinutes(interval);
             //after first one, we always go on hours
