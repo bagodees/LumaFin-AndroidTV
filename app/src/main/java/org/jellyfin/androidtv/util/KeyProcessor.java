@@ -12,6 +12,7 @@ import org.jellyfin.androidtv.R;
 import org.jellyfin.androidtv.constant.CustomMessage;
 import org.jellyfin.androidtv.data.repository.CustomMessageRepository;
 import org.jellyfin.androidtv.data.repository.ItemMutationRepository;
+import org.jellyfin.androidtv.ui.home.HomeCardActions;
 import org.jellyfin.androidtv.ui.itemhandling.AudioQueueBaseRowItem;
 import org.jellyfin.androidtv.ui.itemhandling.BaseRowItem;
 import org.jellyfin.androidtv.ui.itemhandling.BaseRowType;
@@ -49,6 +50,7 @@ public class KeyProcessor {
     public static final int MENU_CLEAR_QUEUE = 12;
     public static final int MENU_TOGGLE_SHUFFLE = 13;
     public static final int MENU_REMOVE_CONTINUE_WATCHING = 14;
+    public static final int MENU_DETAILS = 15;
 
     private final Lazy<MediaManager> mediaManager = KoinJavaComponent.<MediaManager>inject(MediaManager.class);
     private final Lazy<NavigationRepository> navigationRepository = KoinJavaComponent.<NavigationRepository>inject(NavigationRepository.class);
@@ -208,6 +210,10 @@ public class KeyProcessor {
                 menu.getMenu().add(0, MENU_CLEAR_QUEUE, order++, R.string.lbl_clear_queue);
             }
         } else {
+            // OK plays these cards on the LumaFin Home, so the menu is the way to their details
+            if (HomeCardActions.playsOnClick(rowItem)) {
+                menu.getMenu().add(0, MENU_DETAILS, order++, R.string.new_home_details);
+            }
             if (KeyProcessorHelperKt.canRemoveFromContinueWatching(item)) {
                 menu.getMenu().add(0, MENU_REMOVE_CONTINUE_WATCHING, order++, R.string.remove_continue_watching);
             }
@@ -297,6 +303,9 @@ public class KeyProcessor {
         @Override
         public boolean onMenuItemClick(MenuItem menuItem) {
             switch (menuItem.getItemId()) {
+                case MENU_DETAILS:
+                    navigationRepository.getValue().navigate(Destinations.INSTANCE.itemDetails(item.getId()));
+                    return true;
                 case MENU_REMOVE_CONTINUE_WATCHING:
                     KeyProcessorHelperKt.confirmRemoveFromContinueWatching(activity, item);
                     return true;

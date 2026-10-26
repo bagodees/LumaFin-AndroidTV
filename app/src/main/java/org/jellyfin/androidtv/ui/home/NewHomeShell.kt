@@ -207,53 +207,18 @@ private fun RailItem(icon: Int, label: Int, expanded: Boolean, active: Boolean =
 @Composable
 fun HomeFocusedPreview(
 	item: BaseItemDto?,
-	buttonsFocusRequester: FocusRequester,
-	rowsFocusRequester: FocusRequester,
 	modifier: Modifier = Modifier,
 ) {
-	val context = LocalContext.current
-	val navigationRepository = koinInject<NavigationRepository>()
-	val playbackHelper = koinInject<PlaybackHelper>()
-	val playbackLauncher = koinInject<PlaybackLauncher>()
-	val userPreferences = koinInject<UserPreferences>()
-	Box(modifier = modifier.fillMaxWidth().height(232.dp).padding(start = 48.dp, top = 20.dp, end = 32.dp)) {
+	// No buttons here: OK on a card plays it and holding OK opens its details, so Up and Down only move between rows.
+	Box(modifier = modifier.fillMaxWidth().height(176.dp).padding(start = 48.dp, top = 20.dp, end = 32.dp)) {
 		ToolbarClock(modifier = Modifier.align(Alignment.TopEnd))
 		if (item == null) return@Box
-		// Anchored to the bottom so the buttons keep the same distance to the rows whether or not an
-		// episode line is shown; spare height goes above the title.
+		// Anchored to the bottom so the rows keep the same distance whether or not an episode line is shown.
 		Column(
 			verticalArrangement = Arrangement.spacedBy(8.dp),
 			modifier = Modifier.align(Alignment.BottomStart).widthIn(max = 640.dp),
 		) {
 			FocusedTitleInfo(item)
-			Row(
-				horizontalArrangement = Arrangement.spacedBy(12.dp),
-				modifier = Modifier
-					.padding(top = 4.dp)
-					.focusRequester(buttonsFocusRequester)
-					.focusProperties { down = rowsFocusRequester }
-					.focusGroup(),
-			) {
-				if (item.type in playableTypes) {
-					val resumeMs = if (item.canResume) {
-						val preroll = userPreferences[UserPreferences.resumeSubtractDuration].toIntOrNull()?.times(1000) ?: 0
-						(item.userData!!.playbackPositionTicks / 10_000 - preroll).coerceAtLeast(0)
-					} else 0L
-					PreviewButton(
-						label = if (item.canResume) stringResource(R.string.lbl_resume_from, TimeUtils.formatMillis(resumeMs)) else stringResource(R.string.lbl_play),
-						icon = if (item.canResume) R.drawable.ic_resume else R.drawable.ic_play,
-					) {
-						playbackHelper.getItemsToPlay(context, item, resumeMs == 0L && item.type == BaseItemKind.MOVIE, false, object : Response<List<BaseItemDto>>() {
-							override fun onResponse(response: List<BaseItemDto>) {
-								if (response.isNotEmpty()) playbackLauncher.launch(context, response, resumeMs.toInt())
-							}
-						})
-					}
-				}
-				PreviewButton(label = stringResource(R.string.new_home_details), icon = R.drawable.ic_info) {
-					navigationRepository.navigate(Destinations.itemDetails(item.id))
-				}
-			}
 		}
 	}
 }
@@ -278,43 +243,6 @@ fun FocusedTitleInfo(item: BaseItemDto) {
 	}
 	descriptionForDisplay(context, item)?.takeIf { it.isNotBlank() }?.let { description ->
 		Text(description, fontSize = 15.sp, color = LumaFinPalette.SecondaryText, maxLines = 2, overflow = TextOverflow.Ellipsis)
-	}
-}
-
-private val playableTypes = setOf(BaseItemKind.MOVIE, BaseItemKind.EPISODE, BaseItemKind.VIDEO)
-
-/** Matches the details page buttons: navy at rest, lighter navy with a cyan outline when focused. */
-@Composable
-private fun PreviewButton(label: String, icon: Int, onClick: () -> Unit) {
-	val strongFocus = koinInject<UserPreferences>()[UserPreferences.strongFocus]
-	val interactionSource = remember { MutableInteractionSource() }
-	val focused by interactionSource.collectIsFocusedAsState()
-	val shape = RoundedCornerShape(12.dp)
-	ButtonBase(
-		onClick = onClick,
-		shape = shape,
-		interactionSource = interactionSource,
-		colors = ButtonDefaults.colors(
-			containerColor = LumaFinPalette.Raised,
-			contentColor = LumaFinPalette.Text,
-			focusedContainerColor = LumaFinPalette.FocusedRow,
-			focusedContentColor = LumaFinPalette.Text,
-		),
-		modifier = Modifier
-			.height(44.dp)
-			.then(
-				if (focused) Modifier.border(if (strongFocus) 3.dp else 2.dp, if (strongFocus) Color.White else LumaFinPalette.Cyan, shape)
-				else Modifier
-			),
-	) {
-		Row(
-			verticalAlignment = Alignment.CenterVertically,
-			horizontalArrangement = Arrangement.spacedBy(8.dp),
-			modifier = Modifier.align(Alignment.Center).padding(horizontal = 18.dp),
-		) {
-			Icon(imageVector = ImageVector.vectorResource(icon), contentDescription = null, modifier = Modifier.size(20.dp))
-			Text(label, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
-		}
 	}
 }
 

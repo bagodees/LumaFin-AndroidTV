@@ -558,6 +558,8 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 			}
 			if (item !is BaseRowItem) return
 			if (row !is ListRow) return
+			// LumaFin Home: OK on a video card plays it; holding OK opens the details instead
+			if (HomeCardActions.playsOnClick(item) && keyProcessor.handleKey(KeyEvent.KEYCODE_MEDIA_PLAY, item, requireActivity())) return
 			@Suppress("UNCHECKED_CAST")
 			itemLauncher.launch(item, row.adapter as MutableObjectAdapter<Any>, requireContext())
 		}

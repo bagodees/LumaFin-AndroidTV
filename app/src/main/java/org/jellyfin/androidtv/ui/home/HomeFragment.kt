@@ -59,7 +59,6 @@ class HomeFragment : Fragment() {
 	) = content {
 		val rowsFocusRequester = remember { FocusRequester() }
 		val railFocusRequester = remember { FocusRequester() }
-		val previewButtonsFocusRequester = remember { FocusRequester() }
 		LaunchedEffect(rowsFocusRequester) { rowsFocusRequester.requestFocus() }
 
 		// The leanback code has its own awful focus handling that doesn't work properly with Compose view inteop to workaround this
@@ -94,14 +93,14 @@ class HomeFragment : Fragment() {
 				rail = {
 					MainSideRail(MainToolbarActiveButton.Home, railFocusRequester, rowsFocusRequester)
 				},
-				preview = { HomeFocusedPreview(focusedItem, previewButtonsFocusRequester, rowsFocusRequester) },
+				preview = { HomeFocusedPreview(focusedItem) },
 				rows = {
 					// The rows place the focused row by a share of their height; in this shorter area that
 					// clips the first row's heading. Align the focused row's cards just below its heading
 					// instead, with a small positive gap between rows so the row above scrolls fully out of
 					// view behind the preview.
 					val rowsTopOffset = with(LocalDensity.current) { 40.dp.roundToPx() }
-					HomeRows(rowsFocusRequester, rowsSupportFragment, exitDirections = setOf(FocusDirection.Left, FocusDirection.Up), resetOnUp = false, topOffsetPx = rowsTopOffset, rowSpacingDp = 12)
+					HomeRows(rowsFocusRequester, rowsSupportFragment, exitDirections = setOf(FocusDirection.Left), resetOnUp = false, topOffsetPx = rowsTopOffset, rowSpacingDp = 12)
 				},
 			)
 		} else {
@@ -114,7 +113,7 @@ class HomeFragment : Fragment() {
 
 	/**
 	 * The Home rows. Focus may leave them only in [exitDirections]: Up from the first row (to the classic
-	 * toolbar or the new Home's preview buttons), and Left from a row's first card (to the side menu).
+	 * toolbar), and Left from a row's first card (to the side menu).
 	 */
 	@Composable
 	private fun HomeRows(

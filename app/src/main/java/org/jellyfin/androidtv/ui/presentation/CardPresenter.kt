@@ -1,6 +1,8 @@
 package org.jellyfin.androidtv.ui.presentation
 
 import org.jellyfin.androidtv.preference.UserPreferences
+import org.jellyfin.androidtv.preference.constant.CardLongPressAction
+import org.jellyfin.androidtv.ui.home.HomeCardActions
 import android.view.View
 import androidx.compose.ui.platform.findViewTreeCompositionContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -138,7 +140,13 @@ class CardPresenter @JvmOverloads constructor(
 			composeView.setOnLongClickListener {
 				val item = _item.value
 				if (item == null || !view.isFocused || preferences.accountRevision != boundAccountRevision) true
-				else handleCardLongPress(view, item, preferences[UserPreferences.cardLongPressAction])
+				else {
+					// On the LumaFin Home OK already plays video cards, so a hold set to Play opens the details instead
+					val action = preferences[UserPreferences.cardLongPressAction].let {
+						if (homeRow && it == CardLongPressAction.PLAY && HomeCardActions.playsOnClick(item)) CardLongPressAction.DETAILS else it
+					}
+					handleCardLongPress(view, item, action)
+				}
 			}
 			composeView.setContent {
 				val item by _item.collectAsState()
