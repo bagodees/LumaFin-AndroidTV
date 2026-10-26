@@ -59,6 +59,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.MutableStateFlow
 import androidx.compose.runtime.LaunchedEffect
 import org.jellyfin.androidtv.data.repository.UserViewsRepository
+import org.jellyfin.androidtv.auth.repository.ServerRepository
 import org.jellyfin.androidtv.ui.itemhandling.ItemLauncher
 import org.jellyfin.sdk.model.api.CollectionType
 import timber.log.Timber
@@ -111,6 +112,20 @@ private object SideMenuLibraries {
 /** Library entries that fit in the menu above Settings at TV height; more than this shows "Libraries" for the rest. */
 private const val MaxLibraryEntries = 5
 
+/** Main libraries first; collections and playlists after everything else. Same-type libraries keep the server's order. */
+private val libraryOrder = listOf(
+	CollectionType.MOVIES,
+	CollectionType.TVSHOWS,
+	CollectionType.LIVETV,
+	CollectionType.MUSIC,
+	CollectionType.MUSICVIDEOS,
+	CollectionType.HOMEVIDEOS,
+	CollectionType.PHOTOS,
+	null,
+	CollectionType.BOXSETS,
+	CollectionType.PLAYLISTS,
+)
+
 private fun libraryIcon(type: CollectionType?) = when (type) {
 	CollectionType.MOVIES -> R.drawable.ic_movie
 	CollectionType.TVSHOWS -> R.drawable.ic_tv
@@ -151,6 +166,8 @@ fun MainSideRail(
 	val navigationRepository = koinInject<NavigationRepository>()
 	val settingsViewModel = koinActivityViewModel<SettingsViewModel>()
 	val userViews = koinInject<UserViewsRepository>()
+	val serverRepository = koinInject<ServerRepository>()
+	val currentServer by serverRepository.currentServer.collectAsState()
 	val itemLauncher = koinInject<ItemLauncher>()
 	val userRepository = koinInject<UserRepository>()
 	val api = koinInject<ApiClient>()
@@ -160,7 +177,7 @@ fun MainSideRail(
 	val libraries = cachedLibraries?.takeIf { it.first == currentUser?.id }?.second
 	LaunchedEffect(currentUser?.id) {
 		val userId = currentUser?.id ?: return@LaunchedEffect
-		runCatching { userViews.views.first().toList() }
+		runCatching { userViews.views.first().sortedBy { libraryOrder.indexOf(it.collectionType).let { i -> if (i < 0) libraryOrder.size else i } } }
 			.onSuccess { SideMenuLibraries.cached.value = userId to it }
 			.onFailure { Timber.w(it, "Failed to load libraries for the side menu") }
 	}
@@ -212,7 +229,11 @@ fun MainSideRail(
 					contentDescription = stringResource(R.string.lbl_switch_user),
 					modifier = Modifier.size(48.dp).clip(CircleShape),
 				)
-				if (expanded) Text(currentUser?.name.orEmpty(), fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+				if (expanded) Column {
+					Text(currentUser?.name.orEmpty(), fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+					// Which server you're on, for households with more than one
+					currentServer?.name?.let { Text(it, fontSize = 12.sp, color = LumaFinPalette.SecondaryText, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+				}
 			}
 		}
 		Spacer(Modifier.height(18.dp))
@@ -246,6 +267,8 @@ fun MainSideRail(
 				if (!onActiveScreen || active != MainToolbarActiveButton.Libraries) navigationRepository.navigate(Destinations.libraries)
 			}
 		}
+		// Settings sits at the bottom, apart from the places you browse
+		Spacer(Modifier.weight(1f))
 		RailItem(R.drawable.ic_settings, stringResource(R.string.settings), expanded, modifier = toRows) { settingsViewModel.show() }
 	}
 }
