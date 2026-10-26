@@ -311,18 +311,22 @@ private fun RailItem(icon: Int, text: String, expanded: Boolean, active: Boolean
 fun HomeFocusedPreview(
 	item: BaseItemDto?,
 	modifier: Modifier = Modifier,
-	// The tabbed library pages show the clock in their tab row instead
-	showClock: Boolean = true,
+	// The tabbed library pages put the clock in their tab row and the preview right under the tabs,
+	// lined up with the Library grid's preview
+	underTabs: Boolean = false,
 ) {
 	// No buttons here: OK on a card opens its details and the remote's Play key plays it, so Up and Down only move between rows.
-	Box(modifier = modifier.fillMaxWidth().height(176.dp).padding(start = 48.dp, top = 20.dp, end = 32.dp)) {
-		if (showClock) ToolbarClock(modifier = Modifier.align(Alignment.TopEnd))
+	Box(
+		modifier = modifier.fillMaxWidth()
+			.height(if (underTabs) 128.dp else 176.dp)
+			.padding(start = 48.dp, top = if (underTabs) 2.dp else 20.dp, end = 32.dp),
+	) {
+		if (!underTabs) ToolbarClock(modifier = Modifier.align(Alignment.TopEnd))
 		if (item == null) return@Box
-		val api = koinInject<ApiClient>()
-		// Anchored to the bottom so the rows keep the same distance whether or not an episode line is shown.
+		// On Home it's anchored to the bottom so the rows keep the same distance whatever the text's length
 		Row(
-			verticalAlignment = Alignment.Bottom,
-			modifier = Modifier.align(Alignment.BottomStart).fillMaxWidth(),
+			verticalAlignment = if (underTabs) Alignment.Top else Alignment.Bottom,
+			modifier = Modifier.align(if (underTabs) Alignment.TopStart else Alignment.BottomStart).fillMaxWidth(),
 		) {
 			Column(
 				verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -330,22 +334,25 @@ fun HomeFocusedPreview(
 			) {
 				FocusedTitleInfo(item)
 			}
-			// The title's logo fills the right third (the show's logo for an episode); empty when there is none
-			val logo = item.itemImages[ImageType.LOGO] ?: item.parentImages[ImageType.LOGO]
-			Box(
-				contentAlignment = Alignment.Center,
-				modifier = Modifier.weight(1f).height(112.dp).padding(start = 32.dp),
-			) {
-				// No blur placeholder: a logo's is mostly transparent and shows as a white block while loading.
-				// Keyed by the logo so the previous title's logo doesn't linger while the next one loads.
-				if (logo != null) key(logo) {
-					AsyncImage(
-						modifier = Modifier.fillMaxSize(),
-						url = logo.getUrl(api),
-						aspectRatio = logo.aspectRatio ?: 1f,
-					)
-				}
-			}
+			PreviewLogo(item, Modifier.weight(1f).height(if (underTabs) 104.dp else 112.dp).padding(start = 32.dp))
+		}
+	}
+}
+
+/** The title's logo (the show's logo for an episode) for the right third of a preview; empty when there is none. */
+@Composable
+fun PreviewLogo(item: BaseItemDto, modifier: Modifier = Modifier) {
+	val api = koinInject<ApiClient>()
+	val logo = item.itemImages[ImageType.LOGO] ?: item.parentImages[ImageType.LOGO]
+	Box(contentAlignment = Alignment.Center, modifier = modifier) {
+		// No blur placeholder: a logo's is mostly transparent and shows as a white block while loading.
+		// Keyed by the logo so the previous title's logo doesn't linger while the next one loads.
+		if (logo != null) key(logo) {
+			AsyncImage(
+				modifier = Modifier.fillMaxSize(),
+				url = logo.getUrl(api),
+				aspectRatio = logo.aspectRatio ?: 1f,
+			)
 		}
 	}
 }
@@ -355,15 +362,16 @@ fun HomeFocusedPreview(
 fun FocusedTitleInfo(item: BaseItemDto) {
 	val context = LocalContext.current
 	val isEpisode = item.type == BaseItemKind.EPISODE
-	if (isEpisode && item.name != null) {
-		Text(item.name!!, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = LumaFinPalette.Cyan, maxLines = 1, overflow = TextOverflow.Ellipsis)
-	}
 	Text(
 		text = (if (isEpisode) item.seriesName else null) ?: item.name.orEmpty(),
 		style = JellyfinTheme.typography.default.copy(fontSize = 34.sp, fontWeight = FontWeight.Bold, color = LumaFinPalette.Text),
 		maxLines = 1,
 		overflow = TextOverflow.Ellipsis,
 	)
+	// An episode's name sits under the show's title
+	if (isEpisode && item.name != null) {
+		Text(item.name!!, fontSize = 19.sp, fontWeight = FontWeight.SemiBold, color = LumaFinPalette.Cyan, maxLines = 1, overflow = TextOverflow.Ellipsis)
+	}
 	// The info row's badges fill the available height, so give it the intrinsic height of its text.
 	Box(modifier = Modifier.height(IntrinsicSize.Min)) {
 		BaseItemInfoRow(item = item, mediaSource = null, includeRuntime = true)

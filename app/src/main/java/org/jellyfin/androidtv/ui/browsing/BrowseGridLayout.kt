@@ -22,6 +22,7 @@ import android.widget.RelativeLayout
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -40,6 +41,7 @@ import org.jellyfin.androidtv.databinding.HorizontalGridBrowseBinding
 import org.jellyfin.androidtv.preference.UserPreferences
 import org.jellyfin.androidtv.ui.home.FocusedTitleInfo
 import org.jellyfin.androidtv.ui.home.MainSideRail
+import org.jellyfin.androidtv.ui.home.PreviewLogo
 import org.jellyfin.androidtv.ui.home.SideMenuLibrary
 import org.jellyfin.androidtv.ui.home.RailCollapsedWidth
 import org.jellyfin.androidtv.ui.shared.toolbar.MainToolbarActiveButton
@@ -126,13 +128,16 @@ class BrowseGridLayout(private val binding: HorizontalGridBrowseBinding, private
 			id = View.generateViewId()
 			setContent {
 				val current by item.collectAsState()
-				Box(modifier = Modifier.fillMaxWidth().height(128.dp).padding(start = 48.dp, top = 2.dp, end = 300.dp)) {
+				Box(modifier = Modifier.fillMaxWidth().height(128.dp).padding(start = 48.dp, top = 2.dp, end = 120.dp)) {
 					current?.let {
-						Column(
-							verticalArrangement = Arrangement.spacedBy(8.dp),
-							// Top-aligned so the title lines up with the clock
-							modifier = Modifier.align(Alignment.TopStart).widthIn(max = 640.dp),
-						) { FocusedTitleInfo(it) }
+						// Top-aligned so the title lines up with the clock; the logo fills the right third like on Home
+						Row(verticalAlignment = Alignment.Top, modifier = Modifier.align(Alignment.TopStart).fillMaxWidth()) {
+							Column(
+								verticalArrangement = Arrangement.spacedBy(8.dp),
+								modifier = Modifier.weight(2f),
+							) { FocusedTitleInfo(it) }
+							PreviewLogo(it, Modifier.weight(1f).height(104.dp).padding(start = 32.dp))
+						}
 					}
 				}
 			}

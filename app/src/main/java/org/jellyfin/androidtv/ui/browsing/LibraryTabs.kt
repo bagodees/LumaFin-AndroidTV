@@ -318,7 +318,7 @@ class LibraryRecommendedFragment : Fragment() {
 		((view as ViewGroup).getChildAt(0) as ComposeView).let { preview ->
 			preview.setContent {
 				val item by rows.focusedItem.collectAsState()
-				HomeFocusedPreview(item, showClock = false, modifier = Modifier.height(156.dp))
+				HomeFocusedPreview(item, underTabs = true)
 			}
 		}
 	}
