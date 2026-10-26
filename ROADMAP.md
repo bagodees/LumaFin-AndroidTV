@@ -71,7 +71,7 @@ Submitted October 24, 2026; waiting for Amazon's review. Details: [Amazon prepar
 
 ## 1.1: the LumaFin layout
 
-Status: Complete. GitHub release [1.1.0](https://github.com/bagodees/LumaFin-AndroidTV/releases/tag/v1.1.0) published October 26, 2026 with owner approval. Website download/update feed updated and verified live with separate owner approval. Google Play Alpha 1.1.0 uploaded and saved; final review submission awaits explicit approval. Production access remains locked during closed testing. Amazon remains untouched. Milestone: [1.1](https://github.com/bagodees/LumaFin-AndroidTV/milestone/2).
+Status: Complete. GitHub release [1.1.0](https://github.com/bagodees/LumaFin-AndroidTV/releases/tag/v1.1.0) published October 26, 2026 with owner approval. Website download/update feed updated and verified live with separate owner approval. Google Play Alpha 1.1.0 submitted and verified in review (submission 9, October 26). Production access remains locked during closed testing. Amazon remains untouched. Milestone: [1.1](https://github.com/bagodees/LumaFin-AndroidTV/milestone/2).
 
 Release notes: [1.1.0](docs/releases/1.1.0.md).
 
