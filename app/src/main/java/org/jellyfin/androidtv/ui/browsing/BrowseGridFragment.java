@@ -259,7 +259,15 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
             mGridView.setPadding(titleMargin.getMarginStart(), mGridPaddingTop, clockMargin.getMarginEnd(), mGridPaddingTop); // prevent initial card cutoffs
         } else if (mGridViewHolder instanceof VerticalGridPresenter.ViewHolder) {
             mGridView = ((VerticalGridPresenter.ViewHolder) mGridViewHolder).getGridView();
-            mGridView.setGravity(Gravity.CENTER_HORIZONTAL);
+            mGridView.setGravity(mLayout.getEnabled() ? Gravity.START : Gravity.CENTER_HORIZONTAL);
+            // LumaFin layout: Leanback sizes the grid to its content and centers it, so a short list (one
+            // genre or studio) floated in the middle. Fill the width and start at the left instead.
+            if (mLayout.getEnabled() && mGridView.getLayoutParams() instanceof android.widget.FrameLayout.LayoutParams) {
+                android.widget.FrameLayout.LayoutParams gridParams = (android.widget.FrameLayout.LayoutParams) mGridView.getLayoutParams();
+                gridParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
+                gridParams.gravity = Gravity.START | Gravity.TOP;
+                mGridView.setLayoutParams(gridParams);
+            }
             mGridView.setPadding(mGridPaddingLeft, mGridPaddingTop, mGridPaddingLeft, mGridPaddingTop); // prevent initial card cutoffs
             if (mLayout.getEnabled()) {
                 // Let the focused card's zoom and outline draw past the grid's edges instead of being cut off
