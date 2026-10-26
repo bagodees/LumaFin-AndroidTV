@@ -3,9 +3,14 @@ package org.jellyfin.androidtv.ui.playback.overlay
 import android.content.Context
 import android.util.AttributeSet
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -20,50 +25,84 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.AbstractComposeView
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.ui.base.Icon
+import org.jellyfin.androidtv.ui.base.LumaFinPalette
+import org.jellyfin.androidtv.ui.composable.rememberReducedMotion
 import org.jellyfin.androidtv.ui.base.Text
 import org.jellyfin.androidtv.ui.playback.segment.MediaSegmentRepository
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
+/**
+ * The ask-to-skip prompt. It is styled like a focused LumaFin button because OK triggers it, with a bar
+ * along the bottom that empties as the prompt times out.
+ */
 @Composable
 fun SkipOverlayComposable(
 	visible: Boolean,
+	timeout: Duration = MediaSegmentRepository.AskToSkipAutoHideDuration,
 ) {
+	val reducedMotion = rememberReducedMotion()
 	Box(
 		contentAlignment = Alignment.BottomEnd,
 		modifier = Modifier
 			.padding(48.dp, 48.dp)
 	) {
 		AnimatedVisibility(visible, enter = fadeIn(), exit = fadeOut()) {
-			Row(
+			val remaining = remember { Animatable(1f) }
+			LaunchedEffect(Unit) {
+				if (!reducedMotion) remaining.animateTo(0f, tween(timeout.inWholeMilliseconds.toInt(), easing = LinearEasing))
+			}
+			val shape = RoundedCornerShape(12.dp)
+			Box(
 				modifier = Modifier
-					.clip(RoundedCornerShape(6.dp))
-					.background(colorResource(R.color.popup_menu_background).copy(alpha = 0.6f))
-					.padding(10.dp),
-				horizontalArrangement = Arrangement.spacedBy(8.dp),
-				verticalAlignment = Alignment.CenterVertically,
+					.clip(shape)
+					.background(LumaFinPalette.FocusedRow.copy(alpha = 0.92f))
+					// The time-out bar, drawn just inside the outline so the button keeps its own size
+					.drawBehind {
+						if (!reducedMotion) {
+							val inset = 2.dp.toPx()
+							val barHeight = 4.dp.toPx()
+							drawRect(
+								color = LumaFinPalette.Cyan,
+								topLeft = Offset(inset, size.height - inset - barHeight),
+								size = Size((size.width - inset * 2) * remaining.value, barHeight),
+							)
+						}
+					}
+					.border(2.dp, LumaFinPalette.Cyan, shape)
 			) {
-				Icon(
-					imageVector = ImageVector.vectorResource(R.drawable.ic_control_select),
-					contentDescription = null,
-				)
-
-				Text(
-					text = stringResource(R.string.segment_action_skip),
-					color = colorResource(R.color.button_default_normal_text),
-					fontSize = 18.sp,
-				)
+				Row(
+					modifier = Modifier.padding(horizontal = 22.dp, vertical = 12.dp),
+					horizontalArrangement = Arrangement.spacedBy(10.dp),
+					verticalAlignment = Alignment.CenterVertically,
+				) {
+					Icon(
+						imageVector = ImageVector.vectorResource(R.drawable.ic_fast_forward),
+						contentDescription = null,
+						tint = LumaFinPalette.Text,
+						modifier = Modifier.size(22.dp),
+					)
+					Text(
+						text = stringResource(R.string.segment_action_skip),
+						color = LumaFinPalette.Text,
+						fontSize = 18.sp,
+						fontWeight = FontWeight.SemiBold,
+					)
+				}
 			}
 		}
 	}
