@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -59,6 +60,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.MutableStateFlow
 import androidx.compose.runtime.LaunchedEffect
 import org.jellyfin.androidtv.data.repository.UserViewsRepository
+import org.jellyfin.androidtv.ui.composable.AsyncImage
+import org.jellyfin.androidtv.util.apiclient.itemImages
+import org.jellyfin.androidtv.util.apiclient.parentImages
+import org.jellyfin.sdk.model.api.ImageType
 import org.jellyfin.androidtv.auth.repository.ServerRepository
 import org.jellyfin.androidtv.ui.itemhandling.ItemLauncher
 import org.jellyfin.sdk.model.api.CollectionType
@@ -310,12 +315,31 @@ fun HomeFocusedPreview(
 	Box(modifier = modifier.fillMaxWidth().height(176.dp).padding(start = 48.dp, top = 20.dp, end = 32.dp)) {
 		ToolbarClock(modifier = Modifier.align(Alignment.TopEnd))
 		if (item == null) return@Box
+		val api = koinInject<ApiClient>()
 		// Anchored to the bottom so the rows keep the same distance whether or not an episode line is shown.
-		Column(
-			verticalArrangement = Arrangement.spacedBy(8.dp),
-			modifier = Modifier.align(Alignment.BottomStart).widthIn(max = 640.dp),
+		Row(
+			verticalAlignment = Alignment.Bottom,
+			modifier = Modifier.align(Alignment.BottomStart).fillMaxWidth(),
 		) {
-			FocusedTitleInfo(item)
+			Column(
+				verticalArrangement = Arrangement.spacedBy(8.dp),
+				modifier = Modifier.weight(2f),
+			) {
+				FocusedTitleInfo(item)
+			}
+			// The title's logo fills the right third (the show's logo for an episode); empty when there is none
+			val logo = item.itemImages[ImageType.LOGO] ?: item.parentImages[ImageType.LOGO]
+			Box(
+				contentAlignment = Alignment.Center,
+				modifier = Modifier.weight(1f).height(112.dp).padding(start = 32.dp),
+			) {
+				if (logo != null) AsyncImage(
+					modifier = Modifier.fillMaxSize(),
+					url = logo.getUrl(api),
+					blurHash = logo.blurHash,
+					aspectRatio = logo.aspectRatio ?: 1f,
+				)
+			}
 		}
 	}
 }
