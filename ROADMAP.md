@@ -19,7 +19,7 @@ project view shows them together. Design details for the redesign are in
 
 Statuses: **Planned**, **In progress**, **Complete**, **Deferred**.
 
-**Current version: 1.1.** Next: 1.2. The remaining 1.0.x items wait only on outside steps (Amazon's review and the Google Play testing period); fixes for the released app still go in 1.0.x.
+**Current version: 1.2.** Next: 1.3. The remaining 1.0.x items wait only on outside steps (Amazon's review and the Google Play testing period); fixes for the released app still go in 1.0.x.
 
 ---
 
@@ -71,15 +71,17 @@ Submitted October 24, 2026; waiting for Amazon's review. Details: [Amazon prepar
 
 ## 1.1: the LumaFin layout
 
-Status: In progress (started October 25, 2026). Milestone: [1.1](https://github.com/bagodees/LumaFin-AndroidTV/milestone/2).
+Status: Complete. Release 1.1.0 prepared October 26, 2026; publication and store uploads await separate owner approval. Milestone: [1.1](https://github.com/bagodees/LumaFin-AndroidTV/milestone/2).
+
+Release notes: [1.1.0](docs/releases/1.1.0.md).
 
 1. [x] Design two Home concepts and choose one ([#80](https://github.com/bagodees/LumaFin-AndroidTV/issues/80)): concept A (side rail with a preview area) chosen; concept B (top bar with backdrop) becomes a Home style option in 1.2
-2. [ ] New Home screen, concept A ([#81](https://github.com/bagodees/LumaFin-AndroidTV/issues/81))
-3. [ ] LumaFin layout by default, with "Switch to classic Jellyfin style" ([#82](https://github.com/bagodees/LumaFin-AndroidTV/issues/82))
-4. [ ] Side menu on Search, Libraries, library grids and the Live TV guide; grids scroll top to bottom with an A–Z strip ([#111](https://github.com/bagodees/LumaFin-AndroidTV/issues/111))
-5. [ ] New details pages for movies, series, seasons and episodes, with the side menu ([#85](https://github.com/bagodees/LumaFin-AndroidTV/issues/85))
-6. [ ] Side menu entry for each library, Live TV straight to the guide, Libraries only as overflow ([#112](https://github.com/bagodees/LumaFin-AndroidTV/issues/112)); added October 26 with the owner's approval
-7. [ ] Tabbed library pages for Movies and TV: Recommended, Library, Collections/Studios and Genres ([#92](https://github.com/bagodees/LumaFin-AndroidTV/issues/92)); moved from 1.x later on October 26 with the owner's approval
+2. [x] New Home screen, concept A ([#81](https://github.com/bagodees/LumaFin-AndroidTV/issues/81))
+3. [x] LumaFin layout by default, with "Switch to classic Jellyfin style" ([#82](https://github.com/bagodees/LumaFin-AndroidTV/issues/82))
+4. [x] Side menu on Search, Libraries, library grids and the Live TV guide; grids scroll top to bottom with an A–Z strip ([#111](https://github.com/bagodees/LumaFin-AndroidTV/issues/111))
+5. [x] New details pages for movies, series, seasons and episodes, with the side menu ([#85](https://github.com/bagodees/LumaFin-AndroidTV/issues/85))
+6. [x] Side menu entry for each library, Live TV straight to the guide, Libraries only as overflow ([#112](https://github.com/bagodees/LumaFin-AndroidTV/issues/112)); added October 26 with the owner's approval
+7. [x] Tabbed library pages for Movies and TV: Recommended, Library, Collections/Studios and Genres ([#92](https://github.com/bagodees/LumaFin-AndroidTV/issues/92)); moved from 1.x later on October 26 with the owner's approval
 
 ---
 
