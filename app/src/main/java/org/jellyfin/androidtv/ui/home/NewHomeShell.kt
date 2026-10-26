@@ -227,6 +227,7 @@ fun MainSideRail(
 				ProfilePicture(
 					url = userImage,
 					contentDescription = stringResource(R.string.lbl_switch_user),
+					initial = currentUser?.name?.firstOrNull()?.uppercase(),
 					modifier = Modifier.size(48.dp).clip(CircleShape),
 				)
 				if (expanded) Column {
@@ -246,7 +247,7 @@ fun MainSideRail(
 			else -> shownLibraries.firstOrNull()?.id
 		}
 		fun item(key: Any) = if (key == focusTarget) toRows.focusRequester(activeFocusRequester) else toRows
-		RailItem(R.drawable.ic_house, stringResource(R.string.lbl_home), expanded, active = active == MainToolbarActiveButton.Home, modifier = item(MainToolbarActiveButton.Home)) {
+		RailItem(R.drawable.ic_house_filled, stringResource(R.string.lbl_home), expanded, active = active == MainToolbarActiveButton.Home, modifier = item(MainToolbarActiveButton.Home)) {
 			if (!onActiveScreen || active != MainToolbarActiveButton.Home) navigationRepository.navigate(Destinations.home, replace = true)
 		}
 		RailItem(R.drawable.ic_search, stringResource(R.string.lbl_search), expanded, active = active == MainToolbarActiveButton.Search, modifier = item(MainToolbarActiveButton.Search)) {

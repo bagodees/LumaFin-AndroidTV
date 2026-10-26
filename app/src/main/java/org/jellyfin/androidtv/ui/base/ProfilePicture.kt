@@ -1,6 +1,11 @@
 package org.jellyfin.androidtv.ui.base
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.aspectRatio
@@ -24,6 +29,8 @@ fun ProfilePicture(
 	modifier: Modifier = Modifier,
 	contentDescription: String? = null,
 	iconPadding: PaddingValues = PaddingValues.Zero,
+	// Shown in a circle instead of the generic person icon when there's no picture (the side menu uses the name's first letter)
+	initial: String? = null,
 ) {
 	Box(
 		modifier = modifier
@@ -32,7 +39,14 @@ fun ProfilePicture(
 		val userImageState by userImagePainter.state.collectAsState()
 		val userImageVisible = userImageState is AsyncImagePainter.State.Success
 
-		if (!userImageVisible) {
+		if (!userImageVisible && initial != null) {
+			Box(
+				contentAlignment = Alignment.Center,
+				modifier = Modifier.fillMaxSize().clip(CircleShape).background(LumaFinPalette.Raised),
+			) {
+				Text(initial, fontSize = 20.sp, fontWeight = FontWeight.SemiBold, color = LumaFinPalette.Text)
+			}
+		} else if (!userImageVisible) {
 			Icon(
 				imageVector = ImageVector.vectorResource(R.drawable.ic_user),
 				contentDescription = contentDescription,
