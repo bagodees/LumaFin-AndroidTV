@@ -467,9 +467,10 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 						// Home section preferences changed (e.g. reordered in Settings) - rebuild from scratch
 						loadHomeRows()
 					} else {
-						// Removed empty rows have no adapter left to refresh. Returning
-						// from details or playback must query every configured section.
-						loadHomeRows()
+						// Refresh rows in place so the cursor stays where it was.
+						// Playback and watch-status changes rebuild rows through playbackUpdates and the
+						// websocket, which also brings back rows that were empty.
+						refreshRows(delayed = false)
 					}
 				}
 			}
