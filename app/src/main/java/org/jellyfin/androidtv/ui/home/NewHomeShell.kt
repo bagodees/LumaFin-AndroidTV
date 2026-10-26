@@ -29,6 +29,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -333,12 +334,15 @@ fun HomeFocusedPreview(
 				contentAlignment = Alignment.Center,
 				modifier = Modifier.weight(1f).height(112.dp).padding(start = 32.dp),
 			) {
-				if (logo != null) AsyncImage(
-					modifier = Modifier.fillMaxSize(),
-					url = logo.getUrl(api),
-					blurHash = logo.blurHash,
-					aspectRatio = logo.aspectRatio ?: 1f,
-				)
+				// No blur placeholder: a logo's is mostly transparent and shows as a white block while loading.
+				// Keyed by the logo so the previous title's logo doesn't linger while the next one loads.
+				if (logo != null) key(logo) {
+					AsyncImage(
+						modifier = Modifier.fillMaxSize(),
+						url = logo.getUrl(api),
+						aspectRatio = logo.aspectRatio ?: 1f,
+					)
+				}
 			}
 		}
 	}
