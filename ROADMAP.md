@@ -71,7 +71,7 @@ Submitted October 24, 2026; waiting for Amazon's review. Details: [Amazon prepar
 
 ## 1.1: the LumaFin layout
 
-Status: Complete. Release 1.1.0 prepared October 26, 2026; publication and store uploads await separate owner approval. Milestone: [1.1](https://github.com/bagodees/LumaFin-AndroidTV/milestone/2).
+Status: Complete. GitHub release [1.1.0](https://github.com/bagodees/LumaFin-AndroidTV/releases/tag/v1.1.0) published October 26, 2026 with owner approval. Website/feed changes and store uploads await separate owner approval. Milestone: [1.1](https://github.com/bagodees/LumaFin-AndroidTV/milestone/2).
 
 Release notes: [1.1.0](docs/releases/1.1.0.md).
 
