@@ -82,6 +82,10 @@ internal fun DetailRowView.showLumaFinOverviewLayout() {
 	b.fdTitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 32f)
 	b.fdTitle.maxLines = 1
 	b.fdSummaryText.maxLines = 3
+	// Focusing the description (to read all of it) shows the usual outline instead of a dark box;
+	// padded so the text stays put inside the outline
+	b.fdSummaryText.background = descriptionFocusBackground(context)
+	b.fdSummaryText.setPadding(10.dp(context), 6.dp(context), 10.dp(context), 6.dp(context))
 	b.fdButtonRow.showDividers = LinearLayout.SHOW_DIVIDER_MIDDLE
 	val infoHeight = b.fdMainInfoRow.layoutParams.height
 	val visibility = listOf(b.fdTitle, b.fdSubtitle, b.fdMainInfoRow, b.fdGenreRow, b.fdSummaryText, b.fdButtonRow)
@@ -105,7 +109,10 @@ internal fun DetailRowView.showLumaFinOverviewLayout() {
 		setGoneMargin(b.fdMainInfoRow.id, ConstraintSet.TOP, 8.dp(context))
 		constrainHeight(b.fdMainInfoRow.id, infoHeight)
 		textColumn(b.fdGenreRow.id, b.fdMainInfoRow.id, 6)
-		textColumn(b.fdSummaryText.id, b.fdGenreRow.id, 10)
+		textColumn(b.fdSummaryText.id, b.fdGenreRow.id, 4)
+		// Pulled left by its padding so the text lines up with the title
+		connect(b.fdSummaryText.id, ConstraintSet.START, ConstraintSet.PARENT_ID, ConstraintSet.START, 38.dp(context))
+		constrainMaxWidth(b.fdSummaryText.id, 580.dp(context))
 		textColumn(b.fdButtonRow.id, b.fdSummaryText.id, 18, maxWidth = 2000)
 		connect(b.fdButtonRow.id, ConstraintSet.BOTTOM, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM, 16.dp(context))
 		setVerticalBias(b.fdButtonRow.id, 0f)

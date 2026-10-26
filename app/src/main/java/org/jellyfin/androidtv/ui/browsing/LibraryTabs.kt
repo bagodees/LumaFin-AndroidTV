@@ -1,6 +1,13 @@
 package org.jellyfin.androidtv.ui.browsing
 
 import android.os.Bundle
+import org.jellyfin.sdk.model.api.ImageType
+import org.jellyfin.sdk.api.client.extensions.itemsApi
+import org.jellyfin.androidtv.util.apiclient.itemBackdropImages
+import org.jellyfin.androidtv.util.apiclient.itemImages
+import org.jellyfin.androidtv.util.apiclient.getUrl
+import org.jellyfin.androidtv.ui.composable.AsyncImage
+import android.widget.ImageView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -163,7 +170,11 @@ class LibraryTabsFragment : Fragment() {
 				LibraryTabRow(tabs, current, onSelect = ::show,
 					// While on the tabs, the content can't take focus (a grid grabs it when it loads); Down lets it
 					onTabsFocused = { inTabs -> content?.descendantFocusability = if (inTabs) ViewGroup.FOCUS_BLOCK_DESCENDANTS else ViewGroup.FOCUS_AFTER_DESCENDANTS },
-					onDown = { content?.descendantFocusability = ViewGroup.FOCUS_AFTER_DESCENDANTS })
+					onDown = {
+						content?.descendantFocusability = ViewGroup.FOCUS_AFTER_DESCENDANTS
+						// A grid's tools sit to the right, nearer the tabs; go to the grid itself
+						(childFragmentManager.findFragmentById(R.id.library_tab_content) as? BrowseGridFragment)?.focusGrid() == true
+					})
 			}
 		}
 		val content = FrameLayout(context).apply { id = R.id.library_tab_content }
@@ -215,7 +226,8 @@ private fun LibraryTabRow(
 	selected: LibraryTab,
 	onSelect: (LibraryTab) -> Unit,
 	onTabsFocused: (Boolean) -> Unit,
-	onDown: () -> Unit,
+	// Returns whether it moved focus itself
+	onDown: () -> Boolean,
 ) {
 	var focused by remember { mutableStateOf<LibraryTab?>(null) }
 	// Switch when focus rests on a tab, not while passing over it
@@ -235,8 +247,7 @@ private fun LibraryTabRow(
 			modifier = Modifier
 				.onFocusChanged { onTabsFocused(it.hasFocus) }
 				.onPreviewKeyEvent { event ->
-					if (event.type == KeyEventType.KeyDown && event.key == Key.DirectionDown) onDown()
-					false
+					event.type == KeyEventType.KeyDown && event.key == Key.DirectionDown && onDown()
 				}
 				.focusRestorer(selectedRequester)
 				.focusGroup(),
@@ -406,6 +417,34 @@ class LibraryNameTilesFragment : Fragment() {
 	private val folder by lazy { folderArgument() }
 	private val api by inject<ApiClient>()
 	private val navigationRepository by inject<NavigationRepository>()
+	// Backdrop URL per genre or studio (null when none), kept while the page is open
+	private val backdrops = mutableMapOf<UUID, String?>()
+	// Titles already pictured, so genres that share a top title (Action, Adventure...) get different art
+	private val usedTitles = mutableSetOf<UUID>()
+
+	/** The backdrop of the best-rated title in this genre or studio, for its tile. */
+	private suspend fun representativeBackdrop(entry: BaseItemDto, studios: Boolean): String? = runCatching {
+		val type = if (folder.collectionType == CollectionType.TVSHOWS) BaseItemKind.SERIES else BaseItemKind.MOVIE
+		val candidates = withContext(Dispatchers.IO) {
+			api.itemsApi.getItems(GetItemsRequest(
+				parentId = folder.id,
+				includeItemTypes = setOf(type),
+				recursive = true,
+				genres = if (studios) null else setOfNotNull(entry.name),
+				studioIds = if (studios) setOf(entry.id) else null,
+				imageTypes = setOf(ImageType.BACKDROP),
+				sortBy = setOf(ItemSortBy.COMMUNITY_RATING),
+				sortOrder = setOf(SortOrder.DESCENDING),
+				enableImageTypes = setOf(ImageType.BACKDROP),
+				imageTypeLimit = 1,
+				limit = 6,
+			)).content.items
+		}
+		// Back on the main thread, so picking and marking a title can't race another tile
+		val item = candidates.firstOrNull { it.id !in usedTitles } ?: candidates.firstOrNull()
+		item?.let { usedTitles += it.id }
+		item?.itemBackdropImages?.firstOrNull()?.getUrl(api, maxWidth = 480)
+	}.getOrNull()
 
 	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?) = content {
 		val studios = requireArguments().getBoolean(ARG_STUDIOS)
@@ -435,7 +474,16 @@ class LibraryNameTilesFragment : Fragment() {
 			modifier = Modifier.fillMaxSize().focusRestorer(),
 		) {
 			items(list, key = { it.id }) { entry ->
-				NameTile(entry.name.orEmpty()) {
+				// A studio's own logo when the server has one; otherwise a top title's backdrop under the name
+				// Studio thumbs are full cards (logo on its own background) that fill the tile; a bare logo is padded
+				val thumb = if (studios) entry.itemImages[ImageType.THUMB] else null
+				val logo = if (studios && thumb == null) entry.itemImages[ImageType.PRIMARY] else null
+				var backdrop by remember(entry.id) { mutableStateOf(backdrops[entry.id]) }
+				if (thumb == null && logo == null) LaunchedEffect(entry.id) {
+					if (entry.id !in backdrops) backdrops[entry.id] = representativeBackdrop(entry, studios)
+					backdrop = backdrops[entry.id]
+				}
+				NameTile(entry.name.orEmpty(), logoUrl = logo?.getUrl(api, maxHeight = 160), cardUrl = thumb?.getUrl(api, maxWidth = 480), backdropUrl = backdrop) {
 					navigationRepository.navigate(Destinations.libraryFiltered(folder, entry.name.orEmpty(),
 						genre = if (studios) null else entry.name, studioId = if (studios) entry.id.toString() else null))
 				}
@@ -449,7 +497,7 @@ class LibraryNameTilesFragment : Fragment() {
 }
 
 @Composable
-private fun NameTile(name: String, onClick: () -> Unit) {
+private fun NameTile(name: String, logoUrl: String?, cardUrl: String?, backdropUrl: String?, onClick: () -> Unit) {
 	val strongFocus = koinInject<UserPreferences>()[UserPreferences.strongFocus]
 	val interactionSource = remember { MutableInteractionSource() }
 	val focused by interactionSource.collectIsFocusedAsState()
@@ -466,10 +514,22 @@ private fun NameTile(name: String, onClick: () -> Unit) {
 		),
 		modifier = Modifier
 			.fillMaxWidth()
-			.height(88.dp)
+			.height(112.dp)
 			.then(if (focused) Modifier.border(if (strongFocus) 3.dp else 2.dp, if (strongFocus) Color.White else LumaFinPalette.Cyan, shape) else Modifier),
 	) {
-		Text(
+		when {
+			cardUrl != null -> AsyncImage(modifier = Modifier.fillMaxSize(), url = cardUrl, scaleType = ImageView.ScaleType.CENTER_CROP)
+			logoUrl != null -> AsyncImage(
+				modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 16.dp),
+				url = logoUrl,
+			)
+			backdropUrl != null -> {
+				AsyncImage(modifier = Modifier.fillMaxSize(), url = backdropUrl, scaleType = ImageView.ScaleType.CENTER_CROP)
+				// Keeps the name readable over the artwork
+				Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = if (focused) 0.35f else 0.55f)))
+			}
+		}
+		if (logoUrl == null && cardUrl == null) Text(
 			name,
 			fontSize = 17.sp,
 			fontWeight = FontWeight.SemiBold,

@@ -249,6 +249,11 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
         mGridView = null;
     }
 
+    /** Moves focus into the grid (the tabbed library page sends Down from its tabs here). */
+    public boolean focusGrid() {
+        return mGridView != null && mGridView.getChildCount() > 0 && mGridView.requestFocus();
+    }
+
     private void createGrid() {
         mGridViewHolder = mGridPresenter.onCreateViewHolder(binding.rowsFragment);
         if (mGridViewHolder instanceof HorizontalGridPresenter.ViewHolder) {

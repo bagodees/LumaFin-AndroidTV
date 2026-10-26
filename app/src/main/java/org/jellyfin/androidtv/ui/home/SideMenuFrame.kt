@@ -108,7 +108,12 @@ object SideMenuFrame {
 			val railView = rail
 			// Compose content (like a library page's tabs) moves focus itself and leaves for the menu on its own
 			val inCompose = focused != null && generateSequence(focused) { it.parent as? View }.any { it is ComposeView && it !== railView }
-			if (event.action == KeyEvent.ACTION_DOWN && event.keyCode == KeyEvent.KEYCODE_DPAD_LEFT && focused != null && railView != null && !inCompose &&
+			// Only from the left side: tools on the right (a grid's A-Z strip and filters) move left into the content
+			val onLeftSide = focused != null && android.graphics.Rect().also { rect ->
+				focused.getDrawingRect(rect)
+				offsetDescendantRectToMyCoords(focused, rect)
+			}.left < width / 2
+			if (event.action == KeyEvent.ACTION_DOWN && event.keyCode == KeyEvent.KEYCODE_DPAD_LEFT && focused != null && railView != null && !inCompose && onLeftSide &&
 				content is ViewGroup && generateSequence(focused) { it.parent as? View }.any { it === content } &&
 				FocusFinder.getInstance().findNextFocus(content, focused, View.FOCUS_LEFT) == null
 			) {

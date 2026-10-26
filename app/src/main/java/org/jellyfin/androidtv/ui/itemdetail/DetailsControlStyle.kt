@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.Typeface
+import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.StateListDrawable
 import android.widget.TextView
@@ -32,6 +33,19 @@ internal fun detailsControlBackground(context: Context, transparentAtRest: Boole
 		addState(intArrayOf(android.R.attr.state_pressed), shape(color(R.color.lumafin_focus_row), color(R.color.lumafin_cyan)))
 		addState(intArrayOf(android.R.attr.state_activated), shape(Color.rgb(48, 36, 72), color(R.color.lumafin_purple)))
 		addState(intArrayOf(), shape(if (transparentAtRest) Color.TRANSPARENT else color(R.color.lumafin_raised)))
+	}
+}
+
+/** Outline for the focused description on the LumaFin details pages; nothing at rest. */
+internal fun descriptionFocusBackground(context: Context): StateListDrawable {
+	val strong = GlobalContext.get().get<UserPreferences>()[UserPreferences.strongFocus]
+	return StateListDrawable().apply {
+		addState(intArrayOf(android.R.attr.state_focused), GradientDrawable().apply {
+			setColor(Color.TRANSPARENT)
+			cornerRadius = 12.dp(context).toFloat()
+			setStroke((if (strong) 3 else 2).dp(context), if (strong) Color.WHITE else ContextCompat.getColor(context, R.color.lumafin_cyan))
+		})
+		addState(intArrayOf(), ColorDrawable(Color.TRANSPARENT))
 	}
 }
 

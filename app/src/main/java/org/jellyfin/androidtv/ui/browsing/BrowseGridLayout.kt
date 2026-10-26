@@ -33,6 +33,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
@@ -187,7 +192,10 @@ class BrowseGridLayout(private val binding: HorizontalGridBrowseBinding, private
 			setContent {
 				val visible by lettersVisible.collectAsState()
 				val current by jumpLetter.collectAsState()
-				if (visible) LetterStrip(LETTERS, current ?: "#", onLetter)
+				// Left from the strip goes back into the grid, not past it to the side menu
+				if (visible) Box(Modifier.onPreviewKeyEvent { event ->
+					event.type == KeyEventType.KeyDown && event.key == Key.DirectionLeft && grid()?.requestFocus() == true
+				}) { LetterStrip(LETTERS, current ?: "#", onLetter) }
 			}
 		}
 		root.addView(letters, RelativeLayout.LayoutParams(dp(32), RelativeLayout.LayoutParams.MATCH_PARENT).apply {
