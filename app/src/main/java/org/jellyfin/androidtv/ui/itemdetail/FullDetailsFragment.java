@@ -47,6 +47,8 @@ import org.jellyfin.androidtv.data.querying.GetTrailersRequest;
 import org.jellyfin.androidtv.data.repository.CustomMessageRepository;
 import org.jellyfin.androidtv.data.service.BackgroundService;
 import org.jellyfin.androidtv.databinding.FragmentFullDetailsBinding;
+import org.jellyfin.androidtv.ui.home.SideMenuFrame;
+import org.jellyfin.androidtv.ui.shared.toolbar.MainToolbarActiveButton;
 import org.jellyfin.androidtv.preference.UserPreferences;
 import org.jellyfin.androidtv.preference.constant.ClockBehavior;
 import org.jellyfin.androidtv.ui.InteractionTrackerViewModel;
@@ -214,7 +216,11 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
 
         loadItem(mItemId);
 
-        return binding.getRoot();
+        if (SideMenuFrame.isEnabled()) {
+            // The side menu already leads Home
+            binding.fdClock.getHomeButton().setVisibility(View.GONE);
+        }
+        return SideMenuFrame.wrap(requireContext(), binding.getRoot(), MainToolbarActiveButton.Libraries);
     }
 
     @Override public void onSaveInstanceState(@NonNull Bundle state) { super.onSaveInstanceState(state); seriesFocus.save(state); }
@@ -1225,6 +1231,9 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
         if (deleteButton != null) deleteButton.setVisibility(View.GONE);
         if (watchLaterButton != null) watchLaterButton.setVisibility(View.GONE);
         if (restartButton != null) restartButton.setVisibility(hasRestartProgress() ? View.VISIBLE : View.GONE);
+        // Play and Restart do the same thing, so the LumaFin row keeps only one of them
+        if (playButton != null && restartButton != null && SideMenuFrame.isEnabled())
+            playButton.setVisibility(hasRestartProgress() ? View.GONE : View.VISIBLE);
         List<TextUnderButton> optional = new ArrayList<>();
         if (mWatchedToggleButton != null) optional.add(mWatchedToggleButton);
         if (favButton != null) optional.add(favButton);

@@ -2,8 +2,11 @@ package org.jellyfin.androidtv.ui
 
 import android.content.Context
 import android.util.AttributeSet
+import android.util.TypedValue
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.widget.FrameLayout
+import android.widget.RelativeLayout
 import androidx.annotation.DrawableRes
 import androidx.core.view.isVisible
 import androidx.core.view.setPadding
@@ -28,9 +31,11 @@ class TextUnderButton @JvmOverloads constructor(
 		if (AndroidVersion.isAtLeastO) defaultFocusHighlightEnabled = false
 	}
 
+	private var rowStyle = false
+
 	fun setLabel(text: String?) {
 		binding.label.isVisible = text != null
-		binding.label.text = text
+		binding.label.text = if (rowStyle) text?.replace("\n", " · ") else text
 		binding.imageButton.contentDescription = text
 		contentDescription = text
 	}
@@ -56,6 +61,43 @@ class TextUnderButton @JvmOverloads constructor(
 				separator + 1, length, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
 		}
 		binding.label.isDuplicateParentStateEnabled = true
+	}
+
+	/** LumaFin details layout (#85): icon and label side by side on one pill. */
+	fun applyDetailsRowStyle() {
+		rowStyle = true
+		background = detailsControlBackground(context)
+		minimumHeight = 36.dp(context)
+		setPadding(14.dp(context), 0, 16.dp(context), 0)
+		binding.root.layoutParams = LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, Gravity.CENTER_VERTICAL)
+		binding.imageButton.apply {
+			background = null
+			foreground = null
+			imageTintList = detailsControlTextColors(context)
+			minimumWidth = 0
+			minimumHeight = 0
+			setPadding(0)
+			layoutParams = RelativeLayout.LayoutParams(18.dp(context), 18.dp(context)).apply {
+				addRule(RelativeLayout.ALIGN_PARENT_START)
+				addRule(RelativeLayout.CENTER_VERTICAL)
+			}
+		}
+		binding.label.apply {
+			layoutParams = RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT).apply {
+				addRule(RelativeLayout.END_OF, binding.imageButton.id)
+				addRule(RelativeLayout.CENTER_VERTICAL)
+				marginStart = 8.dp(context)
+			}
+			alpha = 1f
+			maxLines = 1
+			gravity = Gravity.CENTER_VERTICAL
+			setPadding(0)
+			setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
+			setTextColor(detailsControlTextColors(context))
+			typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL)
+			text = text?.toString()?.replace("\n", " · ")
+			isDuplicateParentStateEnabled = true
+		}
 	}
 
 	fun setIcon(@DrawableRes resource: Int, maxHeight: Int? = null) {

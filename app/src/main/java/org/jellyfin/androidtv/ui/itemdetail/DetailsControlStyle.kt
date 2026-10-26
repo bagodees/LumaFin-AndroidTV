@@ -56,12 +56,12 @@ internal fun TextView.applyDetailsTrackStyle() {
 	if (android.os.Build.VERSION.SDK_INT >= 26) defaultFocusHighlightEnabled = false
 }
 
-internal fun TextView.setDetailsTrackValue(label: String, value: String) {
+internal fun TextView.setDetailsTrackValue(label: String, value: String, inline: Boolean = false) {
 	text = SpannableStringBuilder().apply {
 		append(label)
 		setSpan(AbsoluteSizeSpan(11, true), 0, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
 		setSpan(ForegroundColorSpan(ContextCompat.getColor(context, R.color.lumafin_secondary_text)), 0, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-		append('\n'); append(value)
+		append(if (inline) "  " else "\n"); append(value)
 	}
 	contentDescription = "$label: $value"
 }

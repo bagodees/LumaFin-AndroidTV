@@ -41,6 +41,10 @@ import org.jellyfin.androidtv.ui.itemdetail.showMediaOverviewLayout
 import org.jellyfin.androidtv.ui.browsing.composable.inforow.BaseItemInfoRowView
 import android.util.TypedValue
 import org.jellyfin.androidtv.util.dp
+import org.jellyfin.androidtv.ui.home.SideMenuFrame
+import org.jellyfin.androidtv.ui.itemdetail.showLumaFinOverviewLayout
+import android.view.Gravity
+import android.widget.LinearLayout
 
 class MyDetailsOverviewRowPresenter(
 	private val markdownRenderer: MarkdownRenderer,
@@ -51,6 +55,7 @@ class MyDetailsOverviewRowPresenter(
 	) : RowPresenter.ViewHolder(detailRowView) {
 		private val binding get() = detailRowView.binding
 		private var currentRow: MyDetailsOverviewRow? = null
+		private var rowStyle = false
 		private var lookupDialog: SubtitleLookupDialog? = null
 		private var choicesDialog: DialogInterface? = null
 		private var trackMenu: LumaFinMenuDialog? = null
@@ -86,6 +91,7 @@ class MyDetailsOverviewRowPresenter(
 			currentRow = row
 			val item = row.item
 			val hasThumbnail = row.thumbnailImage != null
+			rowStyle = SideMenuFrame.isEnabled() && item.type in listOf(BaseItemKind.MOVIE, BaseItemKind.EPISODE, BaseItemKind.SERIES, BaseItemKind.SEASON)
 			// High contrast (#23): the secondary info values are normally dimmed.
 			val highContrast = GlobalContext.get().get<org.jellyfin.androidtv.preference.UserPreferences>()[org.jellyfin.androidtv.preference.UserPreferences.highContrast]
 			listOf(binding.infoValue1, binding.infoValue2, binding.infoValue3).forEach { it.alpha = if (highContrast) 1f else 0.6f }
@@ -145,7 +151,7 @@ class MyDetailsOverviewRowPresenter(
 
 			if (!hasThumbnail) binding.mainImage.load(row.imageDrawable, null, null, 1.0, 0)
 
-			bindTrackChips(row, hasThumbnail)
+			bindTrackChips(row, hasThumbnail || rowStyle)
 
 			setSummary(row.summary)
 
@@ -159,10 +165,20 @@ class MyDetailsOverviewRowPresenter(
 				val parent = button.parent
 				if (parent is ViewGroup) parent.removeView(button)
 
-				button.applyDetailsStyle()
+				if (rowStyle) button.applyDetailsRowStyle() else button.applyDetailsStyle()
 				binding.fdButtonRow.addView(button)
 			}
-			if (item.type in listOf(BaseItemKind.MOVIE, BaseItemKind.EPISODE, BaseItemKind.SERIES, BaseItemKind.SEASON)) {
+			if (rowStyle) {
+				// The track pickers join the end of the button row
+				for ((index, chip) in listOf(binding.fdAudioChip, binding.fdSubtitleChip).withIndex()) {
+					(chip.parent as? ViewGroup)?.removeView(chip)
+					binding.fdButtonRow.addView(chip, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+						gravity = Gravity.CENTER_VERTICAL
+						if (index == 0) marginStart = 12.dp(view.context)
+					})
+				}
+				detailRowView.showLumaFinOverviewLayout()
+			} else if (item.type in listOf(BaseItemKind.MOVIE, BaseItemKind.EPISODE, BaseItemKind.SERIES, BaseItemKind.SEASON)) {
 				detailRowView.showMediaOverviewLayout(hasThumbnail, row.imageDrawable?.contains("/Logo", ignoreCase = true) == true)
 			}
 			if (item.type == BaseItemKind.PERSON) {
@@ -179,6 +195,20 @@ class MyDetailsOverviewRowPresenter(
 				}
 			}
             binding.fdButtonRow.doOnLayout { container ->
+                if (rowStyle) {
+                    // Pills differ in width, so fit by the average width after the track pickers take their space
+                    val gap = 10.dp(view.context)
+                    val pickers = listOf(binding.fdAudioChip, binding.fdSubtitleChip).filter { it.isVisible }
+                        .sumOf { it.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED); it.measuredWidth + gap } + if (binding.fdAudioChip.isVisible) 12.dp(view.context) else 0
+                    val average = row.actions.map { button ->
+                        button.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
+                        button.measuredWidth + gap
+                    }.average()
+                    // Posted so the visibility changes get their own layout pass instead of landing mid-layout
+                    val capacity = ((container.width - pickers) / average).toInt().coerceIn(2, 7)
+                    if (average > 0 && container.width > 0) container.post { if (currentRow === row) row.onActionRowLayout?.invoke(capacity) }
+                    return@doOnLayout
+                }
                 val widest = row.actions.maxOfOrNull { button ->
                     val margins = button.layoutParams as? ViewGroup.MarginLayoutParams
                     button.measuredWidth + (margins?.leftMargin ?: 0) + (margins?.rightMargin ?: 0)
@@ -204,14 +234,21 @@ class MyDetailsOverviewRowPresenter(
 			val source = item.mediaSources?.getOrNull(row.selectedMediaSourceIndex)
 
 			val lookupAllowed = canGetMoreSubtitles(item) && !source?.id.isNullOrBlank()
-			binding.fdTrackColumn.isVisible = enabled && (audioStreams.isNotEmpty() || subtitleStreams.isNotEmpty() || lookupAllowed)
-			binding.fdAudioChip.isVisible = audioStreams.isNotEmpty()
-			binding.fdSubtitleChip.isVisible = subtitleStreams.isNotEmpty() || lookupAllowed
+			binding.fdTrackColumn.isVisible = !rowStyle && enabled && (audioStreams.isNotEmpty() || subtitleStreams.isNotEmpty() || lookupAllowed)
+			// In the row style the pickers live in the button row, so they hide themselves
+			binding.fdAudioChip.isVisible = audioStreams.isNotEmpty() && (!rowStyle || source != null)
+			binding.fdSubtitleChip.isVisible = (subtitleStreams.isNotEmpty() || lookupAllowed) && (!rowStyle || source != null)
 			if (!enabled || source == null) return
 
 			val context = view.context
-			binding.fdAudioChip.applyDetailsTrackStyle()
-			binding.fdSubtitleChip.applyDetailsTrackStyle()
+			for (chip in listOf(binding.fdAudioChip, binding.fdSubtitleChip)) {
+				chip.applyDetailsTrackStyle()
+				if (rowStyle) {
+					chip.minimumHeight = 36.dp(context)
+					chip.maxLines = 1
+					chip.setPadding(14.dp(context), 0, 10.dp(context), 0)
+				}
+			}
 			val labels = audioStreams.trackLabels(context) + subtitleStreams.trackLabels(context)
 			val queueManager = GlobalContext.get().get<VideoQueueManager>()
 			// Same precedence as playback: details pick, remembered choice, session language, server default.
@@ -249,8 +286,8 @@ class MyDetailsOverviewRowPresenter(
 
 			fun refreshLabels() {
 				binding.fdAudioChip.setDetailsTrackValue(context.getString(R.string.pref_audio),
-					currentAudio()?.audioTrackSummary(context) ?: context.getString(R.string.lbl_track_off))
-				binding.fdSubtitleChip.setDetailsTrackValue(context.getString(R.string.pref_subtitles), currentSubtitleLabel())
+					currentAudio()?.audioTrackSummary(context) ?: context.getString(R.string.lbl_track_off), inline = rowStyle)
+				binding.fdSubtitleChip.setDetailsTrackValue(context.getString(R.string.pref_subtitles), currentSubtitleLabel(), inline = rowStyle)
 			}
 			refreshLabels()
 

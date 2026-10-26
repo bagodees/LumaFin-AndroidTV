@@ -1,8 +1,10 @@
 package org.jellyfin.androidtv.ui.itemdetail
 
 import android.view.View
+import android.util.TypedValue
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.LinearLayout
 import androidx.constraintlayout.widget.ConstraintSet
 import org.jellyfin.androidtv.ui.DetailRowView
 import org.jellyfin.androidtv.util.dp
@@ -64,6 +66,53 @@ internal fun DetailRowView.showMediaOverviewLayout(hasThumbnail: Boolean, imageI
 		connect(b.fdTrackColumn.id, ConstraintSet.BOTTOM, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM, 24.dp(context))
 		setVerticalBias(b.fdTrackColumn.id, 0f)
 		visibility.forEach { (id, value) -> setVisibility(id, value) }
+		applyTo(b.detailsContent)
+	}
+}
+
+/** LumaFin details header (#85): no poster column, the title lines up with the clock and the actions sit in one row. */
+internal fun DetailRowView.showLumaFinOverviewLayout() {
+	val b = binding
+	b.root.layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
+	b.detailsContent.layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
+	b.detailsContent.minimumHeight = 0
+	listOf(b.infoTitle1, b.infoValue1, b.infoTitle2, b.infoValue2, b.infoTitle3, b.infoValue3)
+		.forEach { it.visibility = View.GONE }
+	b.fdGenreRow.visibility = if (b.fdGenreRow.text.isNullOrBlank()) View.GONE else View.VISIBLE
+	b.fdTitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 32f)
+	b.fdTitle.maxLines = 1
+	b.fdSummaryText.maxLines = 3
+	b.fdButtonRow.showDividers = LinearLayout.SHOW_DIVIDER_MIDDLE
+	val infoHeight = b.fdMainInfoRow.layoutParams.height
+	val visibility = listOf(b.fdTitle, b.fdSubtitle, b.fdMainInfoRow, b.fdGenreRow, b.fdSummaryText, b.fdButtonRow)
+		.associate { it.id to it.visibility }
+	ConstraintSet().apply {
+		clone(b.detailsContent)
+		for (id in listOf(b.fdTitle.id, b.fdSubtitle.id, b.fdMainInfoRow.id, b.fdGenreRow.id,
+			b.fdSummaryText.id, b.fdButtonRow.id, b.mainImageContainer.id, b.fdThumb.id, b.fdTrackColumn.id)) clear(id)
+		fun textColumn(id: Int, above: Int, gap: Int, maxWidth: Int = 560) {
+			constrainWidth(id, 0)
+			constrainMaxWidth(id, maxWidth.dp(context))
+			constrainHeight(id, ViewGroup.LayoutParams.WRAP_CONTENT)
+			connect(id, ConstraintSet.START, ConstraintSet.PARENT_ID, ConstraintSet.START, 48.dp(context))
+			connect(id, ConstraintSet.END, ConstraintSet.PARENT_ID, ConstraintSet.END, 40.dp(context))
+			setHorizontalBias(id, 0f)
+			connect(id, ConstraintSet.TOP, above, if (above == ConstraintSet.PARENT_ID) ConstraintSet.TOP else ConstraintSet.BOTTOM, gap.dp(context))
+		}
+		textColumn(b.fdTitle.id, ConstraintSet.PARENT_ID, 14, maxWidth = 680)
+		textColumn(b.fdSubtitle.id, b.fdTitle.id, 4)
+		textColumn(b.fdMainInfoRow.id, b.fdSubtitle.id, 8)
+		setGoneMargin(b.fdMainInfoRow.id, ConstraintSet.TOP, 8.dp(context))
+		constrainHeight(b.fdMainInfoRow.id, infoHeight)
+		textColumn(b.fdGenreRow.id, b.fdMainInfoRow.id, 6)
+		textColumn(b.fdSummaryText.id, b.fdGenreRow.id, 10)
+		textColumn(b.fdButtonRow.id, b.fdSummaryText.id, 18, maxWidth = 2000)
+		connect(b.fdButtonRow.id, ConstraintSet.BOTTOM, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM, 16.dp(context))
+		setVerticalBias(b.fdButtonRow.id, 0f)
+		visibility.forEach { (id, value) -> setVisibility(id, value) }
+		setVisibility(b.mainImageContainer.id, View.GONE)
+		setVisibility(b.fdThumb.id, View.GONE)
+		setVisibility(b.fdTrackColumn.id, View.GONE)
 		applyTo(b.detailsContent)
 	}
 }
