@@ -209,7 +209,7 @@ fun HomeFocusedPreview(
 	item: BaseItemDto?,
 	modifier: Modifier = Modifier,
 ) {
-	// No buttons here: OK on a card plays it and holding OK opens its details, so Up and Down only move between rows.
+	// No buttons here: OK on a card opens its details and the remote's Play key plays it, so Up and Down only move between rows.
 	Box(modifier = modifier.fillMaxWidth().height(176.dp).padding(start = 48.dp, top = 20.dp, end = 32.dp)) {
 		ToolbarClock(modifier = Modifier.align(Alignment.TopEnd))
 		if (item == null) return@Box
