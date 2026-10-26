@@ -75,7 +75,7 @@ class BrowseGridLayout(private val binding: HorizontalGridBrowseBinding, private
 
 		val railView = ComposeView(context).apply {
 			setContent {
-				MainSideRail(MainToolbarActiveButton.Libraries, activeRequester, contentFocusRequester = null, onRight = { grid()?.requestFocus() })
+				MainSideRail(MainToolbarActiveButton.Libraries, activeRequester, contentFocusRequester = null, onRight = { grid()?.requestFocus() }, onActiveScreen = false)
 			}
 		}
 		rail = railView

@@ -103,6 +103,8 @@ fun MainSideRail(
 	contentFocusRequester: FocusRequester?,
 	modifier: Modifier = Modifier,
 	onRight: (() -> Unit)? = null,
+	// False on screens that only highlight a section (details pages, library grids), so its item still opens it
+	onActiveScreen: Boolean = true,
 ) {
 	// Right from any menu item returns to where you were in the content, not the nearest control.
 	// View-based content can't take a FocusRequester, so it supplies [onRight] instead.
@@ -164,13 +166,13 @@ fun MainSideRail(
 		fun item(button: MainToolbarActiveButton) =
 			if (button == active) toRows.focusRequester(activeFocusRequester) else toRows
 		RailItem(R.drawable.ic_house, R.string.lbl_home, expanded, active = active == MainToolbarActiveButton.Home, modifier = item(MainToolbarActiveButton.Home)) {
-			if (active != MainToolbarActiveButton.Home) navigationRepository.navigate(Destinations.home, replace = true)
+			if (!onActiveScreen || active != MainToolbarActiveButton.Home) navigationRepository.navigate(Destinations.home, replace = true)
 		}
 		RailItem(R.drawable.ic_search, R.string.lbl_search, expanded, active = active == MainToolbarActiveButton.Search, modifier = item(MainToolbarActiveButton.Search)) {
-			if (active != MainToolbarActiveButton.Search) navigationRepository.navigate(Destinations.search())
+			if (!onActiveScreen || active != MainToolbarActiveButton.Search) navigationRepository.navigate(Destinations.search())
 		}
 		RailItem(R.drawable.ic_folder, R.string.home_section_library, expanded, active = active == MainToolbarActiveButton.Libraries, modifier = item(MainToolbarActiveButton.Libraries)) {
-			if (active != MainToolbarActiveButton.Libraries) navigationRepository.navigate(Destinations.libraries)
+			if (!onActiveScreen || active != MainToolbarActiveButton.Libraries) navigationRepository.navigate(Destinations.libraries)
 		}
 		RailItem(R.drawable.ic_settings, R.string.settings, expanded, modifier = toRows) { settingsViewModel.show() }
 	}

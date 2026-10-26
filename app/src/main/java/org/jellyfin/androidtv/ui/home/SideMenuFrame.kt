@@ -27,7 +27,7 @@ object SideMenuFrame {
 		var returnTo: View? = null
 		val railView = ComposeView(context).apply {
 			setContent {
-				MainSideRail(active, activeRequester, contentFocusRequester = null, onRight = {
+				MainSideRail(active, activeRequester, contentFocusRequester = null, onActiveScreen = false, onRight = {
 					val target = returnTo?.takeIf { it.isAttachedToWindow && it.isShown }
 					if (target?.requestFocus() != true) content.requestFocus()
 				})
