@@ -69,29 +69,29 @@ Submitted October 24, 2026; waiting for Amazon's review. Details: [Amazon prepar
 
 ---
 
-## 1.1: new Home, as an option
+## 1.1: the LumaFin layout
 
 Status: In progress (started October 25, 2026). Milestone: [1.1](https://github.com/bagodees/LumaFin-AndroidTV/milestone/2).
 
 1. [x] Design two Home concepts and choose one ([#80](https://github.com/bagodees/LumaFin-AndroidTV/issues/80)): concept A (side rail with a preview area) chosen; concept B (top bar with backdrop) becomes a Home style option in 1.2
-2. [ ] New Home screen (concept A) behind a "Try the new Home" setting ([#81](https://github.com/bagodees/LumaFin-AndroidTV/issues/81))
+2. [ ] New Home screen, concept A ([#81](https://github.com/bagodees/LumaFin-AndroidTV/issues/81))
+3. [ ] LumaFin layout by default, with "Switch to classic Jellyfin style" ([#82](https://github.com/bagodees/LumaFin-AndroidTV/issues/82))
+4. [ ] Side menu on Search, Libraries, library grids and the Live TV guide; grids scroll top to bottom with an A–Z strip ([#111](https://github.com/bagodees/LumaFin-AndroidTV/issues/111))
+5. [ ] New details pages for movies, series, seasons and episodes, with the side menu ([#85](https://github.com/bagodees/LumaFin-AndroidTV/issues/85))
 
 ---
 
-## 1.2: Home by default, settings and menus
+## 1.2: settings, menus and Home options
 
 Status: Planned. Milestone: [1.2](https://github.com/bagodees/LumaFin-AndroidTV/milestone/3).
 
-1. [ ] Make the new Home the default ([#82](https://github.com/bagodees/LumaFin-AndroidTV/issues/82))
-2. [ ] Home style option: top bar with backdrop, concept B ([#110](https://github.com/bagodees/LumaFin-AndroidTV/issues/110))
-3. [ ] Side menu on Search, Libraries, library grids and the Live TV guide ([#111](https://github.com/bagodees/LumaFin-AndroidTV/issues/111))
-4. [ ] Reorganize settings into a full-screen layout ([#83](https://github.com/bagodees/LumaFin-AndroidTV/issues/83))
-5. [ ] One LumaFin action menu for every card ([#84](https://github.com/bagodees/LumaFin-AndroidTV/issues/84))
-6. [ ] New details screen, available as an option ([#85](https://github.com/bagodees/LumaFin-AndroidTV/issues/85))
-7. [ ] Pin genres, studios, playlists and Favorites to Home ([#96](https://github.com/bagodees/LumaFin-AndroidTV/issues/96))
-8. [ ] Remove a show from Next Up ([#97](https://github.com/bagodees/LumaFin-AndroidTV/issues/97))
-9. [ ] Video/photo filter for mixed libraries ([#86](https://github.com/bagodees/LumaFin-AndroidTV/issues/86))
-10. [ ] Use the Home Screen Sections plugin when the server has it, with LumaFin's own sections otherwise ([#107](https://github.com/bagodees/LumaFin-AndroidTV/issues/107))
+1. [ ] Home style option: top bar with backdrop, concept B ([#110](https://github.com/bagodees/LumaFin-AndroidTV/issues/110))
+2. [ ] Reorganize settings into a full-screen layout ([#83](https://github.com/bagodees/LumaFin-AndroidTV/issues/83))
+3. [ ] One LumaFin action menu for every card ([#84](https://github.com/bagodees/LumaFin-AndroidTV/issues/84))
+4. [ ] Pin genres, studios, playlists and Favorites to Home ([#96](https://github.com/bagodees/LumaFin-AndroidTV/issues/96))
+5. [ ] Remove a show from Next Up ([#97](https://github.com/bagodees/LumaFin-AndroidTV/issues/97))
+6. [ ] Video/photo filter for mixed libraries ([#86](https://github.com/bagodees/LumaFin-AndroidTV/issues/86))
+7. [ ] Use the Home Screen Sections plugin when the server has it, with LumaFin's own sections otherwise ([#107](https://github.com/bagodees/LumaFin-AndroidTV/issues/107))
 
 ---
 
