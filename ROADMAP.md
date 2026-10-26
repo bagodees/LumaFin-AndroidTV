@@ -95,16 +95,15 @@ Status: Planned. Milestone: [1.2](https://github.com/bagodees/LumaFin-AndroidTV/
 
 ---
 
-## 1.3: details by default, setup and personal touches
+## 1.3: setup and personal touches
 
 Status: Planned. Milestone: [1.3](https://github.com/bagodees/LumaFin-AndroidTV/milestone/4).
 
-1. [ ] Make the new details screen the default ([#89](https://github.com/bagodees/LumaFin-AndroidTV/issues/89))
-2. [ ] Guided first-run setup ([#88](https://github.com/bagodees/LumaFin-AndroidTV/issues/88))
-3. [ ] "Fits tonight": pick how much time you have ([#87](https://github.com/bagodees/LumaFin-AndroidTV/issues/87))
-4. [ ] Accent color themes ([#90](https://github.com/bagodees/LumaFin-AndroidTV/issues/90))
-5. [ ] PIN lock for switching users ([#98](https://github.com/bagodees/LumaFin-AndroidTV/issues/98))
-6. [ ] Optional theme music on details pages ([#99](https://github.com/bagodees/LumaFin-AndroidTV/issues/99))
+1. [ ] Guided first-run setup ([#88](https://github.com/bagodees/LumaFin-AndroidTV/issues/88))
+2. [ ] "Fits tonight": pick how much time you have ([#87](https://github.com/bagodees/LumaFin-AndroidTV/issues/87))
+3. [ ] Accent color themes ([#90](https://github.com/bagodees/LumaFin-AndroidTV/issues/90))
+4. [ ] PIN lock for switching users ([#98](https://github.com/bagodees/LumaFin-AndroidTV/issues/98))
+5. [ ] Optional theme music on details pages ([#99](https://github.com/bagodees/LumaFin-AndroidTV/issues/99))
 
 ---
 
