@@ -1,13 +1,13 @@
 package org.jellyfin.androidtv.ui.browsing
 
 import android.os.Bundle
+import androidx.compose.ui.layout.ContentScale
+import coil3.compose.AsyncImage as CoilImage
 import org.jellyfin.sdk.model.api.ImageType
 import org.jellyfin.sdk.api.client.extensions.itemsApi
 import org.jellyfin.androidtv.util.apiclient.itemBackdropImages
 import org.jellyfin.androidtv.util.apiclient.itemImages
 import org.jellyfin.androidtv.util.apiclient.getUrl
-import org.jellyfin.androidtv.ui.composable.AsyncImage
-import android.widget.ImageView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -68,6 +68,7 @@ import androidx.leanback.widget.ListRow
 import androidx.leanback.widget.OnItemViewClickedListener
 import androidx.leanback.widget.OnItemViewSelectedListener
 import androidx.leanback.widget.Row
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -417,13 +418,16 @@ class LibraryNameTilesFragment : Fragment() {
 	private val folder by lazy { folderArgument() }
 	private val api by inject<ApiClient>()
 	private val navigationRepository by inject<NavigationRepository>()
-	// Backdrop URL per genre or studio (null when none), kept while the page is open
-	private val backdrops = mutableMapOf<UUID, String?>()
+	// Backdrop URLs per genre or studio, best first, kept while the page is open
+	private val backdrops = mutableMapOf<UUID, List<String>>()
 	// Titles already pictured, so genres that share a top title (Action, Adventure...) get different art
 	private val usedTitles = mutableSetOf<UUID>()
 
-	/** The backdrop of the best-rated title in this genre or studio, for its tile. */
-	private suspend fun representativeBackdrop(entry: BaseItemDto, studios: Boolean): String? = runCatching {
+	/**
+	 * Backdrops of the best-rated titles in this genre or studio, for its tile: one no other tile uses
+	 * first, then the rest as fallbacks for an image that won't load.
+	 */
+	private suspend fun representativeBackdrops(entry: BaseItemDto, studios: Boolean): List<String> = try {
 		val type = if (folder.collectionType == CollectionType.TVSHOWS) BaseItemKind.SERIES else BaseItemKind.MOVIE
 		val candidates = withContext(Dispatchers.IO) {
 			api.itemsApi.getItems(GetItemsRequest(
@@ -441,10 +445,16 @@ class LibraryNameTilesFragment : Fragment() {
 			)).content.items
 		}
 		// Back on the main thread, so picking and marking a title can't race another tile
-		val item = candidates.firstOrNull { it.id !in usedTitles } ?: candidates.firstOrNull()
-		item?.let { usedTitles += it.id }
-		item?.itemBackdropImages?.firstOrNull()?.getUrl(api, maxWidth = 480)
-	}.getOrNull()
+		val ordered = candidates.sortedBy { it.id in usedTitles }
+		ordered.firstOrNull()?.let { usedTitles += it.id }
+		ordered.mapNotNull { it.itemBackdropImages.firstOrNull()?.getUrl(api, maxWidth = 480) }
+	} catch (err: CancellationException) {
+		// The tile left the screen (or the grid rebuilt it) while loading; let it try again next time
+		throw err
+	} catch (err: Exception) {
+		Timber.w(err, "Failed to load a backdrop for %s", entry.name)
+		emptyList()
+	}
 
 	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?) = content {
 		val studios = requireArguments().getBoolean(ARG_STUDIOS)
@@ -478,12 +488,21 @@ class LibraryNameTilesFragment : Fragment() {
 				// Studio thumbs are full cards (logo on its own background) that fill the tile; a bare logo is padded
 				val thumb = if (studios) entry.itemImages[ImageType.THUMB] else null
 				val logo = if (studios && thumb == null) entry.itemImages[ImageType.PRIMARY] else null
-				var backdrop by remember(entry.id) { mutableStateOf(backdrops[entry.id]) }
+				var backdropOptions by remember(entry.id) { mutableStateOf(backdrops[entry.id].orEmpty()) }
+				// Some titles' artwork won't load from the server; move on to the next title's
+				var backdropIndex by remember(entry.id) { mutableStateOf(0) }
 				if (thumb == null && logo == null) LaunchedEffect(entry.id) {
-					if (entry.id !in backdrops) backdrops[entry.id] = representativeBackdrop(entry, studios)
-					backdrop = backdrops[entry.id]
+					// Cached only once a load finishes; a cancelled one throws and is retried
+					if (entry.id !in backdrops) backdrops[entry.id] = representativeBackdrops(entry, studios)
+					backdropOptions = backdrops[entry.id].orEmpty()
 				}
-				NameTile(entry.name.orEmpty(), logoUrl = logo?.getUrl(api, maxHeight = 160), cardUrl = thumb?.getUrl(api, maxWidth = 480), backdropUrl = backdrop) {
+				NameTile(
+					entry.name.orEmpty(),
+					logoUrl = logo?.getUrl(api, maxHeight = 160),
+					cardUrl = thumb?.getUrl(api, maxWidth = 480),
+					backdropUrl = backdropOptions.getOrNull(backdropIndex),
+					onBackdropFailed = { backdropIndex++ },
+				) {
 					navigationRepository.navigate(Destinations.libraryFiltered(folder, entry.name.orEmpty(),
 						genre = if (studios) null else entry.name, studioId = if (studios) entry.id.toString() else null))
 				}
@@ -497,7 +516,7 @@ class LibraryNameTilesFragment : Fragment() {
 }
 
 @Composable
-private fun NameTile(name: String, logoUrl: String?, cardUrl: String?, backdropUrl: String?, onClick: () -> Unit) {
+private fun NameTile(name: String, logoUrl: String?, cardUrl: String?, backdropUrl: String?, onBackdropFailed: () -> Unit, onClick: () -> Unit) {
 	val strongFocus = koinInject<UserPreferences>()[UserPreferences.strongFocus]
 	val interactionSource = remember { MutableInteractionSource() }
 	val focused by interactionSource.collectIsFocusedAsState()
@@ -518,13 +537,16 @@ private fun NameTile(name: String, logoUrl: String?, cardUrl: String?, backdropU
 			.then(if (focused) Modifier.border(if (strongFocus) 3.dp else 2.dp, if (strongFocus) Color.White else LumaFinPalette.Cyan, shape) else Modifier),
 	) {
 		when {
-			cardUrl != null -> AsyncImage(modifier = Modifier.fillMaxSize(), url = cardUrl, scaleType = ImageView.ScaleType.CENTER_CROP)
-			logoUrl != null -> AsyncImage(
+			// Compose's own image loading: the wrapped image view could start before a tile had a size and never draw
+			cardUrl != null -> CoilImage(model = cardUrl, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+			logoUrl != null -> CoilImage(
+				model = logoUrl,
+				contentDescription = null,
+				contentScale = ContentScale.Fit,
 				modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 16.dp),
-				url = logoUrl,
 			)
 			backdropUrl != null -> {
-				AsyncImage(modifier = Modifier.fillMaxSize(), url = backdropUrl, scaleType = ImageView.ScaleType.CENTER_CROP)
+				CoilImage(model = backdropUrl, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize(), onError = { onBackdropFailed() })
 				// Keeps the name readable over the artwork
 				Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = if (focused) 0.35f else 0.55f)))
 			}
