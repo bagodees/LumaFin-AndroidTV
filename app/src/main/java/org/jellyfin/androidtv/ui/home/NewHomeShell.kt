@@ -311,10 +311,12 @@ private fun RailItem(icon: Int, text: String, expanded: Boolean, active: Boolean
 fun HomeFocusedPreview(
 	item: BaseItemDto?,
 	modifier: Modifier = Modifier,
+	// The tabbed library pages show the clock in their tab row instead
+	showClock: Boolean = true,
 ) {
 	// No buttons here: OK on a card opens its details and the remote's Play key plays it, so Up and Down only move between rows.
 	Box(modifier = modifier.fillMaxWidth().height(176.dp).padding(start = 48.dp, top = 20.dp, end = 32.dp)) {
-		ToolbarClock(modifier = Modifier.align(Alignment.TopEnd))
+		if (showClock) ToolbarClock(modifier = Modifier.align(Alignment.TopEnd))
 		if (item == null) return@Box
 		val api = koinInject<ApiClient>()
 		// Anchored to the bottom so the rows keep the same distance whether or not an episode line is shown.

@@ -6,6 +6,7 @@ import org.jellyfin.androidtv.ui.browsing.BrowseGridFragment
 import org.jellyfin.androidtv.ui.browsing.BrowseRecordingsFragment
 import org.jellyfin.androidtv.ui.browsing.BrowseScheduleFragment
 import org.jellyfin.androidtv.ui.browsing.BrowseViewFragment
+import org.jellyfin.androidtv.ui.browsing.LibraryTabsFragment
 import org.jellyfin.androidtv.ui.browsing.ByGenreFragment
 import org.jellyfin.androidtv.ui.browsing.ByLetterFragment
 import org.jellyfin.androidtv.ui.browsing.CollectionFragment
@@ -47,6 +48,20 @@ object Destinations {
 		fragmentDestination<BrowseGridFragment> {
 			putString(Extras.Folder, Json.encodeToString(item))
 			putString(Extras.IncludeType, includeType)
+		}
+
+	/** Movies and TV libraries in the LumaFin layout: Recommended, Library, Collections/Studios and Genres tabs. */
+	fun libraryTabs(item: BaseItemDto) = fragmentDestination<LibraryTabsFragment> {
+		putString(Extras.Folder, Json.encodeToString(item))
+	}
+
+	/** The library grid limited to one genre or studio, titled [title]. */
+	fun libraryFiltered(item: BaseItemDto, title: String, genre: String? = null, studioId: String? = null) =
+		fragmentDestination<BrowseGridFragment> {
+			putString(Extras.Folder, Json.encodeToString(item))
+			putString(Extras.FilterTitle, title)
+			putString(Extras.Genre, genre)
+			putString(Extras.StudioId, studioId)
 		}
 
 	// TODO only pass item id instead of complete JSON to browsing destinations

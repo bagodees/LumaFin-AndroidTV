@@ -147,6 +147,8 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
             // The side menu takes the left edge and the taller preview pushes the grid down
             mGridWidth -= BrowseGridLayout.SIDE_MENU_WIDTH_DP + BrowseGridLayout.GRID_START_MARGIN_DP + BrowseGridLayout.RIGHT_COLUMNS_WIDTH_DP;
             mGridHeight -= BrowseGridLayout.EXTRA_PREVIEW_HEIGHT_DP;
+            // Inside a tabbed library page the tab row takes the top
+            if (getArguments().getBoolean(Extras.Embedded, false)) mGridHeight -= LibraryTabs.TAB_BAR_HEIGHT_DP;
         }
 
 
@@ -154,7 +156,7 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
 
         mFolder = Json.Default.decodeFromString(BaseItemDto.Companion.serializer(), getArguments().getString(Extras.Folder));
         mParentId = mFolder.getId();
-        mainTitle = mFolder.getName();
+        mainTitle = getArguments().getString(Extras.FilterTitle, mFolder.getName());
         libraryPreferences = preferencesRepository.getValue().getLibraryPreferences(Objects.requireNonNull(mFolder.getDisplayPreferencesId()));
         mPosterSizeSetting = libraryPreferences.get(LibraryPreferences.Companion.getPosterSize());
         mImageType = libraryPreferences.get(LibraryPreferences.Companion.getImageType());
@@ -204,6 +206,7 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
                              @Nullable Bundle savedInstanceState) {
         binding = HorizontalGridBrowseBinding.inflate(inflater, container, false);
         mLayout = new BrowseGridLayout(binding, () -> mGridView);
+        mLayout.setEmbedded(getArguments().getBoolean(Extras.Embedded, false));
         mLayout.setLibrary(SideMenuFrame.libraryOf(mFolder));
         return mLayout.wrap(requireContext());
     }
@@ -627,7 +630,13 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
             }
         }
 
-        setRowDef(new BrowseRowDef("", BrowsingUtils.createBrowseGridItemsRequest(mFolder), CHUNK_SIZE_MINIMUM, false, true));
+        // The tabbed library pages show a library's collections, or one genre or studio, in this grid
+        if ("BoxSet".equals(getArguments().getString(Extras.IncludeType, null))) {
+            setRowDef(new BrowseRowDef("", BrowsingUtils.createCollectionsRequest(mParentId), CHUNK_SIZE_MINIMUM, false, true));
+            return;
+        }
+        setRowDef(new BrowseRowDef("", LibraryTabs.filtered(BrowsingUtils.createBrowseGridItemsRequest(mFolder),
+                getArguments().getString(Extras.Genre, null), getArguments().getString(Extras.StudioId, null)), CHUNK_SIZE_MINIMUM, false, true));
     }
 
     @Override

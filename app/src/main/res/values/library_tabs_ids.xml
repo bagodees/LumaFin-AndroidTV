@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Child fragment containers on the tabbed library page, kept stable so tabs survive recreation -->
+    <item name="library_tab_content" type="id" />
+    <item name="library_recommended_rows" type="id" />
+</resources>

@@ -73,11 +73,20 @@ class BrowseGridLayout(private val binding: HorizontalGridBrowseBinding, private
 	/** The library this grid belongs to, highlighted in the side menu. */
 	var library by mutableStateOf<SideMenuLibrary?>(null)
 
+	/** Inside a tabbed library page, which already has the side menu and the clock. */
+	var embedded = false
+
 	/** Returns the screen's root view, wrapped with the side menu when the LumaFin layout is on. */
 	fun wrap(context: Context): View {
 		val root = binding.root
 		if (!enabled) return root
 		installPreview(context)
+		if (embedded) {
+			binding.clock.visibility = View.GONE
+			// The tabbed page draws one background behind the tabs and the grid
+			root.background = null
+			return root
+		}
 
 		val railView = ComposeView(context).apply {
 			setContent {

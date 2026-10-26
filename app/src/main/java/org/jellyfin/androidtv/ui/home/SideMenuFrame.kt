@@ -87,10 +87,28 @@ object SideMenuFrame {
 		var returnTo: View? = null
 		var library by mutableStateOf<SideMenuLibrary?>(null)
 
+		// Compose content leaves for the menu on its own, so note where focus came from as it arrives
+		private val focusWatcher = android.view.ViewTreeObserver.OnGlobalFocusChangeListener { old, new ->
+			fun View?.inside(parent: View?) = this != null && parent != null && generateSequence(this) { it.parent as? View }.any { it === parent }
+			if (new.inside(rail) && old.inside(content)) returnTo = old
+		}
+
+		override fun onAttachedToWindow() {
+			super.onAttachedToWindow()
+			viewTreeObserver.addOnGlobalFocusChangeListener(focusWatcher)
+		}
+
+		override fun onDetachedFromWindow() {
+			viewTreeObserver.removeOnGlobalFocusChangeListener(focusWatcher)
+			super.onDetachedFromWindow()
+		}
+
 		override fun dispatchKeyEvent(event: KeyEvent): Boolean {
 			val focused = findFocus()
 			val railView = rail
-			if (event.action == KeyEvent.ACTION_DOWN && event.keyCode == KeyEvent.KEYCODE_DPAD_LEFT && focused != null && railView != null &&
+			// Compose content (like a library page's tabs) moves focus itself and leaves for the menu on its own
+			val inCompose = focused != null && generateSequence(focused) { it.parent as? View }.any { it is ComposeView && it !== railView }
+			if (event.action == KeyEvent.ACTION_DOWN && event.keyCode == KeyEvent.KEYCODE_DPAD_LEFT && focused != null && railView != null && !inCompose &&
 				content is ViewGroup && generateSequence(focused) { it.parent as? View }.any { it === content } &&
 				FocusFinder.getInstance().findNextFocus(content, focused, View.FOCUS_LEFT) == null
 			) {

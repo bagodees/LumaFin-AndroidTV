@@ -50,6 +50,9 @@ public class ItemLauncher {
         CollectionType collectionType = baseItem == null ? CollectionType.UNKNOWN : baseItem.getCollectionType();
         if (collectionType == null) collectionType = CollectionType.UNKNOWN;
 
+        // LumaFin layout: Movies and TV open their tabbed page
+        if (org.jellyfin.androidtv.ui.browsing.LibraryTabs.supports(baseItem)) return Destinations.INSTANCE.libraryTabs(baseItem);
+
         switch (collectionType) {
             case MOVIES:
             case TVSHOWS:

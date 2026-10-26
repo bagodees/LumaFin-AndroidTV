@@ -1,0 +1,482 @@
+package org.jellyfin.androidtv.ui.browsing
+
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.FrameLayout
+import android.widget.LinearLayout
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.focusGroup
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.focusRestorer
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.core.os.bundleOf
+import androidx.fragment.app.Fragment
+import androidx.fragment.compose.content
+import androidx.leanback.app.RowsSupportFragment
+import androidx.leanback.widget.HeaderItem
+import androidx.leanback.widget.ListRow
+import androidx.leanback.widget.OnItemViewClickedListener
+import androidx.leanback.widget.OnItemViewSelectedListener
+import androidx.leanback.widget.Row
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
+import org.jellyfin.androidtv.R
+import org.jellyfin.androidtv.constant.Extras
+import org.jellyfin.androidtv.data.repository.ItemRepository
+import org.jellyfin.androidtv.data.service.BackgroundService
+import org.jellyfin.androidtv.preference.UserPreferences
+import org.jellyfin.androidtv.ui.base.LumaFinPalette
+import org.jellyfin.androidtv.ui.base.Text
+import org.jellyfin.androidtv.ui.base.button.ButtonBase
+import org.jellyfin.androidtv.ui.base.button.ButtonDefaults
+import org.jellyfin.androidtv.ui.home.HomeFocusedPreview
+import org.jellyfin.androidtv.ui.home.SideMenuFrame
+import org.jellyfin.androidtv.ui.itemhandling.BaseRowItem
+import org.jellyfin.androidtv.ui.itemhandling.ItemLauncher
+import org.jellyfin.androidtv.ui.itemhandling.ItemRowAdapter
+import org.jellyfin.androidtv.ui.navigation.Destinations
+import org.jellyfin.androidtv.ui.navigation.NavigationRepository
+import org.jellyfin.androidtv.ui.presentation.CardPresenter
+import org.jellyfin.androidtv.ui.presentation.MutableObjectAdapter
+import org.jellyfin.androidtv.ui.presentation.PositionableListRowPresenter
+import org.jellyfin.androidtv.ui.shared.toolbar.MainToolbarActiveButton
+import org.jellyfin.androidtv.ui.shared.toolbar.ToolbarClock
+import org.jellyfin.sdk.api.client.ApiClient
+import org.jellyfin.sdk.api.client.extensions.genresApi
+import org.jellyfin.sdk.api.client.extensions.studiosApi
+import org.jellyfin.sdk.model.api.BaseItemDto
+import org.jellyfin.sdk.model.api.BaseItemKind
+import org.jellyfin.sdk.model.api.CollectionType
+import org.jellyfin.sdk.model.api.ItemSortBy
+import org.jellyfin.sdk.model.api.SortOrder
+import org.jellyfin.sdk.model.api.request.GetItemsRequest
+import org.koin.android.ext.android.inject
+import org.koin.compose.koinInject
+import timber.log.Timber
+import java.time.LocalDateTime
+import java.util.UUID
+
+/** Tabbed library pages for Movies and TV in the LumaFin layout (#92). */
+object LibraryTabs {
+	/** Height of the tab row, which the embedded grid gives up. */
+	const val TAB_BAR_HEIGHT_DP = 64
+
+	@JvmStatic
+	fun supports(folder: BaseItemDto?) = SideMenuFrame.isEnabled() &&
+		folder?.collectionType in setOf(CollectionType.MOVIES, CollectionType.TVSHOWS)
+
+	/** Limits a library grid request to one genre (by name) or studio (by id). */
+	@JvmStatic
+	fun filtered(request: GetItemsRequest, genre: String?, studioId: String?): GetItemsRequest = request.copy(
+		genres = genre?.let(::setOf) ?: request.genres,
+		studioIds = studioId?.let { runCatching { UUID.fromString(it) }.getOrNull() }?.let(::setOf) ?: request.studioIds,
+	)
+
+	internal fun folderArgs(folder: BaseItemDto) = bundleOf(Extras.Folder to Json.encodeToString(BaseItemDto.serializer(), folder))
+}
+
+private enum class LibraryTab(val label: Int) {
+	Recommended(R.string.library_tab_recommended),
+	Library(R.string.library_tab_library),
+	Collections(R.string.lbl_collections),
+	Genres(R.string.lbl_genres),
+	Studios(R.string.library_tab_studios),
+}
+
+private fun Fragment.folderArgument(): BaseItemDto =
+	Json.decodeFromString(BaseItemDto.serializer(), requireNotNull(requireArguments().getString(Extras.Folder)))
+
+/**
+ * A Movies or TV library: the side menu, a tab row on the clock line, and the picked tab's content below.
+ * Moving along the tabs switches after a short pause, so passing over one doesn't load it.
+ */
+class LibraryTabsFragment : Fragment() {
+	private val folder by lazy { folderArgument() }
+	private val tabs by lazy {
+		if (folder.collectionType == CollectionType.TVSHOWS) listOf(LibraryTab.Recommended, LibraryTab.Library, LibraryTab.Genres, LibraryTab.Studios)
+		else listOf(LibraryTab.Recommended, LibraryTab.Library, LibraryTab.Collections, LibraryTab.Genres)
+	}
+	private val selected = MutableStateFlow(LibraryTab.Recommended)
+	private var content: FrameLayout? = null
+
+	override fun onCreate(savedInstanceState: Bundle?) {
+		super.onCreate(savedInstanceState)
+		savedInstanceState?.getString(STATE_TAB)?.let { name -> LibraryTab.entries.firstOrNull { it.name == name } }?.let { selected.value = it }
+	}
+
+	override fun onSaveInstanceState(outState: Bundle) {
+		super.onSaveInstanceState(outState)
+		outState.putString(STATE_TAB, selected.value.name)
+	}
+
+	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+		val context = requireContext()
+		val tabRow = ComposeView(context).apply {
+			setContent {
+				val current by selected.collectAsState()
+				LibraryTabRow(tabs, current, onSelect = ::show,
+					// While on the tabs, the content can't take focus (a grid grabs it when it loads); Down lets it
+					onTabsFocused = { inTabs -> content?.descendantFocusability = if (inTabs) ViewGroup.FOCUS_BLOCK_DESCENDANTS else ViewGroup.FOCUS_AFTER_DESCENDANTS },
+					onDown = { content?.descendantFocusability = ViewGroup.FOCUS_AFTER_DESCENDANTS })
+			}
+		}
+		val content = FrameLayout(context).apply { id = R.id.library_tab_content }
+		this.content = content
+		val root = LinearLayout(context).apply {
+			orientation = LinearLayout.VERTICAL
+			// Same dimming over the backdrop as Home, behind the tabs and every tab's content
+			setBackgroundResource(R.drawable.details_readability_gradient)
+			addView(tabRow, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+			addView(content, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
+		}
+		return SideMenuFrame.wrap(context, root, MainToolbarActiveButton.Libraries, SideMenuFrame.libraryOf(folder))
+	}
+
+	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+		super.onViewCreated(view, savedInstanceState)
+		if (childFragmentManager.findFragmentById(R.id.library_tab_content) == null) replaceContent(selected.value)
+	}
+
+	private fun show(tab: LibraryTab) {
+		if (tab == selected.value) return
+		selected.value = tab
+		replaceContent(tab)
+	}
+
+	private fun replaceContent(tab: LibraryTab) {
+		val fragment = when (tab) {
+			LibraryTab.Recommended -> LibraryRecommendedFragment()
+			LibraryTab.Library -> BrowseGridFragment()
+			LibraryTab.Collections -> BrowseGridFragment()
+			LibraryTab.Genres, LibraryTab.Studios -> LibraryNameTilesFragment()
+		}
+		fragment.arguments = LibraryTabs.folderArgs(folder).apply {
+			putBoolean(Extras.Embedded, true)
+			if (tab == LibraryTab.Collections) putString(Extras.IncludeType, "BoxSet")
+			if (tab == LibraryTab.Studios) putBoolean(LibraryNameTilesFragment.ARG_STUDIOS, true)
+		}
+		childFragmentManager.beginTransaction().replace(R.id.library_tab_content, fragment).commit()
+	}
+
+	private companion object {
+		const val STATE_TAB = "library_tab"
+	}
+}
+
+@Composable
+private fun LibraryTabRow(
+	tabs: List<LibraryTab>,
+	selected: LibraryTab,
+	onSelect: (LibraryTab) -> Unit,
+	onTabsFocused: (Boolean) -> Unit,
+	onDown: () -> Unit,
+) {
+	var focused by remember { mutableStateOf<LibraryTab?>(null) }
+	// Switch when focus rests on a tab, not while passing over it
+	LaunchedEffect(focused) {
+		val tab = focused ?: return@LaunchedEffect
+		delay(350)
+		onSelect(tab)
+	}
+	val selectedRequester = remember { FocusRequester() }
+	Row(
+		verticalAlignment = Alignment.CenterVertically,
+		modifier = Modifier.fillMaxWidth().height(LibraryTabs.TAB_BAR_HEIGHT_DP.dp).padding(start = 40.dp, end = 32.dp, top = 8.dp),
+	) {
+		// Coming back up from the content lands on the open tab
+		Row(
+			horizontalArrangement = Arrangement.spacedBy(6.dp),
+			modifier = Modifier
+				.onFocusChanged { onTabsFocused(it.hasFocus) }
+				.onPreviewKeyEvent { event ->
+					if (event.type == KeyEventType.KeyDown && event.key == Key.DirectionDown) onDown()
+					false
+				}
+				.focusRestorer(selectedRequester)
+				.focusGroup(),
+		) {
+			for (tab in tabs) {
+				LibraryTabButton(
+					label = stringResource(tab.label),
+					selected = tab == selected,
+					modifier = if (tab == selected) Modifier.focusRequester(selectedRequester) else Modifier,
+					onFocused = { focused = tab },
+					onClick = { onSelect(tab) },
+				)
+			}
+		}
+		Spacer(Modifier.weight(1f))
+		ToolbarClock()
+	}
+}
+
+@Composable
+private fun LibraryTabButton(label: String, selected: Boolean, modifier: Modifier, onFocused: () -> Unit, onClick: () -> Unit) {
+	val strongFocus = koinInject<UserPreferences>()[UserPreferences.strongFocus]
+	val interactionSource = remember { MutableInteractionSource() }
+	val isFocused by interactionSource.collectIsFocusedAsState()
+	val shape = RoundedCornerShape(20.dp)
+	ButtonBase(
+		onClick = onClick,
+		shape = shape,
+		interactionSource = interactionSource,
+		colors = ButtonDefaults.colors(
+			containerColor = Color.Transparent,
+			contentColor = if (selected) LumaFinPalette.Text else LumaFinPalette.SecondaryText,
+			focusedContainerColor = LumaFinPalette.FocusedRow,
+			focusedContentColor = LumaFinPalette.Text,
+		),
+		modifier = modifier
+			.height(40.dp)
+			.onFocusChanged { if (it.isFocused) onFocused() }
+			.then(if (isFocused) Modifier.border(if (strongFocus) 3.dp else 2.dp, if (strongFocus) Color.White else LumaFinPalette.Cyan, shape) else Modifier),
+	) {
+		Column(
+			horizontalAlignment = Alignment.CenterHorizontally,
+			modifier = Modifier.align(Alignment.Center).padding(horizontal = 16.dp),
+		) {
+			Text(label, fontSize = 17.sp, fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium, maxLines = 1)
+			// The open tab keeps an underline when focus is elsewhere
+			Box(
+				Modifier.padding(top = 3.dp).width(28.dp).height(2.dp)
+					.background(if (selected && !isFocused) LumaFinPalette.Cyan else Color.Transparent, RoundedCornerShape(1.dp))
+			)
+		}
+	}
+}
+
+/** The Recommended tab: the Home preview over rows for this library only. */
+class LibraryRecommendedFragment : Fragment() {
+	private val folder by lazy { folderArgument() }
+
+	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+		val context = requireContext()
+		// Filled in once the rows exist (onViewCreated), since it shows their focused card
+		val preview = ComposeView(context)
+		val rows = FrameLayout(context).apply { id = R.id.library_recommended_rows }
+		return LinearLayout(context).apply {
+			orientation = LinearLayout.VERTICAL
+			addView(preview, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+			addView(rows, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
+		}
+	}
+
+	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+		super.onViewCreated(view, savedInstanceState)
+		if (childFragmentManager.findFragmentById(R.id.library_recommended_rows) == null) {
+			childFragmentManager.beginTransaction()
+				.replace(R.id.library_recommended_rows, LibraryRowsFragment().apply { arguments = LibraryTabs.folderArgs(folder) })
+				.commitNow()
+		}
+		val rows = childFragmentManager.findFragmentById(R.id.library_recommended_rows) as LibraryRowsFragment
+		((view as ViewGroup).getChildAt(0) as ComposeView).let { preview ->
+			preview.setContent {
+				val item by rows.focusedItem.collectAsState()
+				HomeFocusedPreview(item, showClock = false, modifier = Modifier.height(156.dp))
+			}
+		}
+	}
+}
+
+/** Rows for one library, in the order agreed for #92. Empty rows remove themselves. */
+class LibraryRowsFragment : RowsSupportFragment() {
+	private val folder by lazy { folderArgument() }
+	private val itemLauncher by inject<ItemLauncher>()
+	private val backgroundService by inject<BackgroundService>()
+	val focusedItem = MutableStateFlow<BaseItemDto?>(null)
+
+	override fun onCreate(savedInstanceState: Bundle?) {
+		super.onCreate(savedInstanceState)
+		val rows = MutableObjectAdapter<Row>(PositionableListRowPresenter())
+		adapter = rows
+		val context = requireContext()
+		val presenter = CardPresenter.homeRows()
+		val id = folder.id
+		val now = LocalDateTime.now()
+		fun add(title: Int, adapter: ItemRowAdapter) {
+			val row = ListRow(HeaderItem(getString(title)), adapter)
+			adapter.setRow(row)
+			rows.add(row)
+			adapter.Retrieve()
+		}
+		fun newest(type: BaseItemKind) = GetItemsRequest(
+			fields = ItemRepository.itemFields,
+			parentId = id,
+			includeItemTypes = setOf(type),
+			recursive = true,
+			sortBy = setOf(ItemSortBy.PREMIERE_DATE),
+			sortOrder = setOf(SortOrder.DESCENDING),
+			maxPremiereDate = now,
+			imageTypeLimit = 1,
+			limit = 30,
+		)
+		fun topRated(type: BaseItemKind) = GetItemsRequest(
+			fields = ItemRepository.itemFields,
+			parentId = id,
+			includeItemTypes = setOf(type),
+			recursive = true,
+			sortBy = setOf(ItemSortBy.COMMUNITY_RATING),
+			sortOrder = setOf(SortOrder.DESCENDING),
+			imageTypeLimit = 1,
+			limit = 30,
+		)
+		if (folder.collectionType == CollectionType.TVSHOWS) {
+			add(R.string.lbl_continue_watching, ItemRowAdapter(context, BrowsingUtils.createResumeItemsRequest(id, BaseItemKind.EPISODE), 50, false, presenter, rows))
+			add(R.string.lbl_next_up, ItemRowAdapter(context, BrowsingUtils.createGetNextUpRequest(id), false, presenter, rows))
+			add(R.string.library_row_recently_aired, ItemRowAdapter(context, newest(BaseItemKind.EPISODE), 50, false, presenter, rows))
+			add(R.string.lbl_latest, ItemRowAdapter(context, BrowsingUtils.createLatestMediaRequest(id, BaseItemKind.EPISODE, true), false, presenter, rows))
+			add(R.string.library_row_top_rated, ItemRowAdapter(context, topRated(BaseItemKind.SERIES), 30, false, presenter, rows))
+			add(R.string.lbl_favorites, ItemRowAdapter(context, BrowsingUtils.createFavoriteItemsRequest(id, BaseItemKind.SERIES), 60, false, presenter, rows))
+		} else {
+			add(R.string.lbl_continue_watching, ItemRowAdapter(context, BrowsingUtils.createResumeItemsRequest(id, BaseItemKind.MOVIE), 50, false, presenter, rows))
+			add(R.string.library_row_recently_released, ItemRowAdapter(context, newest(BaseItemKind.MOVIE), 50, false, presenter, rows))
+			add(R.string.lbl_latest, ItemRowAdapter(context, BrowsingUtils.createLatestMediaRequest(id), false, presenter, rows))
+			add(R.string.library_row_top_rated, ItemRowAdapter(context, topRated(BaseItemKind.MOVIE), 50, false, presenter, rows))
+			add(R.string.lbl_favorites, ItemRowAdapter(context, BrowsingUtils.createFavoriteItemsRequest(id, BaseItemKind.MOVIE), 60, false, presenter, rows))
+		}
+
+		onItemViewClickedListener = OnItemViewClickedListener { _, item, _, row ->
+			if (item !is BaseRowItem || row !is ListRow) return@OnItemViewClickedListener
+			@Suppress("UNCHECKED_CAST")
+			itemLauncher.launch(item, row.adapter as MutableObjectAdapter<Any>, requireContext())
+		}
+		onItemViewSelectedListener = OnItemViewSelectedListener { _, item, _, _ ->
+			val baseItem = (item as? BaseRowItem)?.baseItem ?: return@OnItemViewSelectedListener
+			focusedItem.value = baseItem
+			backgroundService.setBackground(baseItem)
+		}
+	}
+
+	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+		super.onViewCreated(view, savedInstanceState)
+		// Same placement and spacing as the Home rows
+		setAlignment((40 * resources.displayMetrics.density).toInt())
+		verticalGridView?.verticalSpacing = (12 * resources.displayMetrics.density).toInt()
+	}
+}
+
+/** The Genres and Studios tabs: one tile per name, opening the library grid limited to it. */
+class LibraryNameTilesFragment : Fragment() {
+	private val folder by lazy { folderArgument() }
+	private val api by inject<ApiClient>()
+	private val navigationRepository by inject<NavigationRepository>()
+
+	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?) = content {
+		val studios = requireArguments().getBoolean(ARG_STUDIOS)
+		var names by remember { mutableStateOf<List<BaseItemDto>?>(null) }
+		LaunchedEffect(Unit) {
+			val type = if (folder.collectionType == CollectionType.TVSHOWS) BaseItemKind.SERIES else BaseItemKind.MOVIE
+			names = runCatching {
+				withContext(Dispatchers.IO) {
+					if (studios) api.studiosApi.getStudios(parentId = folder.id, includeItemTypes = setOf(type)).content.items
+					else api.genresApi.getGenres(parentId = folder.id, includeItemTypes = setOf(type), sortBy = setOf(ItemSortBy.SORT_NAME)).content.items
+				}
+			}.onFailure { Timber.w(it, "Failed to load library tiles") }.getOrDefault(emptyList())
+		}
+		val list = names ?: return@content
+		if (list.isEmpty()) {
+			Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+				Text(stringResource(R.string.library_tiles_empty), color = LumaFinPalette.SecondaryText, fontSize = 16.sp)
+			}
+			return@content
+		}
+		LazyVerticalGrid(
+			columns = GridCells.Fixed(4),
+			contentPadding = PaddingValues(start = 48.dp, end = 32.dp, top = 12.dp, bottom = 32.dp),
+			horizontalArrangement = Arrangement.spacedBy(16.dp),
+			verticalArrangement = Arrangement.spacedBy(16.dp),
+			// Coming back from the side menu or the tabs lands on the tile you left
+			modifier = Modifier.fillMaxSize().focusRestorer(),
+		) {
+			items(list, key = { it.id }) { entry ->
+				NameTile(entry.name.orEmpty()) {
+					navigationRepository.navigate(Destinations.libraryFiltered(folder, entry.name.orEmpty(),
+						genre = if (studios) null else entry.name, studioId = if (studios) entry.id.toString() else null))
+				}
+			}
+		}
+	}
+
+	companion object {
+		const val ARG_STUDIOS = "studios"
+	}
+}
+
+@Composable
+private fun NameTile(name: String, onClick: () -> Unit) {
+	val strongFocus = koinInject<UserPreferences>()[UserPreferences.strongFocus]
+	val interactionSource = remember { MutableInteractionSource() }
+	val focused by interactionSource.collectIsFocusedAsState()
+	val shape = RoundedCornerShape(12.dp)
+	ButtonBase(
+		onClick = onClick,
+		shape = shape,
+		interactionSource = interactionSource,
+		colors = ButtonDefaults.colors(
+			containerColor = LumaFinPalette.Raised,
+			contentColor = LumaFinPalette.Text,
+			focusedContainerColor = LumaFinPalette.FocusedRow,
+			focusedContentColor = LumaFinPalette.Text,
+		),
+		modifier = Modifier
+			.fillMaxWidth()
+			.height(88.dp)
+			.then(if (focused) Modifier.border(if (strongFocus) 3.dp else 2.dp, if (strongFocus) Color.White else LumaFinPalette.Cyan, shape) else Modifier),
+	) {
+		Text(
+			name,
+			fontSize = 17.sp,
+			fontWeight = FontWeight.SemiBold,
+			textAlign = TextAlign.Center,
+			maxLines = 2,
+			overflow = TextOverflow.Ellipsis,
+			modifier = Modifier.align(Alignment.Center).padding(horizontal = 12.dp),
+		)
+	}
+}

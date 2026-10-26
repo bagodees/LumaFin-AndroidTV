@@ -79,6 +79,7 @@ Status: In progress (started October 25, 2026). Milestone: [1.1](https://github.
 4. [ ] Side menu on Search, Libraries, library grids and the Live TV guide; grids scroll top to bottom with an A–Z strip ([#111](https://github.com/bagodees/LumaFin-AndroidTV/issues/111))
 5. [ ] New details pages for movies, series, seasons and episodes, with the side menu ([#85](https://github.com/bagodees/LumaFin-AndroidTV/issues/85))
 6. [ ] Side menu entry for each library, Live TV straight to the guide, Libraries only as overflow ([#112](https://github.com/bagodees/LumaFin-AndroidTV/issues/112)); added October 26 with the owner's approval
+7. [ ] Tabbed library pages for Movies and TV: Recommended, Library, Collections/Studios and Genres ([#92](https://github.com/bagodees/LumaFin-AndroidTV/issues/92)); moved from 1.x later on October 26 with the owner's approval
 
 ---
 
@@ -116,7 +117,6 @@ Status: Planned. Milestone: [1.x later](https://github.com/bagodees/LumaFin-Andr
 These move into a numbered version when it's planned. Unordered.
 
 - [ ] Redesign series and season browsing ([#91](https://github.com/bagodees/LumaFin-AndroidTV/issues/91))
-- [ ] Redesign library browsing and search ([#92](https://github.com/bagodees/LumaFin-AndroidTV/issues/92))
 - [ ] Light theme, once every main screen supports themes ([#93](https://github.com/bagodees/LumaFin-AndroidTV/issues/93))
 - [ ] Request movies and shows through Seerr ([#100](https://github.com/bagodees/LumaFin-AndroidTV/issues/100))
 - [ ] Install updates from inside the app on Fire TV ([#101](https://github.com/bagodees/LumaFin-AndroidTV/issues/101))
