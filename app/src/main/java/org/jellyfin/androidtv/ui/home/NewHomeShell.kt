@@ -55,6 +55,14 @@ import androidx.compose.ui.unit.sp
 import androidx.leanback.app.RowsSupportFragment
 import androidx.leanback.widget.HorizontalGridView
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.MutableStateFlow
+import androidx.compose.runtime.LaunchedEffect
+import org.jellyfin.androidtv.data.repository.UserViewsRepository
+import org.jellyfin.androidtv.ui.itemhandling.ItemLauncher
+import org.jellyfin.sdk.model.api.CollectionType
+import timber.log.Timber
+import java.util.UUID
 import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.auth.repository.UserRepository
 import org.jellyfin.androidtv.preference.UserPreferences
@@ -92,6 +100,29 @@ import org.koin.compose.viewmodel.koinActivityViewModel
 internal val RailCollapsedWidth = 64.dp
 private val RailExpandedWidth = 200.dp
 
+/** The library a screen belongs to: matched by [id] first, then by [collectionType] (a movie's details highlight Movies). */
+data class SideMenuLibrary(val id: UUID?, val collectionType: CollectionType?)
+
+/** Libraries shown in the side menu, kept between screens so the menu doesn't change while they reload. */
+private object SideMenuLibraries {
+	val cached = MutableStateFlow<Pair<UUID, List<BaseItemDto>>?>(null)
+}
+
+/** Library entries that fit in the menu above Settings at TV height; more than this shows "Libraries" for the rest. */
+private const val MaxLibraryEntries = 5
+
+private fun libraryIcon(type: CollectionType?) = when (type) {
+	CollectionType.MOVIES -> R.drawable.ic_movie
+	CollectionType.TVSHOWS -> R.drawable.ic_tv
+	CollectionType.LIVETV -> R.drawable.ic_tv_guide
+	CollectionType.MUSIC -> R.drawable.ic_music_album
+	CollectionType.MUSICVIDEOS, CollectionType.HOMEVIDEOS -> R.drawable.ic_clapperboard
+	CollectionType.PHOTOS -> R.drawable.ic_photos
+	CollectionType.BOXSETS -> R.drawable.ic_grid
+	CollectionType.PLAYLISTS -> R.drawable.ic_album
+	else -> R.drawable.ic_folder
+}
+
 /**
  * Side menu for the new navigation (concept A): slim and icons-only while browsing, expanding over the
  * content with labels while it has focus. [active] is highlighted and is where focus lands on entry.
@@ -105,6 +136,8 @@ fun MainSideRail(
 	onRight: (() -> Unit)? = null,
 	// False on screens that only highlight a section (details pages, library grids), so its item still opens it
 	onActiveScreen: Boolean = true,
+	// Which library the screen belongs to, so its entry is highlighted when [active] is Libraries
+	library: SideMenuLibrary? = null,
 ) {
 	// Right from any menu item returns to where you were in the content, not the nearest control.
 	// View-based content can't take a FocusRequester, so it supplies [onRight] instead.
@@ -117,10 +150,30 @@ fun MainSideRail(
 	}
 	val navigationRepository = koinInject<NavigationRepository>()
 	val settingsViewModel = koinActivityViewModel<SettingsViewModel>()
+	val userViews = koinInject<UserViewsRepository>()
+	val itemLauncher = koinInject<ItemLauncher>()
 	val userRepository = koinInject<UserRepository>()
 	val api = koinInject<ApiClient>()
 	val currentUser by remember { userRepository.currentUser.filterNotNull() }.collectAsState(null)
 	val userImage = remember(currentUser) { currentUser?.primaryImage?.getUrl(api) }
+	val cachedLibraries by SideMenuLibraries.cached.collectAsState()
+	val libraries = cachedLibraries?.takeIf { it.first == currentUser?.id }?.second
+	LaunchedEffect(currentUser?.id) {
+		val userId = currentUser?.id ?: return@LaunchedEffect
+		runCatching { userViews.views.first().toList() }
+			.onSuccess { SideMenuLibraries.cached.value = userId to it }
+			.onFailure { Timber.w(it, "Failed to load libraries for the side menu") }
+	}
+	// One entry per library; "Libraries" only when they don't all fit (or before they load)
+	val overflow = libraries.isNullOrEmpty() || libraries.size > MaxLibraryEntries
+	val shownLibraries = when {
+		libraries == null -> emptyList()
+		overflow -> libraries.take(MaxLibraryEntries - 1)
+		else -> libraries
+	}
+	val activeLibrary = if (active != MainToolbarActiveButton.Libraries || library == null) null
+		else shownLibraries.firstOrNull { it.id == library.id }
+			?: shownLibraries.firstOrNull { library.collectionType != null && it.collectionType == library.collectionType }
 	var showUserSwitcher by remember { mutableStateOf(false) }
 	if (showUserSwitcher) QuickUserSwitcher(onDismissRequest = { showUserSwitcher = false })
 	var expanded by remember { mutableStateOf(false) }
@@ -163,24 +216,42 @@ fun MainSideRail(
 			}
 		}
 		Spacer(Modifier.height(18.dp))
-		fun item(button: MainToolbarActiveButton) =
-			if (button == active) toRows.focusRequester(activeFocusRequester) else toRows
-		RailItem(R.drawable.ic_house, R.string.lbl_home, expanded, active = active == MainToolbarActiveButton.Home, modifier = item(MainToolbarActiveButton.Home)) {
+		// Entering the menu lands on the highlighted entry; on a Libraries screen with no matching entry,
+		// that's the overflow item, or the first library when there is none
+		val focusTarget: Any? = when {
+			active != MainToolbarActiveButton.Libraries -> active
+			activeLibrary != null -> activeLibrary.id
+			overflow -> MainToolbarActiveButton.Libraries
+			else -> shownLibraries.firstOrNull()?.id
+		}
+		fun item(key: Any) = if (key == focusTarget) toRows.focusRequester(activeFocusRequester) else toRows
+		RailItem(R.drawable.ic_house, stringResource(R.string.lbl_home), expanded, active = active == MainToolbarActiveButton.Home, modifier = item(MainToolbarActiveButton.Home)) {
 			if (!onActiveScreen || active != MainToolbarActiveButton.Home) navigationRepository.navigate(Destinations.home, replace = true)
 		}
-		RailItem(R.drawable.ic_search, R.string.lbl_search, expanded, active = active == MainToolbarActiveButton.Search, modifier = item(MainToolbarActiveButton.Search)) {
+		RailItem(R.drawable.ic_search, stringResource(R.string.lbl_search), expanded, active = active == MainToolbarActiveButton.Search, modifier = item(MainToolbarActiveButton.Search)) {
 			if (!onActiveScreen || active != MainToolbarActiveButton.Search) navigationRepository.navigate(Destinations.search())
 		}
-		RailItem(R.drawable.ic_folder, R.string.home_section_library, expanded, active = active == MainToolbarActiveButton.Libraries, modifier = item(MainToolbarActiveButton.Libraries)) {
-			if (!onActiveScreen || active != MainToolbarActiveButton.Libraries) navigationRepository.navigate(Destinations.libraries)
+		for (entry in shownLibraries) {
+			RailItem(libraryIcon(entry.collectionType), entry.name.orEmpty(), expanded, active = entry == activeLibrary, modifier = item(entry.id)) {
+				// Already on this library's own screen
+				if (library?.id == entry.id) return@RailItem
+				// Live TV goes straight to the guide; its On now and recordings screen is a button there
+				if (entry.collectionType == CollectionType.LIVETV) navigationRepository.navigate(Destinations.liveTvGuide)
+				else itemLauncher.launchUserView(entry)
+			}
 		}
-		RailItem(R.drawable.ic_settings, R.string.settings, expanded, modifier = toRows) { settingsViewModel.show() }
+		if (overflow) {
+			RailItem(R.drawable.ic_folder, stringResource(R.string.home_section_library), expanded,
+				active = active == MainToolbarActiveButton.Libraries && activeLibrary == null, modifier = item(MainToolbarActiveButton.Libraries)) {
+				if (!onActiveScreen || active != MainToolbarActiveButton.Libraries) navigationRepository.navigate(Destinations.libraries)
+			}
+		}
+		RailItem(R.drawable.ic_settings, stringResource(R.string.settings), expanded, modifier = toRows) { settingsViewModel.show() }
 	}
 }
 
 @Composable
-private fun RailItem(icon: Int, label: Int, expanded: Boolean, active: Boolean = false, modifier: Modifier = Modifier, onClick: () -> Unit) {
-	val text = stringResource(label)
+private fun RailItem(icon: Int, text: String, expanded: Boolean, active: Boolean = false, modifier: Modifier = Modifier, onClick: () -> Unit) {
 	ButtonBase(
 		onClick = onClick,
 		shape = RoundedCornerShape(12.dp),
@@ -197,7 +268,7 @@ private fun RailItem(icon: Int, label: Int, expanded: Boolean, active: Boolean =
 		) {
 			// The icon carries the label for accessibility while the text is hidden
 			Icon(imageVector = ImageVector.vectorResource(icon), contentDescription = if (expanded) null else text, modifier = Modifier.size(22.dp))
-			if (expanded) Text(text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+			if (expanded) Text(text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
 		}
 	}
 }

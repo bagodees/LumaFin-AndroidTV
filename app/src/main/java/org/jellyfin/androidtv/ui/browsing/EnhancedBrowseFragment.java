@@ -151,7 +151,7 @@ public class EnhancedBrowseFragment extends Fragment implements RowLoader, View.
         titleParams.setMarginStart(Utils.convertDpToPixel(requireContext(), 48));
         mTitle.setLayoutParams(titleParams);
         mTitle.setTypeface(android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL));
-        return SideMenuFrame.wrap(requireContext(), binding.getRoot(), MainToolbarActiveButton.Libraries);
+        return SideMenuFrame.wrap(requireContext(), binding.getRoot(), MainToolbarActiveButton.Libraries, SideMenuFrame.libraryOf(mFolder));
     }
 
     @Override

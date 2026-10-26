@@ -28,6 +28,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -38,6 +40,7 @@ import org.jellyfin.androidtv.databinding.HorizontalGridBrowseBinding
 import org.jellyfin.androidtv.preference.UserPreferences
 import org.jellyfin.androidtv.ui.home.FocusedTitleInfo
 import org.jellyfin.androidtv.ui.home.MainSideRail
+import org.jellyfin.androidtv.ui.home.SideMenuLibrary
 import org.jellyfin.androidtv.ui.home.RailCollapsedWidth
 import org.jellyfin.androidtv.ui.shared.toolbar.MainToolbarActiveButton
 import org.jellyfin.sdk.model.api.BaseItemDto
@@ -67,6 +70,9 @@ class BrowseGridLayout(private val binding: HorizontalGridBrowseBinding, private
 		fun isEnabled() = KoinJavaComponent.get<UserPreferences>(UserPreferences::class.java)[UserPreferences.newHomeEnabled]
 	}
 
+	/** The library this grid belongs to, highlighted in the side menu. */
+	var library by mutableStateOf<SideMenuLibrary?>(null)
+
 	/** Returns the screen's root view, wrapped with the side menu when the LumaFin layout is on. */
 	fun wrap(context: Context): View {
 		val root = binding.root
@@ -75,7 +81,7 @@ class BrowseGridLayout(private val binding: HorizontalGridBrowseBinding, private
 
 		val railView = ComposeView(context).apply {
 			setContent {
-				MainSideRail(MainToolbarActiveButton.Libraries, activeRequester, contentFocusRequester = null, onRight = { grid()?.requestFocus() }, onActiveScreen = false)
+				MainSideRail(MainToolbarActiveButton.Libraries, activeRequester, contentFocusRequester = null, onRight = { grid()?.requestFocus() }, onActiveScreen = false, library = library)
 			}
 		}
 		rail = railView

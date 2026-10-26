@@ -48,6 +48,7 @@ import org.jellyfin.androidtv.databinding.PopupEmptyBinding;
 import org.jellyfin.androidtv.preference.LibraryPreferences;
 import org.jellyfin.androidtv.preference.PreferencesRepository;
 import org.jellyfin.androidtv.ui.AlphaPickerView;
+import org.jellyfin.androidtv.ui.home.SideMenuFrame;
 import org.jellyfin.androidtv.ui.itemhandling.BaseRowItem;
 import org.jellyfin.androidtv.ui.itemhandling.ItemLauncher;
 import org.jellyfin.androidtv.ui.itemhandling.ItemRowAdapter;
@@ -203,6 +204,7 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
                              @Nullable Bundle savedInstanceState) {
         binding = HorizontalGridBrowseBinding.inflate(inflater, container, false);
         mLayout = new BrowseGridLayout(binding, () -> mGridView);
+        mLayout.setLibrary(SideMenuFrame.libraryOf(mFolder));
         return mLayout.wrap(requireContext());
     }
 

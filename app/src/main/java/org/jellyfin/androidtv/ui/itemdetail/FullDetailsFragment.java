@@ -522,6 +522,8 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
         if (!getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.STARTED)) return;
 
         mBaseItem = item;
+        // The side menu highlights the library this item lives in
+        SideMenuFrame.setLibrary(getView(), item);
         backgroundService.getValue().setBackground(item);
         if (mBaseItem != null) {
             if (mChannelId != null) {

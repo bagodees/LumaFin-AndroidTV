@@ -58,6 +58,8 @@ import java.util.List;
 import java.util.UUID;
 
 import org.jellyfin.androidtv.ui.home.SideMenuFrame;
+import org.jellyfin.androidtv.data.service.BackgroundService;
+import org.koin.java.KoinJavaComponent;
 import org.jellyfin.androidtv.ui.shared.toolbar.MainToolbarActiveButton;
 
 import kotlin.Lazy;
@@ -216,7 +218,8 @@ public class LiveTvGuideFragment extends Fragment implements LiveTvGuide, View.O
 
         if (!LiveTvGuideStyle.isEnabled()) return binding.getRoot();
         LiveTvGuideStyle.apply(binding);
-        return SideMenuFrame.wrap(requireContext(), binding.getRoot(), MainToolbarActiveButton.Libraries);
+        LiveTvGuideStyle.addLiveTvScreenButton(this, binding);
+        return SideMenuFrame.wrap(requireContext(), binding.getRoot(), MainToolbarActiveButton.Libraries, SideMenuFrame.liveTv());
     }
 
     private int getGuideHours() {
@@ -258,6 +261,8 @@ public class LiveTvGuideFragment extends Fragment implements LiveTvGuide, View.O
     public void onResume() {
         super.onResume();
 
+        // Opened straight from the side menu, the previous screen's backdrop would show behind the header
+        if (LiveTvGuideStyle.isEnabled()) KoinJavaComponent.<BackgroundService>get(BackgroundService.class).clearBackgrounds();
         mFilters.load();
         doLoad();
     }

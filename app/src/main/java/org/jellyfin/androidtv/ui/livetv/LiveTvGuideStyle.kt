@@ -10,7 +10,18 @@ import android.graphics.drawable.InsetDrawable
 import android.graphics.drawable.StateListDrawable
 import android.util.TypedValue
 import android.view.View
+import android.view.ViewGroup
 import android.widget.ImageButton
+import android.widget.ImageView
+import android.widget.RelativeLayout
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import org.jellyfin.androidtv.data.repository.UserViewsRepository
+import org.jellyfin.androidtv.ui.itemhandling.ItemLauncher
+import org.jellyfin.sdk.model.api.CollectionType
+import org.koin.core.context.GlobalContext
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
@@ -75,6 +86,40 @@ object LiveTvGuideStyle {
 			button.layoutParams = button.layoutParams.apply { width = 36.dp(context); height = 36.dp(context) }
 			button.setPadding(8.dp(context), 8.dp(context), 8.dp(context), 8.dp(context))
 		}
+	}
+
+	/** The side menu's Live TV entry opens this guide, so On now and recordings move to a button here. */
+	@JvmStatic
+	fun addLiveTvScreenButton(fragment: Fragment, binding: LiveTvGuideBinding) {
+		val context = binding.root.context
+		val button = ImageButton(context).apply {
+			id = View.generateViewId()
+			setImageResource(R.drawable.ic_tv)
+			contentDescription = context.getString(R.string.home_section_livetv)
+			background = detailsControlBackground(context)
+			imageTintList = detailsControlTextColors(context)
+			scaleType = ImageView.ScaleType.FIT_CENTER
+			setPadding(8.dp(context), 8.dp(context), 8.dp(context), 8.dp(context))
+			isFocusable = true
+			layoutParams = RelativeLayout.LayoutParams(36.dp(context), 36.dp(context)).apply {
+				addRule(RelativeLayout.START_OF, binding.dateButton.id)
+				addRule(RelativeLayout.ABOVE, binding.timelineHScroller.id)
+				marginEnd = (binding.dateButton.layoutParams as ViewGroup.MarginLayoutParams).marginEnd
+				bottomMargin = (binding.dateButton.layoutParams as ViewGroup.MarginLayoutParams).bottomMargin
+			}
+			setOnClickListener {
+				fragment.lifecycleScope.launch {
+					val liveTv = runCatching { GlobalContext.get().get<UserViewsRepository>().views.first() }.getOrNull()
+						?.firstOrNull { it.collectionType == CollectionType.LIVETV } ?: return@launch
+					GlobalContext.get().get<ItemLauncher>().launchUserView(liveTv)
+				}
+			}
+		}
+		val root = binding.root as ViewGroup
+		// Keep it under the loading and settings overlays
+		root.addView(button, root.indexOfChild(binding.dateButton) + 1)
+		// The "back to now" button, shown after paging, moves to the left of it
+		(binding.resetButton.layoutParams as RelativeLayout.LayoutParams).addRule(RelativeLayout.START_OF, button.id)
 	}
 
 	/** Timeline labels in the secondary text color. */

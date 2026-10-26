@@ -78,6 +78,7 @@ Status: In progress (started October 25, 2026). Milestone: [1.1](https://github.
 3. [ ] LumaFin layout by default, with "Switch to classic Jellyfin style" ([#82](https://github.com/bagodees/LumaFin-AndroidTV/issues/82))
 4. [ ] Side menu on Search, Libraries, library grids and the Live TV guide; grids scroll top to bottom with an A–Z strip ([#111](https://github.com/bagodees/LumaFin-AndroidTV/issues/111))
 5. [ ] New details pages for movies, series, seasons and episodes, with the side menu ([#85](https://github.com/bagodees/LumaFin-AndroidTV/issues/85))
+6. [ ] Side menu entry for each library, Live TV straight to the guide, Libraries only as overflow ([#112](https://github.com/bagodees/LumaFin-AndroidTV/issues/112)); added October 26 with the owner's approval
 
 ---
 
@@ -92,6 +93,7 @@ Status: Planned. Milestone: [1.2](https://github.com/bagodees/LumaFin-AndroidTV/
 5. [ ] Remove a show from Next Up ([#97](https://github.com/bagodees/LumaFin-AndroidTV/issues/97))
 6. [ ] Video/photo filter for mixed libraries ([#86](https://github.com/bagodees/LumaFin-AndroidTV/issues/86))
 7. [ ] Use the Home Screen Sections plugin when the server has it, with LumaFin's own sections otherwise ([#107](https://github.com/bagodees/LumaFin-AndroidTV/issues/107))
+8. [ ] Choose which libraries appear in the side menu ([#113](https://github.com/bagodees/LumaFin-AndroidTV/issues/113))
 
 ---
 
