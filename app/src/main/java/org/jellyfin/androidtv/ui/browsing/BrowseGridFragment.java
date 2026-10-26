@@ -256,6 +256,14 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
             mGridView = ((VerticalGridPresenter.ViewHolder) mGridViewHolder).getGridView();
             mGridView.setGravity(Gravity.CENTER_HORIZONTAL);
             mGridView.setPadding(mGridPaddingLeft, mGridPaddingTop, mGridPaddingLeft, mGridPaddingTop); // prevent initial card cutoffs
+            if (mLayout.getEnabled()) {
+                // Let the focused card's zoom and outline draw past the grid's edges instead of being cut off
+                mGridView.setClipToPadding(false);
+                mGridView.setClipChildren(false);
+                binding.rowsFragment.setClipChildren(false);
+                binding.rowsFragment.setClipToPadding(false);
+                ((ViewGroup) binding.getRoot()).setClipChildren(false);
+            }
         }
         mGridView.setHorizontalSpacing(mGridItemSpacingHorizontal);
         mGridView.setVerticalSpacing(mGridItemSpacingVertical);
