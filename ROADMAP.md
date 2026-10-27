@@ -77,7 +77,8 @@ Release notes: [1.1.0](docs/releases/1.1.0.md).
 
 1.1.1 (code 1010199) is a bug-fix release: Home keeps your place when going back
 from a show or movie instead of reloading. Rows still update after playback and
-watched-status changes. Release preparation and publication approved by the owner;
+watched-status changes. GitHub and the website/update feed are live. Google Play
+Alpha is uploaded and saved; final review submission awaits explicit approval.
 Amazon remains untouched. Release notes: [1.1.1](docs/releases/1.1.1.md).
 
 1. [x] Design two Home concepts and choose one ([#80](https://github.com/bagodees/LumaFin-AndroidTV/issues/80)): concept A (side rail with a preview area) chosen; concept B (top bar with backdrop) becomes a Home style option in 1.2
