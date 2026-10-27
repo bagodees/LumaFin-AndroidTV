@@ -145,6 +145,8 @@ class UserPreferences(context: Context, storage: SharedPreferences = PreferenceM
 		val homeStyle = enumPreference("home_style", org.jellyfin.androidtv.preference.constant.HomeStyle.SIDE_MENU)
 		/** Use the server's Home Screen Sections layout (#107). Kept when the plugin is removed and reinstalled. */
 		val serverHomeLayout = enumPreference("server_home_layout", org.jellyfin.androidtv.preference.constant.ServerHomeLayout.ASK)
+		/** Plugin-only Home rows added to LumaFin's own layout (#107), section keys separated by ;; */
+		val pluginHomeRows = stringPreference("plugin_home_rows", "")
 		/** Side menu and top bar libraries (#113): custom order and hidden ones, as comma-separated ids. */
 		val menuLibraryOrder = stringPreference("menu_library_order", "")
 		val menuHiddenLibraries = stringPreference("menu_hidden_libraries", "")

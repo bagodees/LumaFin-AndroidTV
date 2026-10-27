@@ -43,6 +43,31 @@ object HomeScreenSectionsPlugin {
 	/** Whether the plugin answered on the last Home load, for showing its setting. */
 	val available = MutableStateFlow(false)
 
+	/** The plugin's sections from the last Home load, for the Home editor. */
+	val lastSections = MutableStateFlow<List<PluginSection>>(emptyList())
+
+	/** Plugin sections LumaFin already has its own rows for; they aren't offered twice. */
+	private val covered = setOf(
+		"ContinueWatching", "NextUp", "ContinueWatchingNextUp", "MyMedia", "LiveTv", "BecauseYouWatched", "WatchAgain",
+		"LatestMovies", "LatestShows", "LatestAlbums", "LatestBooks", "LatestAudioBooks", "LatestMusicVideos",
+		"RecentlyAddedMovies", "RecentlyAddedShows", "RecentlyAddedAlbums", "RecentlyAddedArtists", "RecentlyAddedBooks",
+		"RecentlyAddedAudioBooks", "RecentlyAddedMusicVideos", "RecentlyAddedInLibrary", "Collections", "Genre",
+	)
+
+	/** Rows only the plugin offers, which can be added to LumaFin's own Home (#107). */
+	fun extraSections(sections: List<PluginSection>) = sections.filterNot { it.section in covered }
+
+	/** Identifies a section, including the genre, person or studio it's about. */
+	fun key(section: PluginSection) = section.section + "|" + section.additionalData.orEmpty()
+
+	private val preferences get() = org.koin.core.context.GlobalContext.get().get<org.jellyfin.androidtv.preference.UserPreferences>()
+	fun addedKeys(): Set<String> = preferences[org.jellyfin.androidtv.preference.UserPreferences.pluginHomeRows]
+		.split(KEY_SEPARATOR).filter { it.isNotBlank() }.toSet()
+	fun setAdded(keys: Set<String>) {
+		preferences[org.jellyfin.androidtv.preference.UserPreferences.pluginHomeRows] = keys.joinToString(KEY_SEPARATOR)
+	}
+	private const val KEY_SEPARATOR = ";;"
+
 	/** Rows that show titles not in the library; they need request cards first (#100). */
 	private val unsupported = setOf("Discover", "DiscoverMovies", "DiscoverTV", "MyRequests")
 
@@ -58,7 +83,7 @@ object HomeScreenSectionsPlugin {
 	} catch (error: Exception) {
 		Timber.d(error, "Home Screen Sections plugin not available")
 		null
-	}.also { available.value = it != null }
+	}.also { available.value = it != null; lastSections.value = it.orEmpty() }
 
 	suspend fun items(api: ApiClient, userId: UUID, section: PluginSection): List<BaseItemDto> = try {
 		val response = withContext(Dispatchers.IO) {

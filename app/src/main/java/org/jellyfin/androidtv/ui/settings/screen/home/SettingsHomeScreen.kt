@@ -84,6 +84,9 @@ fun SettingsHomeScreen() {
 	var homeStyle by rememberPreference(userPreferences, UserPreferences.homeStyle)
 	var serverLayout by rememberPreference(userPreferences, UserPreferences.serverHomeLayout)
 	val pluginAvailable by org.jellyfin.androidtv.ui.home.HomeScreenSectionsPlugin.available.collectAsState()
+	val pluginSections by org.jellyfin.androidtv.ui.home.HomeScreenSectionsPlugin.lastSections.collectAsState()
+	val serverLayoutOn = serverLayout == org.jellyfin.androidtv.preference.constant.ServerHomeLayout.ON
+	var pluginAdded by remember { mutableStateOf(org.jellyfin.androidtv.ui.home.HomeScreenSectionsPlugin.addedKeys()) }
 	val listState = rememberLazyListState()
 	val scope = rememberCoroutineScope()
 	val hiddenSections = remember(visibleSections) {
@@ -264,6 +267,41 @@ fun SettingsHomeScreen() {
 					modifier = Modifier.focusKey("undo_home_preset")
 				)
 			}
+		}
+
+		// Rows only the server's Home Screen Sections plugin offers, added to LumaFin's own layout (#107)
+		val pluginExtras = org.jellyfin.androidtv.ui.home.HomeScreenSectionsPlugin.extraSections(pluginSections)
+		if (pluginAvailable && !serverLayoutOn && pluginExtras.isNotEmpty()) {
+			item(key = "plugin_rows_heading") {
+				ListSection(
+					headingContent = { Text(stringResource(R.string.plugin_home_rows)) },
+					captionContent = { Text(stringResource(R.string.plugin_home_rows_hint)) },
+				)
+			}
+			pluginExtras.forEach { section ->
+				val key = org.jellyfin.androidtv.ui.home.HomeScreenSectionsPlugin.key(section)
+				item(key = "plugin_row_$key") {
+					val added = key in pluginAdded
+					ListButton(
+						toggleState = added,
+						headingContent = { Text(section.displayText?.takeIf { it.isNotBlank() } ?: section.section) },
+						trailingContent = { SettingsSwitch(checked = added) },
+						enabled = grabbed == null,
+						onClick = {
+							pluginAdded = if (added) pluginAdded - key else pluginAdded + key
+							org.jellyfin.androidtv.ui.home.HomeScreenSectionsPlugin.setAdded(pluginAdded)
+						},
+						modifier = Modifier.focusKey("plugin_row_$key"),
+					)
+				}
+			}
+		}
+		// A static note: more rows are possible with the plugin, which a server admin installs
+		if (!pluginAvailable) item(key = "plugin_hint") {
+			ListSection(
+				headingContent = { Text(stringResource(R.string.plugin_home_rows)) },
+				captionContent = { Text(stringResource(R.string.plugin_home_install_hint)) },
+			)
 		}
 
 		item(key = "home_shortcuts") {

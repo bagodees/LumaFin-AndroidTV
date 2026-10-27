@@ -148,6 +148,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 	private var loadedHideWatchedRecentlyAddedMovies = false
 	private var loadedHomeStyle = HomeStyle.SIDE_MENU
 	private var loadedServerLayout = ServerHomeLayout.ASK
+	private var loadedPluginRows = emptySet<String>()
 	private var loadedContinueWatchingShape = CardShape.LANDSCAPE
 	private var loadedHomeRowsShape = CardShape.LANDSCAPE
 
@@ -160,6 +161,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 		userSettingPreferences[UserSettingPreferences.hideWatchedRecentlyAddedMovies] != loadedHideWatchedRecentlyAddedMovies ||
 		userPreferences[UserPreferences.homeStyle] != loadedHomeStyle ||
 		userPreferences[UserPreferences.serverHomeLayout] != loadedServerLayout ||
+		HomeScreenSectionsPlugin.addedKeys() != loadedPluginRows ||
 		userPreferences[UserPreferences.continueWatchingCardShape] != loadedContinueWatchingShape ||
 		userPreferences[UserPreferences.homeRowsCardShape] != loadedHomeRowsShape
 
@@ -371,6 +373,13 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 			HomeSectionType.LATEST_AUDIOBOOKS -> rows.add(helper.loadLatestAudiobooks())
 
 			HomeSectionType.NONE -> Unit
+		}
+		// Rows only the server's plugin offers, added in Settings > Home (#107)
+		if (!usePlugin && pluginSections != null) {
+			loadedPluginRows = HomeScreenSectionsPlugin.addedKeys()
+			HomeScreenSectionsPlugin.extraSections(pluginSections)
+				.filter { HomeScreenSectionsPlugin.key(it) in loadedPluginRows }
+				.forEach { rows.add(PluginSectionRow(api, currentUser.id, it)) }
 		}
 
 		// Add sections to layout

@@ -26,8 +26,8 @@
     <string name="settings_search_inactivity">Choose when to ask whether you are still watching.</string>
     <string name="settings_search_player">Choose the video player or an external playback app.</string>
     <string name="settings_search_photos">Choose the photo viewer and slideshow duration.</string>
-    <string name="settings_search_prerolls">Play cinema trailers and pre-roll videos before a movie.</string>
-    <string name="settings_search_segments">Choose how intro, credits and other media-segment skipping behaves.</string>
+    <string name="settings_search_prerolls">Play cinema trailers and pre-roll videos before a movie. Requires an intros plugin on your Jellyfin server, such as Cinema Mode.</string>
+    <string name="settings_search_segments">Choose how intro, credits and other media-segment skipping behaves. Requires a plugin on your Jellyfin server that detects them, such as Intro Skipper.</string>
     <string name="settings_search_quality">Choose streaming quality, resolution and bandwidth limits, or reset the quality preset.</string>
     <string name="settings_search_audio">Choose audio output, direct streaming, downmixing and receiver passthrough.</string>
     <string name="settings_search_codecs">Adjust hardware decoding and audio passthrough support for AC3, EAC3, DTS and TrueHD.</string>

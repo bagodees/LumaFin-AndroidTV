@@ -190,7 +190,7 @@
     <string name="lbl_album">Album</string>
     <string name="lbl_episodes">Episodes</string>
     <string name="lbl_enable_cinema_mode">Cinema mode</string>
-    <string name="sum_enable_cinema_mode">Play available intros and previews before starting a movie</string>
+    <string name="sum_enable_cinema_mode">Play available intros and previews before starting a movie. Requires an intros plugin on your Jellyfin server.</string>
     <string name="lbl_playlists">Playlists</string>
     <string name="msg_items_added">" items added"</string>
     <string name="lbl_add_to_queue">Add to queue</string>
@@ -499,7 +499,10 @@
     <string name="server_home_layout_use">Use server layout</string>
     <string name="server_home_layout_keep">Keep LumaFin\'s</string>
     <string name="server_home_layout">Server Home layout</string>
-    <string name="server_home_layout_description">Show the Home rows set up with the Home Screen Sections plugin on your server. When off, LumaFin\'s own Home sections below are used.</string>
+    <string name="plugin_home_rows">Rows from your server</string>
+    <string name="plugin_home_rows_hint">Requires the Home Screen Sections plugin on your Jellyfin server. Extra rows it offers. Rows you turn on appear after the sections above.</string>
+    <string name="plugin_home_install_hint">More Home rows, such as My List, Top Ten and Hidden Gems, are available when your server has the Home Screen Sections plugin. A server admin can install it.</string>
+    <string name="server_home_layout_description">Requires the Home Screen Sections plugin on your Jellyfin server. Show the Home rows set up with it. When off, LumaFin\'s own Home sections below are used.</string>
     <string name="menu_libraries">Menu libraries</string>
     <string name="menu_libraries_description">Choose which libraries appear in the side menu and top bar, and their order.</string>
     <string name="menu_libraries_hint">Select a library to hide it or move it. Hidden libraries stay under Libraries.</string>
@@ -769,7 +772,7 @@
     <string name="still_watching_after_five">Ask After 5 Episodes</string>
     <string name="still_watching_settings_description">Pause between episodes to ask if you are still watching. For example, choosing 2 episodes asks after episode 2, before episode 3 starts. Turn on Autoplay Next Episode to keep watching. No response within 30 seconds stops playback.</string>
     <string name="pref_prerolls_enabled">Enable cinema mode</string>
-    <string name="pref_prerolls_enabled_description">Play custom intros before movies</string>
+    <string name="pref_prerolls_enabled_description">Play custom intros before movies. Requires an intros plugin on your Jellyfin server, such as Cinema Mode.</string>
     <string name="pref_media_queueing">Autoplay Next Episode</string>
     <string name="pref_media_queueing_description">On: keep watching the next episode. Off: return to details when the episode ends. Play All and playlists always continue.</string>
     <string name="pref_subtitles_weight">Text weight</string>
@@ -882,7 +885,7 @@
     <string name="intro_skip_never_description">Play the intro normally without a Skip intro button.</string>
     <string name="intro_skip_automatic_description">Skip the intro automatically when playback reaches it.</string>
     <string name="intro_skip_ask_description">Show a Skip intro button so you decide whether to skip.</string>
-    <string name="intro_skip_requires_segments">Requires intro timestamps supplied by your Jellyfin server. Without them, the intro plays normally.</string>
+    <string name="intro_skip_requires_segments">Requires a plugin on your Jellyfin server that detects intros, such as Intro Skipper. Without it, the intro plays normally.</string>
     <string name="hide_unwatched_episode_descriptions">Hide unwatched episode descriptions</string>
     <string name="hide_unwatched_episode_descriptions_description">Avoid plot spoilers in episode details and browsing previews. Descriptions appear after an episode is marked watched.</string>
     <string name="episode_description_hidden">Description hidden until this episode is marked watched.</string>
