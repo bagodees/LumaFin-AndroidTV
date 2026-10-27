@@ -83,6 +83,7 @@ import org.jellyfin.androidtv.ui.composable.rememberReducedMotion
 import org.jellyfin.androidtv.ui.base.JellyfinTheme
 import org.jellyfin.androidtv.ui.base.LumaFinPalette
 import org.jellyfin.androidtv.ui.base.ProfilePicture
+import org.jellyfin.androidtv.ui.base.LocalTextStyle
 import org.jellyfin.androidtv.ui.base.Text
 import org.jellyfin.androidtv.ui.base.button.ButtonBase
 import org.jellyfin.androidtv.ui.base.button.ButtonDefaults
@@ -239,7 +240,8 @@ fun MainSideRail(
 				if (expanded) Column {
 					Text(currentUser?.name.orEmpty(), fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
 					// Which server you're on, for households with more than one
-					currentServer?.name?.let { Text(it, fontSize = 12.sp, color = LumaFinPalette.SecondaryText, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+					// Follows the button's text color so it stays readable on the focused highlight
+					currentServer?.name?.let { Text(it, fontSize = 12.sp, color = LocalTextStyle.current.color.copy(alpha = 0.7f), maxLines = 1, overflow = TextOverflow.Ellipsis) }
 				}
 			}
 		}
