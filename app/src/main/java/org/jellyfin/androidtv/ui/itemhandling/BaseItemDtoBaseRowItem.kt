@@ -133,6 +133,9 @@ open class BaseItemDtoBaseRowItem @JvmOverloads constructor(
 		return when (imageType) {
 			BaseRowImageType.BANNER -> baseItem?.itemImages[ImageType.BANNER] ?: primaryImage
 			BaseRowImageType.THUMB -> baseItem?.itemImages[ImageType.THUMB] ?: primaryImage
+			// Portrait cover art (an episode's show poster) before falling back to landscape artwork
+			BaseRowImageType.POSTER -> (if (baseItem?.type == BaseItemKind.EPISODE) baseItem.parentImages[ImageType.PRIMARY] ?: baseItem.seriesPrimaryImage else null)
+				?: baseItem?.itemImages[ImageType.PRIMARY] ?: primaryImage
 			else -> primaryImage
 		}
 	}
