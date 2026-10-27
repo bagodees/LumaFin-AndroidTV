@@ -65,8 +65,8 @@ Submitted October 24, 2026; waiting for Amazon's review. Details: [Amazon prepar
 
 ### Open bugs
 
-- [ ] Subtitles sit behind the player controls while they're open ([#119](https://github.com/bagodees/LumaFin-AndroidTV/issues/119))
-- [ ] Library status line overlaps the last row of cards ([#120](https://github.com/bagodees/LumaFin-AndroidTV/issues/120))
+- [x] Subtitles sit behind the player controls while they're open ([#119](https://github.com/bagodees/LumaFin-AndroidTV/issues/119))
+- [x] Library status line overlaps the last row of cards ([#120](https://github.com/bagodees/LumaFin-AndroidTV/issues/120)); both fixed on lumafin-main, not yet released
 
 ### Physical TV checks ([#78](https://github.com/bagodees/LumaFin-AndroidTV/issues/78))
 
