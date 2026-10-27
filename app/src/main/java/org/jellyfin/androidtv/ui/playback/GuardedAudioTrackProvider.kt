@@ -13,10 +13,10 @@ import androidx.media3.exoplayer.audio.DefaultAudioTrackProvider
 import timber.log.Timber
 
 /**
- * Some Sony (MediaTek) TVs briefly report a playback head near 2^31 frames when Dolby passthrough
- * starts. When the next normal value comes back, Media3 counts that drop as a wrap-around of the
- * 32-bit counter, which leaves its audio position about a day ahead. Every later audio timestamp is
- * then rejected as spurious and the video runs seconds ahead of the sound for the rest of the title.
+ * Some Sony (MediaTek) TVs report a playback head that steps backwards while Dolby passthrough
+ * starts. Media3 reads any drop as a wrap-around of the 32-bit counter and adds 2^32 frames, which
+ * leaves its audio position about a day ahead. Every later audio timestamp is then rejected as
+ * spurious and the video runs seconds ahead of the sound for the rest of the title.
  */
 @OptIn(UnstableApi::class)
 class GuardedAudioTrackProvider : DefaultAudioSink.AudioTrackProvider {
@@ -37,7 +37,7 @@ class GuardedAudioTrackProvider : DefaultAudioSink.AudioTrackProvider {
 			config.bufferSize,
 			audioSessionId,
 			PlaybackHeadGuard(maxJumpFrames = config.sampleRate.toLong() * MAX_JUMP_SECONDS),
-		)
+		).also { Timber.i("Using guarded AudioTrack: encoding %d, %d Hz", config.encoding, config.sampleRate) }
 	}
 
 	private companion object {
@@ -47,17 +47,35 @@ class GuardedAudioTrackProvider : DefaultAudioSink.AudioTrackProvider {
 }
 
 /**
- * Keeps the last plausible playback head. Moving back is allowed (flush and seek reset the head);
- * a forward jump larger than [maxJumpFrames] is a bogus reading and repeats the last good value.
+ * Presents a playback head that only moves forward between flushes, the way Media3 expects.
+ * A drop from the platform is absorbed into an offset so the head carries on from where it was;
+ * a forward jump larger than [maxJumpFrames] is a bogus reading and repeats the last value.
+ * Media3 only expects the head to return to zero after it flushes the track, see [reset].
  */
 internal class PlaybackHeadGuard(private val maxJumpFrames: Long) {
-	private var last = 0L
+	private var lastRaw = 0L
+	private var offset = 0L
+
+	/** Whether the last [filter] call had to correct the platform value. */
+	var corrected = false
+		private set
 
 	fun filter(position: Int): Int {
-		val unsigned = position.toLong() and 0xFFFFFFFFL
-		if (unsigned - last > maxJumpFrames) return last.toInt()
-		last = unsigned
-		return position
+		val raw = position.toLong() and 0xFFFFFFFFL
+		corrected = true
+		when {
+			raw - lastRaw > maxJumpFrames -> return (lastRaw + offset).toInt()
+			raw < lastRaw -> offset += lastRaw - raw
+			else -> corrected = false
+		}
+		lastRaw = raw
+		return (raw + offset).toInt()
+	}
+
+	fun reset() {
+		lastRaw = 0
+		offset = 0
+		corrected = false
 	}
 }
 
@@ -68,14 +86,15 @@ private class GuardedAudioTrack(
 	sessionId: Int,
 	private val guard: PlaybackHeadGuard,
 ) : AudioTrack(attributes, format, bufferSize, MODE_STREAM, sessionId) {
-	init {
-		Timber.i("Using guarded AudioTrack for encoding %d", format.encoding)
-	}
-
 	override fun getPlaybackHeadPosition(): Int {
 		val raw = super.getPlaybackHeadPosition()
-		val filtered = synchronized(guard) { guard.filter(raw) }
-		if (filtered != raw) Timber.w("Ignored bogus AudioTrack playback head %d, keeping %d", raw, filtered)
+		val (filtered, corrected) = synchronized(guard) { guard.filter(raw) to guard.corrected }
+		if (corrected) Timber.w("Corrected AudioTrack playback head %d to %d", raw, filtered)
 		return filtered
+	}
+
+	override fun flush() {
+		super.flush()
+		synchronized(guard) { guard.reset() }
 	}
 }
