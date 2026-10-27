@@ -113,7 +113,7 @@ Status: In progress (started October 27, 2026). Milestone: [1.2](https://github.
 The owner decided on October 27 to skip a 1.1.3 release unless something urgent comes up. Fixes made since 1.1.2 ship with 1.2: subtitles above the player controls (#119), the library status line fade (#120), the side menu server name contrast and the inset profile picture.
 
 1. [x] Home style option: top bar with backdrop, concept B ([#110](https://github.com/bagodees/LumaFin-AndroidTV/issues/110))
-2. [ ] Reorganize settings into a full-screen layout ([#83](https://github.com/bagodees/LumaFin-AndroidTV/issues/83))
+2. [x] Reorganize settings into a full-screen layout ([#83](https://github.com/bagodees/LumaFin-AndroidTV/issues/83))
 3. [ ] One LumaFin action menu for every card ([#84](https://github.com/bagodees/LumaFin-AndroidTV/issues/84))
 4. [ ] Pin genres, studios, playlists and Favorites to Home ([#96](https://github.com/bagodees/LumaFin-AndroidTV/issues/96))
 5. [ ] Remove a show from Next Up ([#97](https://github.com/bagodees/LumaFin-AndroidTV/issues/97))
@@ -121,6 +121,7 @@ The owner decided on October 27 to skip a 1.1.3 release unless something urgent 
 7. [ ] Use the Home Screen Sections plugin when the server has it, with LumaFin's own sections otherwise ([#107](https://github.com/bagodees/LumaFin-AndroidTV/issues/107))
 8. [ ] Choose which libraries appear in the side menu ([#113](https://github.com/bagodees/LumaFin-AndroidTV/issues/113))
 9. [ ] Request movies and shows through Seerr ([#100](https://github.com/bagodees/LumaFin-AndroidTV/issues/100)); moved from 1.x later on October 27 with the owner's approval
+10. [x] Card style settings: Landscape or Portrait for Continue Watching, other Home rows and library grids ([#123](https://github.com/bagodees/LumaFin-AndroidTV/issues/123)); added October 27 with the owner's approval
 
 ---
 
