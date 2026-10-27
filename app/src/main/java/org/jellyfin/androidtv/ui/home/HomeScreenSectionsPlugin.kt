@@ -11,12 +11,14 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import org.jellyfin.androidtv.data.repository.ItemRepository
 import org.jellyfin.androidtv.preference.HiddenNextUp
 import org.jellyfin.androidtv.ui.itemhandling.ItemRowAdapter
 import org.jellyfin.androidtv.ui.presentation.CardPresenter
 import org.jellyfin.androidtv.ui.presentation.MutableObjectAdapter
 import org.jellyfin.sdk.api.client.ApiClient
 import org.jellyfin.sdk.api.client.HttpMethod
+import org.jellyfin.sdk.api.client.extensions.itemsApi
 import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.BaseItemDtoQueryResult
 import timber.log.Timber
@@ -94,12 +96,32 @@ object HomeScreenSectionsPlugin {
 				}, null)
 		}
 		if (response.status !in 200..299) emptyList()
-		else json.decodeFromString(BaseItemDtoQueryResult.serializer(), response.body.decodeToString()).items
+		else withFullDetails(api, userId, json.decodeFromString(BaseItemDtoQueryResult.serializer(), response.body.decodeToString()).items)
 	} catch (error: CancellationException) {
 		throw error
 	} catch (error: Exception) {
 		Timber.w(error, "Failed to load plugin section %s", section.section)
 		emptyList()
+	}
+
+	/**
+	 * The plugin leaves out descriptions, logos and other details Home's preview shows, so the
+	 * same titles are loaded again from Jellyfin, keeping the plugin's order.
+	 */
+	private suspend fun withFullDetails(api: ApiClient, userId: UUID, items: List<BaseItemDto>): List<BaseItemDto> {
+		if (items.isEmpty()) return items
+		val full = try {
+			withContext(Dispatchers.IO) {
+				api.itemsApi.getItems(userId = userId, ids = items.map { it.id }, fields = ItemRepository.browseFields,
+					enableTotalRecordCount = false).content.items
+			}.associateBy { it.id }
+		} catch (error: CancellationException) {
+			throw error
+		} catch (error: Exception) {
+			Timber.w(error, "Failed to load details for plugin section items")
+			return items
+		}
+		return items.map { full[it.id] ?: it }
 	}
 }
 
