@@ -65,6 +65,7 @@ import org.jellyfin.androidtv.ui.playback.MediaManager
 import org.jellyfin.androidtv.preference.UserPreferences
 import org.jellyfin.androidtv.preference.constant.CardShape
 import org.jellyfin.androidtv.preference.constant.HomeStyle
+import org.jellyfin.androidtv.preference.constant.ServerHomeLayout
 import org.jellyfin.androidtv.ui.base.dialog.showLumaFin
 import org.jellyfin.androidtv.ui.presentation.CardPresenter
 import org.jellyfin.androidtv.ui.presentation.MutableObjectAdapter
@@ -146,6 +147,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 	private var loadedHideWatchedLatestMovies = false
 	private var loadedHideWatchedRecentlyAddedMovies = false
 	private var loadedHomeStyle = HomeStyle.SIDE_MENU
+	private var loadedServerLayout = ServerHomeLayout.ASK
 	private var loadedContinueWatchingShape = CardShape.LANDSCAPE
 	private var loadedHomeRowsShape = CardShape.LANDSCAPE
 
@@ -157,6 +159,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 		userSettingPreferences[UserSettingPreferences.hideWatchedLatestMovies] != loadedHideWatchedLatestMovies ||
 		userSettingPreferences[UserSettingPreferences.hideWatchedRecentlyAddedMovies] != loadedHideWatchedRecentlyAddedMovies ||
 		userPreferences[UserPreferences.homeStyle] != loadedHomeStyle ||
+		userPreferences[UserPreferences.serverHomeLayout] != loadedServerLayout ||
 		userPreferences[UserPreferences.continueWatchingCardShape] != loadedContinueWatchingShape ||
 		userPreferences[UserPreferences.homeRowsCardShape] != loadedHomeRowsShape
 
@@ -314,8 +317,25 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 		// Check for coroutine cancellation
 		if (!current()) throw CancellationException("Home load replaced")
 
+		// The server's Home Screen Sections plugin (#107): asked once, then followed when the user chose it
+		val pluginSections = HomeScreenSectionsPlugin.sections(api, currentUser.id)
+		loadedServerLayout = userPreferences[UserPreferences.serverHomeLayout]
+		if (pluginSections != null && loadedServerLayout == ServerHomeLayout.ASK) withContext(Dispatchers.Main) { askServerHomeLayout() }
+		val usePlugin = pluginSections != null && loadedServerLayout == ServerHomeLayout.ON
+		if (usePlugin) for (section in requireNotNull(pluginSections)) when (section.section) {
+			"ContinueWatching" -> rows.addContinueWatching(helper.loadResumeVideo())
+			"NextUp" -> rows.addContinueWatching(helper.loadNextUp())
+			"ContinueWatchingNextUp" -> rows.addContinueWatching(HomeFragmentContinueWatchingNextUpRow(api))
+			"MyMedia" -> rows.add(HomeFragmentViewsRow(small = false))
+			"LiveTv" -> if (currentUser.policy?.enableLiveTvAccess == true) {
+				rows.add(HomeFragmentLiveTVRow(requireActivity(), userRepository))
+				rows.add(helper.loadOnNow())
+			}
+			else -> rows.add(PluginSectionRow(api, currentUser.id, section))
+		}
+
 		// Actually add the sections
-		for (section in homesections) when (section) {
+		if (!usePlugin) for (section in homesections) when (section) {
 			HomeSectionType.LATEST_MEDIA -> rows.add(helper.loadRecentlyAdded(userViewsRepository.views.first(), loadedRecentlyAddedMoviesLimit, loadedRecentlyAddedShowsLimit, loadedHideWatchedRecentlyAddedMovies))
 			HomeSectionType.LIBRARY_TILES_SMALL -> rows.add(HomeFragmentViewsRow(small = false))
 			HomeSectionType.LIBRARY_BUTTONS -> rows.add(HomeFragmentViewsRow(small = true))
@@ -386,6 +406,25 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 					if (previousRow != null) itemAdapter.setSiblingRow(previousRow)
 				}
 			}
+		}
+	}
+
+	/** Asks once whether Home should follow the server's Home Screen Sections layout (#107). */
+	private fun askServerHomeLayout() {
+		if (!isAdded) return
+		var answered = false
+		fun answer(layout: ServerHomeLayout) {
+			answered = true
+			userPreferences[UserPreferences.serverHomeLayout] = layout
+			if (layout == ServerHomeLayout.ON) loadHomeRows()
+		}
+		LumaFinMenuDialog(requireContext(), viewLifecycleOwner, getString(R.string.server_home_layout_question),
+			getString(R.string.server_home_layout_question_detail), fitContent = true).apply {
+			button(getString(R.string.server_home_layout_keep)) { dismiss(); answer(ServerHomeLayout.OFF) }
+			button(getString(R.string.server_home_layout_use), primary = true) { dismiss(); answer(ServerHomeLayout.ON) }
+			// Back keeps LumaFin's layout and doesn't ask again; Settings > Home can change it
+			onDismiss { if (!answered) answer(ServerHomeLayout.OFF) }
+			show()
 		}
 	}
 

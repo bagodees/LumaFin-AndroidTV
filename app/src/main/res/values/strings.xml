@@ -494,6 +494,12 @@
     <string name="grid_from_letter">Starting at %1$s</string>
     <string name="settings_category_appearance">Appearance</string>
     <string name="action_menu_title">Options</string>
+    <string name="server_home_layout_question">Use your server\'s Home layout?</string>
+    <string name="server_home_layout_question_detail">Your server has the Home Screen Sections plugin. LumaFin can show the Home rows set up on the server, in the same order, so changes made there show up here too.</string>
+    <string name="server_home_layout_use">Use server layout</string>
+    <string name="server_home_layout_keep">Keep LumaFin\'s</string>
+    <string name="server_home_layout">Server Home layout</string>
+    <string name="server_home_layout_description">Show the Home rows set up with the Home Screen Sections plugin on your server. When off, LumaFin\'s own Home sections below are used.</string>
     <string name="menu_libraries">Menu libraries</string>
     <string name="menu_libraries_description">Choose which libraries appear in the side menu and top bar, and their order.</string>
     <string name="menu_libraries_hint">Select a library to hide it or move it. Hidden libraries stay under Libraries.</string>

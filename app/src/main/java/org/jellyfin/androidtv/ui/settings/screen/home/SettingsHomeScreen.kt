@@ -46,6 +46,7 @@ import org.jellyfin.androidtv.ui.base.list.ListControlDefaults
 import org.jellyfin.androidtv.ui.settings.composable.SettingsControl as ListControl
 import org.jellyfin.androidtv.ui.settings.composable.SettingsSection as ListSection
 import androidx.compose.foundation.layout.Column
+import androidx.compose.runtime.collectAsState
 import org.jellyfin.androidtv.preference.constant.HomeStyle
 import org.jellyfin.androidtv.ui.navigation.focus.focusKey
 import org.jellyfin.androidtv.ui.settings.composable.SettingsColumn
@@ -81,6 +82,8 @@ fun SettingsHomeScreen() {
 	var newHomeEnabled by rememberPreference(userPreferences, UserPreferences.newHomeEnabled)
 	var newHomeCardTitles by rememberPreference(userPreferences, UserPreferences.newHomeCardTitles)
 	var homeStyle by rememberPreference(userPreferences, UserPreferences.homeStyle)
+	var serverLayout by rememberPreference(userPreferences, UserPreferences.serverHomeLayout)
+	val pluginAvailable by org.jellyfin.androidtv.ui.home.HomeScreenSectionsPlugin.available.collectAsState()
 	val listState = rememberLazyListState()
 	val scope = rememberCoroutineScope()
 	val hiddenSections = remember(visibleSections) {
@@ -151,6 +154,20 @@ fun SettingsHomeScreen() {
 				overlineContent = { Text(stringResource(R.string.pref_customization).uppercase()) },
 				headingContent = { Text(stringResource(R.string.home_prefs)) },
 				captionContent = { Text(stringResource(R.string.home_sections_hint)) },
+			)
+		}
+
+		// Only while the server's Home Screen Sections plugin is installed (#107)
+		if (pluginAvailable) item(key = "server_home_layout") {
+			val on = serverLayout == org.jellyfin.androidtv.preference.constant.ServerHomeLayout.ON
+			ListButton(
+				toggleState = on,
+				headingContent = { Text(stringResource(R.string.server_home_layout)) },
+				captionContent = { Text(stringResource(R.string.server_home_layout_description)) },
+				trailingContent = { SettingsSwitch(checked = on) },
+				enabled = grabbed == null,
+				onClick = { serverLayout = if (on) org.jellyfin.androidtv.preference.constant.ServerHomeLayout.OFF else org.jellyfin.androidtv.preference.constant.ServerHomeLayout.ON },
+				modifier = Modifier.focusKey("server_home_layout")
 			)
 		}
 
