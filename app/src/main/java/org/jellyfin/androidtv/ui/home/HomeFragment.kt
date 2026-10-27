@@ -21,6 +21,7 @@ import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
@@ -47,8 +48,6 @@ import org.jellyfin.androidtv.ui.shared.toolbar.MainToolbarActiveButton
 import org.koin.android.ext.android.inject
 import org.koin.compose.viewmodel.koinActivityViewModel
 
-/** Height of the focused title's details in the top bar style, between the bar and the rows. */
-private val TopBarInfoHeight = 192.dp
 
 class HomeFragment : Fragment() {
 	private val sessionRepository by inject<SessionRepository>()
@@ -99,8 +98,12 @@ class HomeFragment : Fragment() {
 
 			if (homeStyle == HomeStyle.TOP_BAR) Column(modifier = Modifier.fillMaxSize()) {
 				HomeTopBar(railFocusRequester, rowsFocusRequester)
-				// A tall info block leaves the focused title's backdrop showing above it
-				HomeBackdropInfo(focusedItem, Modifier.height(TopBarInfoHeight))
+				// The details take only the height they need; the rows fill the rest
+				// Leanback doesn't redraw its rows when their area shrinks, so lay them out again
+				// whenever the details change height
+				HomeBackdropInfo(focusedItem, Modifier.onSizeChanged {
+					rowsSupportFragment.value?.verticalGridView?.let { grid -> grid.post { grid.requestLayout() } }
+				})
 				HomeRows(rowsFocusRequester, rowsSupportFragment, exitDirections = setOf(FocusDirection.Up), resetOnUp = false, topOffsetPx = rowsTopOffset, rowSpacingDp = 12)
 			} else NewHomeLayout(
 				rail = {

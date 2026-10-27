@@ -1,12 +1,15 @@
 package org.jellyfin.androidtv.ui.home
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.focusGroup
+import org.jellyfin.androidtv.ui.composable.rememberReducedMotion
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -177,14 +180,20 @@ private fun TopBarIcon(icon: Int, description: String, modifier: Modifier, onCli
 }
 
 /**
- * The focused title's details for the top bar style, in a fixed-height area under the bar so the
- * backdrop behind it shows above. It never takes focus.
+ * The focused title's details for the top bar style, over its backdrop under the bar. It never
+ * takes focus.
  */
 @Composable
 fun HomeBackdropInfo(item: BaseItemDto?, modifier: Modifier = Modifier) {
-	// Anchored just under the bar, like the library pages' preview under their tabs, so the title
-	// always starts at the same spot whatever the length of the details
-	Box(modifier = modifier.fillMaxWidth().padding(start = 48.dp, top = 4.dp, end = 48.dp)) {
+	// Starts just under the bar and takes only the height its details need; the rows below follow it
+	// up and down, animated unless reduced motion is on
+	val reducedMotion = rememberReducedMotion()
+	Box(
+		modifier = modifier
+			.fillMaxWidth()
+			.animateContentSize(if (reducedMotion) snap() else tween(200))
+			.padding(start = 48.dp, top = 4.dp, end = 48.dp, bottom = 12.dp),
+	) {
 		if (item == null) return@Box
 		Row(verticalAlignment = Alignment.Top, modifier = Modifier.align(Alignment.TopStart).fillMaxWidth()) {
 			Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.weight(1f)) {
@@ -195,7 +204,7 @@ fun HomeBackdropInfo(item: BaseItemDto?, modifier: Modifier = Modifier) {
 			if ((item.itemImages[ImageType.LOGO] ?: item.parentImages[ImageType.LOGO]) != null) {
 				PreviewLogo(item, Modifier.weight(0.6f).height(120.dp).padding(start = 32.dp))
 			} else {
-				Spacer(Modifier.weight(0.6f).fillMaxHeight())
+				Spacer(Modifier.weight(0.6f))
 			}
 		}
 	}
