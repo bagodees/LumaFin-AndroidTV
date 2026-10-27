@@ -719,6 +719,7 @@ public class CustomPlaybackOverlayFragment extends Fragment implements LiveTvGui
         binding.topPanel.startAnimation(slideDown);
         mIsVisible = true;
         binding.skipOverlay.setSkipUiEnabled(!mIsVisible && !mGuideVisible && !mPopupPanelVisible);
+        setSubtitlesRaised(true);
     }
 
     public void hide() {
@@ -728,6 +729,12 @@ public class CustomPlaybackOverlayFragment extends Fragment implements LiveTvGui
         mIsVisible = false;
         binding.topPanel.startAnimation(fadeOut);
         binding.skipOverlay.setSkipUiEnabled(!mIsVisible && !mGuideVisible && !mPopupPanelVisible);
+        setSubtitlesRaised(false);
+    }
+
+    private void setSubtitlesRaised(boolean raised) {
+        PlaybackController controller = playbackControllerContainer.getValue().getPlaybackController();
+        if (controller != null && controller.mVideoManager != null) controller.mVideoManager.setSubtitlesRaised(raised);
     }
 
     private void showChapterPanel() {

@@ -686,6 +686,18 @@ public class VideoManager {
     int normalWidth;
     int normalHeight;
 
+    // Share of the screen height covered by the player controls band
+    private static final float CONTROLS_BAND_FRACTION = 0.24f;
+
+    /** Moves subtitles above the player controls while they are open, and back afterwards. */
+    public void setSubtitlesRaised(boolean raised) {
+        if (mExoPlayerView == null || mExoPlayerView.getSubtitleView() == null) return;
+        View subtitles = mExoPlayerView.getSubtitleView();
+        float offset = userPreferences.get(UserPreferences.Companion.getSubtitlesOffsetPosition());
+        float lift = raised ? Math.max(0f, CONTROLS_BAND_FRACTION - offset) * subtitles.getHeight() : 0f;
+        subtitles.animate().translationY(-lift).setDuration(200).start();
+    }
+
     public void contractVideo(int height) {
         FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) mExoPlayerView.getLayoutParams();
         if (isContracted) return;
