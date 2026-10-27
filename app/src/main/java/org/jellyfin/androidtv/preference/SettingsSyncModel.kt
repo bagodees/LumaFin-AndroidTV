@@ -25,6 +25,7 @@ internal object SettingsSyncModel {
 		"skipBackLength", "skipForwardLength",
 		"subtitle_brightness", "subtitles_text_weight",
 		"subtitles_text_color", "subtitles_background_color", "subtitles_text_stroke_color",
+		"hidden_next_up",
 	)
 
 	val fields = SettingsBackup.fields.filter { it.key in syncedKeys }.also { check(it.size == syncedKeys.size) }

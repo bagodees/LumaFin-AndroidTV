@@ -260,6 +260,17 @@ fun SettingsHomeScreen() {
 			)
 		}
 
+		item(key = "hidden_next_up") {
+			ListButton(
+				navigates = true,
+				headingContent = { Text(stringResource(R.string.hidden_next_up)) },
+				captionContent = { Text(stringResource(R.string.hidden_next_up_description)) },
+				enabled = grabbed == null,
+				onClick = { router.push(Routes.HOME_HIDDEN_NEXT_UP) },
+				modifier = Modifier.focusKey("hidden_next_up"),
+			)
+		}
+
 		item(key = "hidden_recommendations") {
 			ListButton(
 				navigates = true,

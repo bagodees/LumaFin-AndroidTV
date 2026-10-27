@@ -6,6 +6,7 @@ import android.view.MenuItem;
 import android.widget.PopupMenu;
 
 import org.jellyfin.androidtv.ui.base.dialog.LumaFinActionMenu;
+import org.jellyfin.androidtv.preference.HiddenNextUp;
 
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.LifecycleOwner;
@@ -53,6 +54,7 @@ public class KeyProcessor {
     public static final int MENU_REMOVE_CONTINUE_WATCHING = 14;
     public static final int MENU_GOTO_SERIES = 15;
     public static final int MENU_PLAY_EXTERNAL = 16;
+    public static final int MENU_HIDE_NEXT_UP = 17;
 
     private final Lazy<MediaManager> mediaManager = KoinJavaComponent.<MediaManager>inject(MediaManager.class);
     private final Lazy<NavigationRepository> navigationRepository = KoinJavaComponent.<NavigationRepository>inject(NavigationRepository.class);
@@ -255,6 +257,9 @@ public class KeyProcessor {
             if (KeyProcessorHelperKt.canRemoveFromContinueWatching(item)) {
                 menu.getMenu().add(0, MENU_REMOVE_CONTINUE_WATCHING, order++, R.string.remove_continue_watching);
             }
+            if (item.getType() == BaseItemKind.EPISODE && item.getSeriesId() != null && !HiddenNextUp.INSTANCE.isHidden(item.getSeriesId())) {
+                menu.getMenu().add(0, MENU_HIDE_NEXT_UP, order++, R.string.hide_from_next_up);
+            }
 
             if (!isLibrary && userData != null) {
                 if (userData.isFavorite()) {
@@ -372,6 +377,13 @@ public class KeyProcessor {
                 case MENU_INSTANT_MIX:
                     playbackHelper.getValue().playInstantMix(activity, item);
                     return true;
+                case MENU_HIDE_NEXT_UP: {
+                    String show = item.getSeriesName() != null ? item.getSeriesName() : item.getName();
+                    HiddenNextUp.INSTANCE.hide(item.getSeriesId(), show);
+                    customMessageRepository.getValue().pushMessage(CustomMessage.NextUpChanged.INSTANCE);
+                    Utils.showToast(activity, activity.getString(R.string.hidden_from_next_up, show));
+                    return true;
+                }
                 case MENU_PLAY_EXTERNAL:
                     playbackHelper.getValue().retrieveAndPlay(item.getId(), false, activity, true);
                     return true;

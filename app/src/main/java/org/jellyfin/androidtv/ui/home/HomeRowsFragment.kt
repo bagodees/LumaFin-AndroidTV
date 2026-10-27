@@ -200,6 +200,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 				when (message) {
 					CustomMessage.RefreshCurrentItem -> refreshCurrentItem()
 					CustomMessage.HomeShortcutsChanged -> loadHomeRows()
+					CustomMessage.NextUpChanged -> loadHomeRows()
 					else -> Unit
 				}
 			}.launchIn(lifecycleScope)

@@ -1,5 +1,6 @@
 package org.jellyfin.androidtv.ui.home
 
+import org.jellyfin.androidtv.preference.HiddenNextUp
 import android.content.Context
 import androidx.leanback.widget.HeaderItem
 import androidx.leanback.widget.ListRow
@@ -56,7 +57,7 @@ class HomeFragmentContinueWatchingNextUpRow(
 								fields = ItemRepository.browseFields,
 							)
 						).content.items
-					}.getOrDefault(emptyList())
+					}.map(HiddenNextUp::filter).getOrDefault(emptyList())
 				}
 
 				(resumeItems.await() + nextUpItems.await()).distinctBy { it.id }

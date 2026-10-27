@@ -1,5 +1,6 @@
 package org.jellyfin.androidtv.ui.itemhandling
 
+import org.jellyfin.androidtv.preference.HiddenNextUp
 import android.content.Context
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
@@ -108,11 +109,12 @@ fun ItemRowAdapter.retrieveResumeItems(api: ApiClient, query: GetResumeItemsRequ
 	}
 }
 
+/** Shows hidden from Next Up (#97) are left out. */
 fun ItemRowAdapter.retrieveNextUpItems(api: ApiClient, query: GetNextUpRequest) {
 	ProcessLifecycleOwner.get().lifecycleScope.launch {
 		runCatching {
 			val response = withContext(Dispatchers.IO) {
-				api.tvShowsApi.getNextUp(query).content
+				api.tvShowsApi.getNextUp(query).content.let { it.copy(items = HiddenNextUp.filter(it.items)) }
 			}
 
 			// Some special flavor for series, used in FullDetailsFragment

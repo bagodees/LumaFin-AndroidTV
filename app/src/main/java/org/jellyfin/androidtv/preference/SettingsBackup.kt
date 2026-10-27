@@ -59,6 +59,7 @@ internal object SettingsBackup {
 		enumeration("home_style", HomeStyle.SIDE_MENU.name, HomeStyle.entries.map { it.name }),
 		enumeration("card_shape_continue_watching", CardShape.LANDSCAPE.name, CardShape.entries.map { it.name }),
 		enumeration("card_shape_home_rows", CardShape.LANDSCAPE.name, CardShape.entries.map { it.name }),
+		Field("hidden_next_up", "{}") { HiddenNextUp.isValid(it) },
 		enumeration("card_shape_libraries", CardShape.LANDSCAPE.name, CardShape.entries.map { it.name }),
 		enumeration("pref_clock_behavior", ClockBehavior.ALWAYS.name, ClockBehavior.entries.map { it.name }),
 		enumeration("pref_watched_indicator_behavior", WatchedIndicatorBehavior.ALWAYS.name, WatchedIndicatorBehavior.entries.map { it.name }),

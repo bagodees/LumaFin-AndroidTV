@@ -26,8 +26,8 @@ class SettingsSyncModelTests : FunSpec({
 	val m = SettingsSyncModel
 	val base = mapOf<String, Any>("subtitle_brightness" to 100, "pref_rating_badges_enabled" to true)
 
-	test("synced settings are the 17 personal preferences and exclude per-TV layout") {
-		m.syncedKeys.size shouldBe 17
+	test("synced settings are the 18 personal preferences and exclude per-TV layout") {
+		m.syncedKeys.size shouldBe 18
 		listOf("homeSectionOrder", "media_card_size", "app_theme", "subtitles_text_size", "subtitles_offset_position", "reduced_motion")
 			.forEach { (it in m.syncedKeys) shouldBe false }
 		m.fields.map { it.key }.toSet() shouldBe m.syncedKeys.toSet()

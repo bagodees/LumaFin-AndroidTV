@@ -494,6 +494,14 @@
     <string name="grid_from_letter">Starting at %1$s</string>
     <string name="settings_category_appearance">Appearance</string>
     <string name="action_menu_title">Options</string>
+    <string name="hide_from_next_up">Hide show from Next Up</string>
+    <string name="hidden_from_next_up">%1$s won\'t appear in Next Up. Bring it back in Settings, Home, Hidden from Next Up.</string>
+    <string name="hidden_next_up">Hidden from Next Up</string>
+    <string name="hidden_next_up_description">Shows you\'ve hidden from Next Up. Select one to bring it back.</string>
+    <string name="hidden_next_up_hint">These shows stay out of Next Up even when you watch them. Select a show to bring it back.</string>
+    <string name="hidden_next_up_none">No hidden shows</string>
+    <string name="hidden_next_up_unhide">Select to bring back to Next Up</string>
+    <string name="hidden_next_up_watched_since">Watched since you hid it. Select to bring back to Next Up</string>
     <string name="home_shortcut_favorite_movies">Favorite movies</string>
     <string name="home_shortcut_favorite_shows">Favorite shows</string>
     <string name="home_shortcut_favorites_in">Favorites · %1$s</string>

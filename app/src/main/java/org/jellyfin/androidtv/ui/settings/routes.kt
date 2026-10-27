@@ -76,6 +76,7 @@ import org.jellyfin.sdk.model.serializer.toUUIDOrNull
 object Routes {
 	const val HOME_SHORTCUTS = "/home/shortcuts"
 	const val HOME_RECOMMENDATIONS = "/home/recommendations"
+	const val HOME_HIDDEN_NEXT_UP = "/home/hidden-next-up"
 	const val MAIN = "/"
 	const val SEARCH = "/search"
 	const val HELP = "/help"
@@ -163,6 +164,7 @@ val routes = mapOf<String, RouteComposable>(
 	Routes.SEARCH to { SettingsSearchScreen() },
 	Routes.HOME_SHORTCUTS to { SettingsHomeShortcutsScreen() },
 	Routes.HOME_RECOMMENDATIONS to { SettingsHomeRecommendationsScreen() },
+	Routes.HOME_HIDDEN_NEXT_UP to { org.jellyfin.androidtv.ui.settings.screen.home.SettingsHiddenNextUpScreen() },
 	Routes.MAIN to {
 		SettingsMainScreen()
 	},

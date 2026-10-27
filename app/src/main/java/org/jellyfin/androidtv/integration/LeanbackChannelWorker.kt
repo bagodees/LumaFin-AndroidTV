@@ -1,5 +1,6 @@
 package org.jellyfin.androidtv.integration
 
+import org.jellyfin.androidtv.preference.HiddenNextUp
 import android.annotation.SuppressLint
 import android.content.ContentUris
 import android.content.ContentValues
@@ -294,7 +295,7 @@ class LeanbackChannelWorker(
 					limit = 10,
 					enableResumable = false,
 					fields = ItemRepository.itemFields,
-				).content.items
+				).content.items.let(HiddenNextUp::filter)
 			}
 
 			// Concat

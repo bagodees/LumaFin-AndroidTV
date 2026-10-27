@@ -53,6 +53,7 @@ fun settingsSearchCatalog(context: Context, prefs: UserPreferences, liveTvEnable
 	addSetting(Routes.HOME, R.string.home_item_limits, R.string.home_prefs, R.string.settings_search_home)
 	addSetting(Routes.HOME_SHORTCUTS, R.string.home_shortcuts, R.string.home_prefs, R.string.settings_search_shortcuts)
 	addSetting(Routes.HOME_RECOMMENDATIONS, R.string.recommendation_settings, R.string.home_prefs, R.string.settings_search_recommendations)
+	addSetting(Routes.HOME_HIDDEN_NEXT_UP, R.string.hidden_next_up, R.string.home_prefs, R.string.hidden_next_up_description)
 	addSetting(Routes.LIBRARIES, R.string.pref_libraries, appearance, R.string.settings_search_libraries)
 	addSetting(Routes.LIBRARIES, R.string.library_compact_list, appearance, R.string.library_compact_list_description)
 	addSetting(Routes.CUSTOMIZATION_SCREENSAVER, R.string.pref_screensaver, appearance, R.string.settings_search_screensaver, enabled(prefs[UserPreferences.screensaverInAppEnabled]))
