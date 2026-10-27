@@ -17,6 +17,7 @@ fun SettingsDialog(
 	visible: Boolean,
 	onDismissRequest: () -> Unit,
 	modifier: Modifier = Modifier,
+	fullScreen: Boolean = false,
 	screen: @Composable BoxScope.() -> Unit,
 ) {
 	val duration = 400
@@ -38,8 +39,6 @@ fun SettingsDialog(
 			animationSpec = tween(duration)
 		),
 	) {
-		SettingsLayout {
-			screen()
-		}
+		if (fullScreen) screen() else SettingsLayout { screen() }
 	}
 }

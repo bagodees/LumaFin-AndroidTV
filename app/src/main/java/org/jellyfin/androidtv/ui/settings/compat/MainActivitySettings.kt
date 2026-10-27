@@ -10,6 +10,7 @@ import org.jellyfin.androidtv.ui.navigation.ProvideRouter
 import org.jellyfin.androidtv.ui.settings.Routes
 import org.jellyfin.androidtv.ui.settings.composable.SettingsDialog
 import org.jellyfin.androidtv.ui.settings.composable.SettingsRouterContent
+import org.jellyfin.androidtv.ui.settings.composable.SettingsWorkspace
 import org.jellyfin.androidtv.ui.settings.routes
 import org.koin.compose.viewmodel.koinActivityViewModel
 import org.koin.compose.koinInject
@@ -34,13 +35,15 @@ fun MainActivitySettings() {
 				router.backStack.clear()
 				router.push(Routes.MAIN)
 				if (viewModel.openSetupGuide) router.push(Routes.SETUP_GUIDE, mapOf("firstRun" to "true"))
+				else router.push(Routes.HOME)
 			}
 		}
 		SettingsDialog(
 			visible = visible,
+			fullScreen = true,
 			onDismissRequest = { viewModel.hide() }
 		) {
-			SettingsRouterContent()
+			SettingsWorkspace(onDismissRequest = { viewModel.hide() })
 		}
 	}
 }

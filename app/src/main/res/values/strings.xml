@@ -492,6 +492,7 @@
     <string name="new_home_title">Switch to classic Jellyfin style</string>
     <string name="new_home_details">Details</string>
     <string name="grid_from_letter">Starting at %1$s</string>
+    <string name="settings_category_appearance">Appearance</string>
     <string name="home_style">Home style</string>
     <string name="home_style_description">How Home is laid out. Your Home rows, cards and settings stay the same.</string>
     <string name="home_style_side_menu">Side menu</string>

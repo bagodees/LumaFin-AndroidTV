@@ -172,7 +172,7 @@ fun SettingsHomeScreen() {
 				captionContent = {
 					Text(stringResource(if (homeStyle == HomeStyle.TOP_BAR) R.string.home_style_top_bar_description else R.string.home_style_side_menu_description))
 				},
-				trailingContent = { Text(stringResource(homeStyle.nameRes)) },
+				trailingContent = { Text(stringResource(homeStyle.nameRes), color = org.jellyfin.androidtv.ui.base.LumaFinPalette.Cyan) },
 				enabled = grabbed == null,
 				onClick = { homeStyle = if (homeStyle == HomeStyle.TOP_BAR) HomeStyle.SIDE_MENU else HomeStyle.TOP_BAR },
 				modifier = Modifier.focusKey("home_style")
