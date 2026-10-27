@@ -110,7 +110,7 @@ Release notes: [1.1.2](docs/releases/1.1.2.md).
 
 Status: In progress (started October 27, 2026). Milestone: [1.2](https://github.com/bagodees/LumaFin-AndroidTV/milestone/3).
 
-The owner decided on October 27 to skip a 1.1.3 release unless something urgent comes up. Fixes made since 1.1.2 ship with 1.2: subtitles above the player controls (#119), the library status line fade (#120), the side menu server name contrast and the inset profile picture.
+The owner decided on October 27 to skip a 1.1.3 release unless something urgent comes up. Fixes made since 1.1.2 ship with 1.2: subtitles above the player controls (#119), the library status line fade (#120), the side menu server name contrast, the inset profile picture, and Home no longer jumping back to the top while you browse (finishes the 1.1.1 "keep your place on Home" fix, which only covered coming back from details).
 
 1. [x] Home style option: top bar with backdrop, concept B ([#110](https://github.com/bagodees/LumaFin-AndroidTV/issues/110))
 2. [x] Reorganize settings into a full-screen layout ([#83](https://github.com/bagodees/LumaFin-AndroidTV/issues/83))
