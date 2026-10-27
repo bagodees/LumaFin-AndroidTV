@@ -64,14 +64,16 @@ data class SeerrItem(
 	val imageUrl: String?,
 	val year: Int?,
 	val rating: Float? = null,
+	val tmdbId: Int? = null,
 ) {
 	/** A stand-in item for the preview above the rows: title, year, rating and kind. */
-	fun previewItem() = org.jellyfin.sdk.model.api.BaseItemDto(
+	fun previewItem(overview: String? = null) = org.jellyfin.sdk.model.api.BaseItemDto(
 		id = java.util.UUID.nameUUIDFromBytes("seerr|$mediaType|$mediaId".toByteArray()),
 		name = name,
 		type = if (mediaType == "tv") org.jellyfin.sdk.model.api.BaseItemKind.SERIES else org.jellyfin.sdk.model.api.BaseItemKind.MOVIE,
 		productionYear = year,
 		communityRating = rating,
+		overview = overview,
 	)
 }
 
@@ -113,6 +115,7 @@ object SeerrFin {
 				imageUrl = image?.let { if (it.startsWith("/")) api.baseUrl?.trimEnd('/') + it else it },
 				year = item.premiereDate?.year?.takeIf { it > 1970 },
 				rating = item.communityRating,
+				tmdbId = ids["Tmdb"]?.toIntOrNull(),
 			)
 		}
 	} catch (error: CancellationException) {
@@ -120,6 +123,49 @@ object SeerrFin {
 	} catch (error: Exception) {
 		Timber.d(error, "SeerrFin not available")
 		null
+	}
+
+	/** Logos for previewed Seerr titles, by preview item id; read by the preview's logo. */
+	val logos = MutableStateFlow<Map<java.util.UUID, String>>(emptyMap())
+	private var tmdbKey: String? = null
+	private val overviews = mutableMapOf<String, String>()
+
+	/** The title's description from Seerr, and its logo from TMDB when SeerrFin has a TMDB key. Cached. */
+	suspend fun enrich(api: ApiClient, item: SeerrItem): String? {
+		val key = "${item.mediaType}/${item.mediaId}"
+		overviews[key]?.let { return it }
+		val overview = try {
+			val response = get(api, "details/$key")
+			if (response.status !in 200..299) null
+			else json.parseToJsonElement(response.body.decodeToString()).jsonObject["overview"]?.jsonPrimitive?.content
+		} catch (error: CancellationException) { throw error } catch (error: Exception) { null }
+		overview?.let { overviews[key] = it }
+		loadLogo(api, item)
+		return overview
+	}
+
+	private suspend fun loadLogo(api: ApiClient, item: SeerrItem) {
+		val id = item.previewItem().id
+		if (id in logos.value) return
+		try {
+			val apiKey = tmdbKey ?: run {
+				val response = get(api, "client-settings")
+				if (response.status !in 200..299) return
+				json.parseToJsonElement(response.body.decodeToString()).jsonObject["tmdbApiKey"]?.jsonPrimitive?.content.orEmpty()
+					.also { tmdbKey = it }
+			}
+			if (apiKey.isBlank()) return
+			val tmdbId = item.tmdbId ?: return
+			val body = withContext(Dispatchers.IO) {
+				java.net.URL("https://api.themoviedb.org/3/${if (item.mediaType == "tv") "tv" else "movie"}/$tmdbId/images?api_key=$apiKey&include_image_language=en,null")
+					.openStream().use { it.readBytes().decodeToString() }
+			}
+			val path = json.parseToJsonElement(body).jsonObject["logos"]?.let { it as? kotlinx.serialization.json.JsonArray }
+				?.firstOrNull()?.jsonObject?.get("file_path")?.jsonPrimitive?.content ?: return
+			logos.value = logos.value + (id to "https://image.tmdb.org/t/p/w500$path")
+		} catch (error: CancellationException) { throw error } catch (error: Exception) {
+			Timber.d(error, "No logo for %s", item.name)
+		}
 	}
 
 	/** Seerr's status for a title: 5 available, 4 partly available, 2 or 3 requested, otherwise not requested. */

@@ -388,7 +388,13 @@ fun HomeFocusedPreview(
 fun PreviewLogo(item: BaseItemDto, modifier: Modifier = Modifier) {
 	val api = koinInject<ApiClient>()
 	val logo = item.itemImages[ImageType.LOGO] ?: item.parentImages[ImageType.LOGO]
+	// Seerr titles (#100) get their logo from TMDB instead
+	val seerrLogos by SeerrFin.logos.collectAsState()
+	val seerrLogo = seerrLogos[item.id]
 	Box(contentAlignment = Alignment.Center, modifier = modifier) {
+		if (logo == null && seerrLogo != null) key(seerrLogo) {
+			AsyncImage(modifier = Modifier.fillMaxSize(), url = seerrLogo, aspectRatio = 3f)
+		}
 		// No blur placeholder: a logo's is mostly transparent and shows as a white block while loading.
 		// Keyed by the logo so the previous title's logo doesn't linger while the next one loads.
 		if (logo != null) key(logo) {

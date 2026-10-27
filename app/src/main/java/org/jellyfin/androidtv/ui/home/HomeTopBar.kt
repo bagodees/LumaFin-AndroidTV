@@ -201,7 +201,8 @@ fun HomeBackdropInfo(item: BaseItemDto?, modifier: Modifier = Modifier) {
 				timeLeft(item)?.let { Text(it, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LumaFinPalette.Cyan) }
 			}
 			// The title's logo on the right, over the backdrop
-			if ((item.itemImages[ImageType.LOGO] ?: item.parentImages[ImageType.LOGO]) != null) {
+			val seerrLogos by SeerrFin.logos.collectAsState()
+			if ((item.itemImages[ImageType.LOGO] ?: item.parentImages[ImageType.LOGO]) != null || item.id in seerrLogos) {
 				PreviewLogo(item, Modifier.weight(0.6f).height(120.dp).padding(start = 32.dp))
 			} else {
 				Spacer(Modifier.weight(0.6f))

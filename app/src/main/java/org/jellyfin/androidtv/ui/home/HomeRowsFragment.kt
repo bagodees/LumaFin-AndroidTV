@@ -693,6 +693,11 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 				focusedItem.value = item.previewItem()
 				focusedItemIndex = (row as? ListRow)?.adapter?.positionOf(item) ?: -1
 				backgroundService.setBackgroundUrl(item.imageUrl)
+				// The description and logo load after; only applied if the card is still focused
+				lifecycleScope.launch {
+					val overview = SeerrFin.enrich(api, item)
+					if (focusedItem.value?.id == item.previewItem().id) focusedItem.value = item.previewItem(overview)
+				}
 				return
 			}
 			if (item !is BaseRowItem) {
