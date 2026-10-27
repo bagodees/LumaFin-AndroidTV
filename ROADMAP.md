@@ -156,6 +156,10 @@ These move into a numbered version when it's planned. Unordered.
 - [ ] Performance check on low-end Fire TV sticks ([#117](https://github.com/bagodees/LumaFin-AndroidTV/issues/117))
 - [ ] Option to hide player controls when pausing ([#121](https://github.com/bagodees/LumaFin-AndroidTV/issues/121))
 - [ ] Follow the server's Next Up settings ([#122](https://github.com/bagodees/LumaFin-AndroidTV/issues/122))
+- [ ] Short descriptions under each settings category ([#124](https://github.com/bagodees/LumaFin-AndroidTV/issues/124))
+- [ ] Split Appearance settings into smaller groups ([#125](https://github.com/bagodees/LumaFin-AndroidTV/issues/125))
+- [ ] Show the current value on every settings row ([#126](https://github.com/bagodees/LumaFin-AndroidTV/issues/126))
+- [ ] App version and update status in About ([#127](https://github.com/bagodees/LumaFin-AndroidTV/issues/127))
 
 ---
 
