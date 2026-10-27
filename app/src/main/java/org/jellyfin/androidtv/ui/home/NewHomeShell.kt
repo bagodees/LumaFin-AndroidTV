@@ -133,7 +133,23 @@ private val libraryOrder = listOf(
 	CollectionType.PLAYLISTS,
 )
 
-private fun libraryIcon(type: CollectionType?) = when (type) {
+/** The current user's libraries in menu order, or null until they load. Shared by the side menu and the top bar. */
+@Composable
+internal fun rememberMenuLibraries(): List<BaseItemDto>? {
+	val userViews = koinInject<UserViewsRepository>()
+	val userRepository = koinInject<UserRepository>()
+	val currentUser by remember { userRepository.currentUser.filterNotNull() }.collectAsState(null)
+	val cachedLibraries by SideMenuLibraries.cached.collectAsState()
+	LaunchedEffect(currentUser?.id) {
+		val userId = currentUser?.id ?: return@LaunchedEffect
+		runCatching { userViews.views.first().sortedBy { libraryOrder.indexOf(it.collectionType).let { i -> if (i < 0) libraryOrder.size else i } } }
+			.onSuccess { SideMenuLibraries.cached.value = userId to it }
+			.onFailure { Timber.w(it, "Failed to load libraries for the menu") }
+	}
+	return cachedLibraries?.takeIf { it.first == currentUser?.id }?.second
+}
+
+internal fun libraryIcon(type: CollectionType?) = when (type) {
 	CollectionType.MOVIES -> R.drawable.ic_movie
 	CollectionType.TVSHOWS -> R.drawable.ic_tv
 	CollectionType.LIVETV -> R.drawable.ic_tv_guide
@@ -172,7 +188,6 @@ fun MainSideRail(
 	}
 	val navigationRepository = koinInject<NavigationRepository>()
 	val settingsViewModel = koinActivityViewModel<SettingsViewModel>()
-	val userViews = koinInject<UserViewsRepository>()
 	val serverRepository = koinInject<ServerRepository>()
 	val currentServer by serverRepository.currentServer.collectAsState()
 	val itemLauncher = koinInject<ItemLauncher>()
@@ -180,14 +195,7 @@ fun MainSideRail(
 	val api = koinInject<ApiClient>()
 	val currentUser by remember { userRepository.currentUser.filterNotNull() }.collectAsState(null)
 	val userImage = remember(currentUser) { currentUser?.primaryImage?.getUrl(api) }
-	val cachedLibraries by SideMenuLibraries.cached.collectAsState()
-	val libraries = cachedLibraries?.takeIf { it.first == currentUser?.id }?.second
-	LaunchedEffect(currentUser?.id) {
-		val userId = currentUser?.id ?: return@LaunchedEffect
-		runCatching { userViews.views.first().sortedBy { libraryOrder.indexOf(it.collectionType).let { i -> if (i < 0) libraryOrder.size else i } } }
-			.onSuccess { SideMenuLibraries.cached.value = userId to it }
-			.onFailure { Timber.w(it, "Failed to load libraries for the side menu") }
-	}
+	val libraries = rememberMenuLibraries()
 	// One entry per library; "Libraries" only when they don't all fit (or before they load)
 	val overflow = libraries.isNullOrEmpty() || libraries.size > MaxLibraryEntries
 	val shownLibraries = when {

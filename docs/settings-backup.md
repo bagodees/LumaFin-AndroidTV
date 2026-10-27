@@ -8,7 +8,7 @@ Restore a saved backup lists up to 100 recent, app-accessible backups from Downl
 
 ## Supported scope
 
-Version 1 includes 29 explicitly allowed local values: Home row order/visibility, four Home item limits, the two hide-watched filters, theme/background/card size/clock/watched indicators, reduced motion, episode spoiler controls, series thumbnails, rating badges, remote long-press action, autoplay, cinema prerolls, skip lengths, and subtitle brightness/font size/weight/position/colors. Defaults are included, so restoring a backup can reset these supported preferences to the backed-up defaults.
+Version 1 includes 30 explicitly allowed local values: Home row order/visibility, Home style, four Home item limits, the two hide-watched filters, theme/background/card size/clock/watched indicators, reduced motion, episode spoiler controls, series thumbnails, rating badges, remote long-press action, autoplay, cinema prerolls, skip lengths, and subtitle brightness/font size/weight/position/colors. Defaults are included, so restoring a backup can reset these supported preferences to the backed-up defaults.
 
 Excluded: credentials/tokens, usernames, user/server IDs and addresses, library-specific server display preferences, pinned shortcuts, recommendations, watch history, playlists, screensaver preferences, other playback settings, player selection, device/decoder/HDR/audio capability overrides, diagnostics and migration flags. The readable screen describes the supported subset before saving or restoring.
 

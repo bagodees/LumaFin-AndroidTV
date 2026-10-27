@@ -19,6 +19,11 @@ class SettingsBackupTests : FunSpec({
 		SettingsBackup.review(encoded).values shouldBe snapshot
 		listOf("secret-token", "private-address", "private-component", "private-user", "hdr10_override").forEach { encoded shouldNotContain it }
 	}
+	test("home style defaults to the side menu, round trips and rejects unknown styles") {
+		defaults()["home_style"] shouldBe "SIDE_MENU"
+		SettingsBackup.review(backup(""""home_style":"TOP_BAR"""")).values["home_style"] shouldBe "TOP_BAR"
+		shouldThrowAny { SettingsBackup.review(backup(""""home_style":"GRID"""")) }
+	}
 	test("partial restore retains omissions and reports unsupported fields without applying them") {
 		val review = SettingsBackup.review(backup(""""subtitle_brightness":60,"access_token":"ignore","new_future_setting":true"""))
 		review.values shouldBe mapOf("subtitle_brightness" to 60)

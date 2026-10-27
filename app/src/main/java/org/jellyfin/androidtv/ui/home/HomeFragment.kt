@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -39,11 +40,15 @@ import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.auth.repository.SessionRepository
 import org.jellyfin.androidtv.data.repository.NotificationsRepository
 import org.jellyfin.androidtv.preference.UserPreferences
+import org.jellyfin.androidtv.preference.constant.HomeStyle
 import org.jellyfin.androidtv.ui.settings.compat.SettingsViewModel
 import org.jellyfin.androidtv.ui.shared.toolbar.MainToolbar
 import org.jellyfin.androidtv.ui.shared.toolbar.MainToolbarActiveButton
 import org.koin.android.ext.android.inject
 import org.koin.compose.viewmodel.koinActivityViewModel
+
+/** Height of the focused title's details in the top bar style, between the bar and the rows. */
+private val TopBarInfoHeight = 216.dp
 
 class HomeFragment : Fragment() {
 	private val sessionRepository by inject<SessionRepository>()
@@ -66,6 +71,7 @@ class HomeFragment : Fragment() {
 		// we do switch the focus, we reset the leanback state so it won't cause weird behavior when focus is regained
 		val rowsSupportFragment = remember { mutableStateOf<HomeRowsFragment?>(null) }
 		var newHome by remember { mutableStateOf(userPreferences[UserPreferences.newHomeEnabled]) }
+		var homeStyle by remember { mutableStateOf(userPreferences[UserPreferences.homeStyle]) }
 		// Coming back from details, search or playback, the view system can restore focus to a menu
 		// item; on the new Home return to the rows (the last focused card) instead.
 		val resumes by resumeCount.collectAsState()
@@ -80,6 +86,7 @@ class HomeFragment : Fragment() {
 		LaunchedEffect(settingsVisible) {
 			if (!settingsVisible) {
 				newHome = userPreferences[UserPreferences.newHomeEnabled]
+				homeStyle = userPreferences[UserPreferences.homeStyle]
 				rowsSupportFragment.value?.reloadHomeRowsIfSectionsChanged()
 			}
 		}
@@ -88,8 +95,14 @@ class HomeFragment : Fragment() {
 			val focusedItemFlow = remember { MutableStateFlow<HomeRowsFragment?>(null) }
 			focusedItemFlow.value = rowsSupportFragment.value
 			val focusedItem by remember { focusedItemFlow.flatMapLatest { it?.focusedItem ?: flowOf(null) } }.collectAsState(null)
+			val rowsTopOffset = with(LocalDensity.current) { 40.dp.roundToPx() }
 
-			NewHomeLayout(
+			if (homeStyle == HomeStyle.TOP_BAR) Column(modifier = Modifier.fillMaxSize()) {
+				HomeTopBar(railFocusRequester, rowsFocusRequester)
+				// A tall info block leaves the focused title's backdrop showing above it
+				HomeBackdropInfo(focusedItem, Modifier.height(TopBarInfoHeight))
+				HomeRows(rowsFocusRequester, rowsSupportFragment, exitDirections = setOf(FocusDirection.Up), resetOnUp = false, topOffsetPx = rowsTopOffset, rowSpacingDp = 12)
+			} else NewHomeLayout(
 				rail = {
 					MainSideRail(MainToolbarActiveButton.Home, railFocusRequester, rowsFocusRequester)
 				},
@@ -99,7 +112,6 @@ class HomeFragment : Fragment() {
 					// clips the first row's heading. Align the focused row's cards just below its heading
 					// instead, with a small positive gap between rows so the row above scrolls fully out of
 					// view behind the preview.
-					val rowsTopOffset = with(LocalDensity.current) { 40.dp.roundToPx() }
 					HomeRows(rowsFocusRequester, rowsSupportFragment, exitDirections = setOf(FocusDirection.Left), resetOnUp = false, topOffsetPx = rowsTopOffset, rowSpacingDp = 12)
 				},
 			)

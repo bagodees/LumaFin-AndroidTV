@@ -45,6 +45,8 @@ import org.jellyfin.androidtv.ui.settings.composable.SettingsButton as ListButto
 import org.jellyfin.androidtv.ui.base.list.ListControlDefaults
 import org.jellyfin.androidtv.ui.settings.composable.SettingsControl as ListControl
 import org.jellyfin.androidtv.ui.settings.composable.SettingsSection as ListSection
+import androidx.compose.foundation.layout.Column
+import org.jellyfin.androidtv.preference.constant.HomeStyle
 import org.jellyfin.androidtv.ui.navigation.focus.focusKey
 import org.jellyfin.androidtv.ui.settings.composable.SettingsColumn
 import org.jellyfin.androidtv.ui.settings.compat.rememberPreference
@@ -78,6 +80,7 @@ fun SettingsHomeScreen() {
 	val userPreferences = koinInject<UserPreferences>()
 	var newHomeEnabled by rememberPreference(userPreferences, UserPreferences.newHomeEnabled)
 	var newHomeCardTitles by rememberPreference(userPreferences, UserPreferences.newHomeCardTitles)
+	var homeStyle by rememberPreference(userPreferences, UserPreferences.homeStyle)
 	val listState = rememberLazyListState()
 	val scope = rememberCoroutineScope()
 	val hiddenSections = remember(visibleSections) {
@@ -162,7 +165,18 @@ fun SettingsHomeScreen() {
 				modifier = Modifier.focusKey("new_home")
 			)
 		}
-		if (newHomeEnabled) item(key = "new_home_card_titles") {
+		// Kept in one list item with the card titles switch so the section rows' list positions don't shift
+		if (newHomeEnabled) item(key = "new_home_card_titles") { Column {
+			ListButton(
+				headingContent = { Text(stringResource(R.string.home_style)) },
+				captionContent = {
+					Text(stringResource(if (homeStyle == HomeStyle.TOP_BAR) R.string.home_style_top_bar_description else R.string.home_style_side_menu_description))
+				},
+				trailingContent = { Text(stringResource(homeStyle.nameRes)) },
+				enabled = grabbed == null,
+				onClick = { homeStyle = if (homeStyle == HomeStyle.TOP_BAR) HomeStyle.SIDE_MENU else HomeStyle.TOP_BAR },
+				modifier = Modifier.focusKey("home_style")
+			)
 			ListButton(
 				toggleState = newHomeCardTitles,
 				headingContent = { Text(stringResource(R.string.new_home_card_titles)) },
@@ -172,7 +186,7 @@ fun SettingsHomeScreen() {
 				onClick = { newHomeCardTitles = !newHomeCardTitles },
 				modifier = Modifier.focusKey("new_home_card_titles")
 			)
-		}
+		} }
 
 		items(visibleSections, key = { "visible_${it.name}" }) { type ->
 			val isGrabbed = grabbed == type

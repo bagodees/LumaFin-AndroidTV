@@ -44,6 +44,7 @@ fun settingsSearchCatalog(context: Context, prefs: UserPreferences, liveTvEnable
 	addSetting(Routes.CUSTOMIZATION, R.string.hide_unwatched_episode_descriptions, appearance, R.string.settings_search_spoilers, enabled(prefs[UserPreferences.hideUnwatchedEpisodeDescriptions]))
 	addSetting(Routes.HOME, R.string.home_prefs, appearance, R.string.settings_search_home)
 	addSetting(Routes.HOME, R.string.new_home_title, R.string.home_prefs, R.string.new_home_description, enabled(!prefs[UserPreferences.newHomeEnabled]))
+	if (prefs[UserPreferences.newHomeEnabled]) addSetting(Routes.HOME, R.string.home_style, R.string.home_prefs, R.string.home_style_description, name(prefs[UserPreferences.homeStyle]))
 	if (prefs[UserPreferences.newHomeEnabled]) addSetting(Routes.HOME, R.string.new_home_card_titles, R.string.home_prefs, R.string.new_home_card_titles_description, enabled(prefs[UserPreferences.newHomeCardTitles]))
 	addSetting(Routes.REMOTE_SHORTCUTS, R.string.remote_shortcuts, appearance, R.string.remote_shortcuts_help, text(prefs[UserPreferences.cardLongPressAction].nameRes))
 	addSetting(Routes.HOME, R.string.home_item_limits, R.string.home_prefs, R.string.settings_search_home)

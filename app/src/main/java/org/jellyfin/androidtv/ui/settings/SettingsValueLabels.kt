@@ -20,7 +20,7 @@ object SettingsValueLabels {
 		"home_recently_added_movies_limit" to R.string.backup_recent_movies, "home_recently_added_shows_limit" to R.string.backup_recent_shows,
 		"home_latest_movies_hide_watched" to R.string.backup_hide_latest, "home_recently_added_movies_hide_watched" to R.string.backup_hide_recent,
 		"app_theme" to R.string.pref_app_theme, "backdrop_behavior" to R.string.lbl_show_backdrop,
-		"media_card_size" to R.string.media_card_size, "pref_clock_behavior" to R.string.pref_clock_display,
+		"media_card_size" to R.string.media_card_size, "home_style" to R.string.home_style, "pref_clock_behavior" to R.string.pref_clock_display,
 		"pref_watched_indicator_behavior" to R.string.pref_watched_indicator, "reduced_motion" to R.string.reduced_motion,
 		"hide_unwatched_episode_artwork" to R.string.hide_unwatched_episode_artwork,
 		"hide_unwatched_episode_descriptions" to R.string.hide_unwatched_episode_descriptions,
@@ -44,6 +44,7 @@ object SettingsValueLabels {
 			"app_theme" -> AppTheme.entries.find { it.name == value }
 			"backdrop_behavior" -> BackdropBehavior.entries.find { it.name == value }
 			"media_card_size" -> MediaCardSize.entries.find { it.name == value }
+			"home_style" -> org.jellyfin.androidtv.preference.constant.HomeStyle.entries.find { it.name == value }
 			"pref_clock_behavior" -> ClockBehavior.entries.find { it.name == value }
 			"pref_watched_indicator_behavior" -> WatchedIndicatorBehavior.entries.find { it.name == value }
 			else -> null
