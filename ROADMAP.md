@@ -85,8 +85,9 @@ Amazon remains untouched. Release notes: [1.1.1](docs/releases/1.1.1.md).
 Sony Bravia TVs, player-controls relayout overhead, and a background crash after
 sign-out. On the owner's Sony X90J, 1.1.2-test.3 (1010203), installed October 27,
 caught a backwards audio-position step and kept audio in sync at 6:27 AM; player
-controls are also confirmed on the TV. Release approved October 27; verification
-and publication in progress. Amazon remains untouched.
+controls are also confirmed on the TV. Release approved October 27; signed builds
+and 383 unit tests passed. GitHub v1.1.2 and website/feed are verified live; Play
+Alpha publication is in progress. Amazon remains untouched.
 Release notes: [1.1.2](docs/releases/1.1.2.md).
 
 1. [x] Design two Home concepts and choose one ([#80](https://github.com/bagodees/LumaFin-AndroidTV/issues/80)): concept A (side rail with a preview area) chosen; concept B (top bar with backdrop) becomes a Home style option in 1.2
