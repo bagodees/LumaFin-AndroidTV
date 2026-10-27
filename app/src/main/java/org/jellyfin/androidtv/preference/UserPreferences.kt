@@ -143,6 +143,9 @@ class UserPreferences(context: Context, storage: SharedPreferences = PreferenceM
 		val newHomeEnabled = booleanPreference("new_home_enabled", true)
 		/** The new Home's outer layout: side menu (default) or top bar with a full backdrop. */
 		val homeStyle = enumPreference("home_style", org.jellyfin.androidtv.preference.constant.HomeStyle.SIDE_MENU)
+		/** Side menu and top bar libraries (#113): custom order and hidden ones, as comma-separated ids. */
+		val menuLibraryOrder = stringPreference("menu_library_order", "")
+		val menuHiddenLibraries = stringPreference("menu_hidden_libraries", "")
 		/** Shows hidden from Next Up (#97), as JSON; see HiddenNextUp. */
 		val hiddenNextUp = stringPreference("hidden_next_up", "{}")
 		/** The one-time hint that title cards have a menu (#84) was shown. */

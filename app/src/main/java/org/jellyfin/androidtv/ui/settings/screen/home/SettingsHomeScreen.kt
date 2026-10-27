@@ -260,6 +260,17 @@ fun SettingsHomeScreen() {
 			)
 		}
 
+		if (newHomeEnabled) item(key = "menu_libraries") {
+			ListButton(
+				navigates = true,
+				headingContent = { Text(stringResource(R.string.menu_libraries)) },
+				captionContent = { Text(stringResource(R.string.menu_libraries_description)) },
+				enabled = grabbed == null,
+				onClick = { router.push(Routes.HOME_MENU_LIBRARIES) },
+				modifier = Modifier.focusKey("menu_libraries"),
+			)
+		}
+
 		item(key = "hidden_next_up") {
 			ListButton(
 				navigates = true,

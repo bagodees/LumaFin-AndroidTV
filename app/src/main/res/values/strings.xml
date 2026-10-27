@@ -494,6 +494,13 @@
     <string name="grid_from_letter">Starting at %1$s</string>
     <string name="settings_category_appearance">Appearance</string>
     <string name="action_menu_title">Options</string>
+    <string name="menu_libraries">Menu libraries</string>
+    <string name="menu_libraries_description">Choose which libraries appear in the side menu and top bar, and their order.</string>
+    <string name="menu_libraries_hint">Select a library to hide it or move it. Hidden libraries stay under Libraries.</string>
+    <string name="menu_library_shown">Shown</string>
+    <string name="menu_library_hidden">Hidden</string>
+    <string name="menu_library_hide">Hide from the menu</string>
+    <string name="menu_library_show">Show in the menu</string>
     <string name="library_type_title">Type</string>
     <string name="library_type_videos">Videos</string>
     <string name="library_type_photos">Photos</string>

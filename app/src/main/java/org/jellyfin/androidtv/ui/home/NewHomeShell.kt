@@ -112,9 +112,30 @@ private val RailExpandedWidth = 200.dp
 data class SideMenuLibrary(val id: UUID?, val collectionType: CollectionType?)
 
 /** Libraries shown in the side menu, kept between screens so the menu doesn't change while they reload. */
-private object SideMenuLibraries {
+internal object SideMenuLibraries {
 	val cached = MutableStateFlow<Pair<UUID, List<BaseItemDto>>?>(null)
+	/** Bumped when the chosen order or hidden libraries change (#113), so open menus update. */
+	val choices = MutableStateFlow(0)
+
+	private val preferences get() = org.koin.core.context.GlobalContext.get().get<UserPreferences>()
+	fun order(): List<String> = preferences[UserPreferences.menuLibraryOrder].split(',').filter { it.isNotBlank() }
+	fun hidden(): Set<String> = preferences[UserPreferences.menuHiddenLibraries].split(',').filter { it.isNotBlank() }.toSet()
+
+	/** [libraries] in the chosen order; libraries not placed yet keep the default order after them. */
+	fun ordered(libraries: List<BaseItemDto>): List<BaseItemDto> {
+		val order = order()
+		return libraries.sortedBy { order.indexOf(it.id.toString()).let { i -> if (i < 0) order.size else i } }
+	}
+
+	fun save(order: List<BaseItemDto>, hidden: Set<String>) {
+		preferences[UserPreferences.menuLibraryOrder] = order.joinToString(",") { it.id.toString() }
+		preferences[UserPreferences.menuHiddenLibraries] = hidden.joinToString(",")
+		choices.value++
+	}
 }
+
+/** The libraries a menu shows, in order, and whether any are hidden (they stay under Libraries). */
+internal data class MenuLibraries(val shown: List<BaseItemDto>, val anyHidden: Boolean)
 
 /** Library entries that fit in the menu above Settings at TV height; more than this shows "Libraries" for the rest. */
 private const val MaxLibraryEntries = 5
@@ -135,7 +156,18 @@ private val libraryOrder = listOf(
 
 /** The current user's libraries in menu order, or null until they load. Shared by the side menu and the top bar. */
 @Composable
-internal fun rememberMenuLibraries(): List<BaseItemDto>? {
+internal fun rememberMenuLibraries(): MenuLibraries? {
+	val all = rememberAllMenuLibraries() ?: return null
+	val revision by SideMenuLibraries.choices.collectAsState()
+	return remember(all, revision) {
+		val hidden = SideMenuLibraries.hidden()
+		MenuLibraries(SideMenuLibraries.ordered(all).filterNot { it.id.toString() in hidden }, all.any { it.id.toString() in hidden })
+	}
+}
+
+/** Every library in the default menu order, or null until they load. */
+@Composable
+internal fun rememberAllMenuLibraries(): List<BaseItemDto>? {
 	val userViews = koinInject<UserViewsRepository>()
 	val userRepository = koinInject<UserRepository>()
 	val currentUser by remember { userRepository.currentUser.filterNotNull() }.collectAsState(null)
@@ -197,11 +229,12 @@ fun MainSideRail(
 	val userImage = remember(currentUser) { currentUser?.primaryImage?.getUrl(api) }
 	val libraries = rememberMenuLibraries()
 	// One entry per library; "Libraries" only when they don't all fit (or before they load)
-	val overflow = libraries.isNullOrEmpty() || libraries.size > MaxLibraryEntries
+	// "Libraries" holds the rest when they don't all fit, any are hidden, or before they load
+	val overflow = libraries == null || libraries.shown.isEmpty() || libraries.anyHidden || libraries.shown.size > MaxLibraryEntries
 	val shownLibraries = when {
 		libraries == null -> emptyList()
-		overflow -> libraries.take(MaxLibraryEntries - 1)
-		else -> libraries
+		overflow -> libraries.shown.take(MaxLibraryEntries - 1)
+		else -> libraries.shown
 	}
 	val activeLibrary = if (active != MainToolbarActiveButton.Libraries || library == null) null
 		else shownLibraries.firstOrNull { it.id == library.id }

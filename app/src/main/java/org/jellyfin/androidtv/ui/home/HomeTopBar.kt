@@ -90,11 +90,11 @@ fun HomeTopBar(
 	if (showUserSwitcher) QuickUserSwitcher(onDismissRequest = { showUserSwitcher = false })
 
 	val libraries = rememberMenuLibraries()
-	val overflow = libraries.isNullOrEmpty() || libraries.size > MaxLibraryTabs
+	val overflow = libraries == null || libraries.shown.isEmpty() || libraries.anyHidden || libraries.shown.size > MaxLibraryTabs
 	val shownLibraries = when {
 		libraries == null -> emptyList()
-		overflow -> libraries.take(MaxLibraryTabs - 1)
-		else -> libraries
+		overflow -> libraries.shown.take(MaxLibraryTabs - 1)
+		else -> libraries.shown
 	}
 	val toContent = Modifier.focusProperties { down = contentFocusRequester }
 	var hasFocus by remember { mutableStateOf(false) }
