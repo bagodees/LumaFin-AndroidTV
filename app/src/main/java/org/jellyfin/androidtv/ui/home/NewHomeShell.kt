@@ -229,13 +229,14 @@ fun MainSideRail(
 			Row(
 				verticalAlignment = Alignment.CenterVertically,
 				horizontalArrangement = Arrangement.spacedBy(12.dp),
-				modifier = Modifier.align(Alignment.CenterStart),
+				// Inset like the rail icons so the focus highlight surrounds the picture
+				modifier = Modifier.align(Alignment.CenterStart).padding(start = 6.dp),
 			) {
 				ProfilePicture(
 					url = userImage,
 					contentDescription = stringResource(R.string.lbl_switch_user),
 					initial = currentUser?.name?.firstOrNull()?.uppercase(),
-					modifier = Modifier.size(48.dp).clip(CircleShape),
+					modifier = Modifier.size(36.dp).clip(CircleShape),
 				)
 				if (expanded) Column {
 					Text(currentUser?.name.orEmpty(), fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)

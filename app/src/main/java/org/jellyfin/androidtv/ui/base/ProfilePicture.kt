@@ -44,7 +44,7 @@ fun ProfilePicture(
 				contentAlignment = Alignment.Center,
 				modifier = Modifier.fillMaxSize().clip(CircleShape).background(LumaFinPalette.Raised),
 			) {
-				Text(initial, fontSize = 20.sp, fontWeight = FontWeight.SemiBold, color = LumaFinPalette.Text)
+				Text(initial, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = LumaFinPalette.Text)
 			}
 		} else if (!userImageVisible) {
 			Icon(
