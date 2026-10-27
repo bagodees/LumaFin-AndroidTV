@@ -119,7 +119,7 @@ The owner decided on October 27 to skip a 1.1.3 release unless something urgent 
 5. [x] Remove a show from Next Up ([#97](https://github.com/bagodees/LumaFin-AndroidTV/issues/97))
 6. [x] Video/photo filter for mixed libraries ([#86](https://github.com/bagodees/LumaFin-AndroidTV/issues/86))
 7. [ ] Use the Home Screen Sections plugin when the server has it, with LumaFin's own sections otherwise ([#107](https://github.com/bagodees/LumaFin-AndroidTV/issues/107))
-8. [ ] Choose which libraries appear in the side menu ([#113](https://github.com/bagodees/LumaFin-AndroidTV/issues/113))
+8. [x] Choose which libraries appear in the side menu ([#113](https://github.com/bagodees/LumaFin-AndroidTV/issues/113))
 9. [ ] Request movies and shows through Seerr ([#100](https://github.com/bagodees/LumaFin-AndroidTV/issues/100)); moved from 1.x later on October 27 with the owner's approval
 10. [x] Card style settings: Landscape or Portrait for Continue Watching, other Home rows and library grids ([#123](https://github.com/bagodees/LumaFin-AndroidTV/issues/123)); added October 27 with the owner's approval
 
