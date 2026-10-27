@@ -12,11 +12,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -54,7 +57,12 @@ import org.jellyfin.androidtv.ui.base.button.ButtonDefaults
 import org.jellyfin.androidtv.ui.navigation.LocalRouter
 import org.jellyfin.androidtv.ui.settings.Routes
 
+/** True inside the full-screen settings, where pages opened from the category list leave focus on it. */
+val LocalInSettingsWorkspace = staticCompositionLocalOf { false }
+
 private data class SettingsCategory(val route: String, val title: Int, val icon: Int)
+
+private val backToHome = SettingsCategory("", R.string.settings_back_to_home, R.drawable.ic_arrow_back)
 
 private val categories = listOf(
 	SettingsCategory(Routes.HOME, R.string.home_prefs, R.drawable.ic_house),
@@ -78,6 +86,7 @@ fun SettingsWorkspace(onDismissRequest: () -> Unit) {
 	val router = LocalRouter.current
 	val categoryFocus = remember { FocusRequester() }
 	val contentFocus = remember { FocusRequester() }
+	val backToHomeFocus = remember { FocusRequester() }
 	var selected by remember { mutableStateOf(Routes.HOME) }
 	var categoriesFocused by remember { mutableStateOf(true) }
 	// Set by Up/Down in the category list, so only moving through it switches the page. Focus that falls
@@ -149,7 +158,10 @@ fun SettingsWorkspace(onDismissRequest: () -> Unit) {
 					active = active,
 					modifier = Modifier
 						.then(if (active) Modifier.focusRequester(categoryFocus) else Modifier)
-						.focusProperties { right = contentFocus }
+						.focusProperties {
+							right = contentFocus
+							if (category == categories.last()) down = backToHomeFocus
+						}
 						.onFocusChanged {
 						if (it.isFocused) {
 							if (movingThroughCategories) { selected = category.route; openedFromCategory = true; open(category.route) }
@@ -159,6 +171,14 @@ fun SettingsWorkspace(onDismissRequest: () -> Unit) {
 					onClick = { open(category.route); runCatching { contentFocus.requestFocus() } },
 				)
 			}
+			// Closes settings from the menu, for remotes where Back isn't obvious
+			Spacer(Modifier.weight(1f))
+			CategoryItem(
+				category = backToHome,
+				active = false,
+				modifier = Modifier.focusRequester(backToHomeFocus).focusProperties { right = contentFocus },
+				onClick = onDismissRequest,
+			)
 		}
 		Box(
 			modifier = Modifier
@@ -175,7 +195,7 @@ fun SettingsWorkspace(onDismissRequest: () -> Unit) {
 				.focusRestorer()
 				.focusGroup(),
 		) {
-			SettingsRouterContent()
+			CompositionLocalProvider(LocalInSettingsWorkspace provides true) { SettingsRouterContent() }
 		}
 	}
 

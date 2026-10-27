@@ -8,6 +8,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import org.jellyfin.androidtv.ui.settings.composable.LocalInSettingsWorkspace
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -58,6 +59,8 @@ fun SettingsSearchScreen(mainMenu: (LazyListScope.() -> Unit)? = null) {
 	val state = rememberLazyListState()
 	val scope = rememberCoroutineScope()
 	val label = stringResource(R.string.settings_search_title)
+	// In full-screen settings, moving onto the Search category must not pull focus out of the menu
+	val inWorkspace = LocalInSettingsWorkspace.current
 	SettingsColumn(state = state) {
 		item(key = "heading") {
 			ListSection(overlineContent = { Text(stringResource(if (mainMenu == null) R.string.settings else R.string.app_name).uppercase()) },
@@ -73,7 +76,7 @@ fun SettingsSearchScreen(mainMenu: (LazyListScope.() -> Unit)? = null) {
 					firstResult.requestFocus()
 				}
 			}, modifier = Modifier.fillMaxWidth().semantics { contentDescription = label }
-				.focusKey("settings_search_input", initialFocus = mainMenu == null))
+				.focusKey("settings_search_input", initialFocus = mainMenu == null && !inWorkspace))
 		}
 		if (query.isNotEmpty()) item(key = "clear") {
 			ListButton(headingContent = { Text(stringResource(R.string.settings_search_clear)) },

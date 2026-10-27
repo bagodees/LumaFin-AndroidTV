@@ -479,6 +479,7 @@
     <string name="license_author">Author</string>
     <string name="license_license">License</string>
     <string name="home_prefs">Home</string>
+    <string name="settings_back_to_home">Back to Home</string>
     <string name="home_sections_hidden">Hidden</string>
     <string name="lbl_track_audio">Audio: %1$s</string>
     <string name="lbl_track_subtitles">Subtitles: %1$s</string>
