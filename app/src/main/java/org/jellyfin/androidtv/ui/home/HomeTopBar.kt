@@ -177,14 +177,16 @@ private fun TopBarIcon(icon: Int, description: String, modifier: Modifier, onCli
 }
 
 /**
- * The focused title's details for the top bar style, anchored to the bottom of a tall area so the
+ * The focused title's details for the top bar style, in a fixed-height area under the bar so the
  * backdrop behind it shows above. It never takes focus.
  */
 @Composable
 fun HomeBackdropInfo(item: BaseItemDto?, modifier: Modifier = Modifier) {
-	Box(modifier = modifier.fillMaxWidth().padding(start = 48.dp, end = 48.dp, bottom = 8.dp)) {
+	// Anchored just under the bar, like the library pages' preview under their tabs, so the title
+	// always starts at the same spot whatever the length of the details
+	Box(modifier = modifier.fillMaxWidth().padding(start = 48.dp, top = 4.dp, end = 48.dp)) {
 		if (item == null) return@Box
-		Row(verticalAlignment = Alignment.Bottom, modifier = Modifier.align(Alignment.BottomStart).fillMaxWidth()) {
+		Row(verticalAlignment = Alignment.Top, modifier = Modifier.align(Alignment.TopStart).fillMaxWidth()) {
 			Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.weight(1f)) {
 				FocusedTitleInfo(item)
 				timeLeft(item)?.let { Text(it, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LumaFinPalette.Cyan) }
