@@ -14,7 +14,10 @@ interface PlaybackHelper {
 		outerResponse: Response<List<BaseItemDto>>,
 	)
 
-	fun retrieveAndPlay(itemId: UUID, shuffle: Boolean, context: Context)
+	fun retrieveAndPlay(itemId: UUID, shuffle: Boolean, context: Context) = retrieveAndPlay(itemId, shuffle, context, external = false)
+
+	/** [external] plays this once in an external player app, whatever the player setting (#84). */
+	fun retrieveAndPlay(itemId: UUID, shuffle: Boolean, context: Context, external: Boolean)
 
 	fun retrieveAndPlay(itemIds: List<UUID>, shuffle: Boolean, position: Long?, index: Int?, context: Context)
 

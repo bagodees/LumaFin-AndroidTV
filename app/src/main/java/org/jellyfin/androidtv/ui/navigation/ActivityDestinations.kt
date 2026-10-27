@@ -16,10 +16,11 @@ object ActivityDestinations {
 		putExtra(StartupActivity.EXTRA_ADD_USER, addUser)
 		putExtra(StartupActivity.EXTRA_SERVER_ID, serverId?.toString())
 	}
-	fun externalPlayer(context: Context, position: Duration = Duration.ZERO) = Intent(context, ExternalPlayerActivity::class.java).apply {
+	fun externalPlayer(context: Context, position: Duration = Duration.ZERO, oneOff: Boolean = false) = Intent(context, ExternalPlayerActivity::class.java).apply {
 		putExtras(
 			createBundle {
 				putLong(ExternalPlayerActivity.EXTRA_POSITION, position.inWholeMilliseconds)
+				putBoolean(ExternalPlayerActivity.EXTRA_ONE_OFF, oneOff)
 			}
 		)
 	}

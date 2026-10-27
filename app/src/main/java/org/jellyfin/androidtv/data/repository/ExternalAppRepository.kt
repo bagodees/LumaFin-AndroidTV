@@ -29,10 +29,11 @@ class ExternalAppRepository(
 		// Hide apps with priority below zero (system stubs)
 		.filter { it.priority >= 0 }
 
-	fun getCurrentExternalPlayerApp(context: Context): ActivityInfo? {
+	/** [ignoreSetting] resolves an app for a one-off external play even when the external player setting is off. */
+	fun getCurrentExternalPlayerApp(context: Context, ignoreSetting: Boolean = false): ActivityInfo? {
 		// Validate if external app should be used at all
 		val useExternalPlayer = userPreferences[UserPreferences.useExternalPlayer]
-		if (!useExternalPlayer) return null
+		if (!useExternalPlayer && !ignoreSetting) return null
 
 		// Resolve external app information
 		val resolvedInfo = userPreferences[UserPreferences.externalPlayerComponentName]

@@ -3,6 +3,7 @@ package org.jellyfin.androidtv.ui.itemdetail
 import android.content.ActivityNotFoundException
 import android.view.View
 import android.widget.Toast
+import org.jellyfin.androidtv.util.confirmRemoveFromContinueWatching
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
@@ -150,6 +151,27 @@ fun FullDetailsFragment.showDetailsMenu(
 		}
 
 		item(getString(favoriteStringRes)) { toggleFavorite() }
+	}
+
+	// The same actions as a card's menu (#84), so nothing is long-press only
+	if (org.jellyfin.androidtv.util.canPlayExternally(baseItemDto)) {
+		item(getString(R.string.play_in_external_player)) {
+			org.koin.core.context.GlobalContext.get().get<org.jellyfin.androidtv.util.PlaybackHelper>()
+				.retrieveAndPlay(baseItemDto.id, false, requireContext(), external = true)
+		}
+	}
+	if (org.jellyfin.androidtv.util.canRemoveFromContinueWatching(baseItemDto)) {
+		item(getString(R.string.remove_continue_watching)) { requireActivity().confirmRemoveFromContinueWatching(baseItemDto) }
+	}
+	val shortcuts = org.koin.core.context.GlobalContext.get().get<org.jellyfin.androidtv.preference.HomeShortcutPreferences>()
+	if (shortcuts.canPin(baseItemDto)) {
+		val pinned = shortcuts.isPinned(baseItemDto.id)
+		item(getString(if (pinned) R.string.home_shortcut_unpin else R.string.home_shortcut_pin)) {
+			if (pinned) shortcuts.unpin(baseItemDto.id.toString()) else shortcuts.pin(baseItemDto)
+			org.koin.core.context.GlobalContext.get().get<org.jellyfin.androidtv.data.repository.CustomMessageRepository>()
+				.pushMessage(org.jellyfin.androidtv.constant.CustomMessage.HomeShortcutsChanged)
+			Toast.makeText(requireContext(), if (pinned) R.string.home_shortcut_unpinned else R.string.home_shortcut_pinned, Toast.LENGTH_SHORT).show()
+		}
 	}
 
 	if (goToSeriesButton?.isVisible == false) {

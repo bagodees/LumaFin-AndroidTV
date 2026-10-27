@@ -63,6 +63,7 @@ import org.jellyfin.androidtv.ui.itemhandling.BaseRowItem
 import org.jellyfin.androidtv.ui.itemhandling.BaseRowType
 import org.jellyfin.androidtv.ui.itemhandling.GridButtonBaseRowItem
 import org.jellyfin.androidtv.ui.itemhandling.handleCardLongPress
+import org.jellyfin.androidtv.ui.itemhandling.showCardMenuHintOnce
 import org.koin.core.context.GlobalContext
 import org.jellyfin.androidtv.util.ImageHelper
 import org.jellyfin.androidtv.util.apiclient.JellyfinImage
@@ -167,7 +168,10 @@ class CardPresenter @JvmOverloads constructor(
 			}
 
 			_focused.value = view.isFocused
-			composeView.onFocusChangeListener = { _, focused -> _focused.value = focused }
+			composeView.onFocusChangeListener = { _, focused ->
+				_focused.value = focused
+				if (focused) _item.value?.let { showCardMenuHintOnce(view, it) }
+			}
 		}
 
 		fun bind(item: BaseRowItem) {

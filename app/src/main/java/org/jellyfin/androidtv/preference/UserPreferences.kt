@@ -143,6 +143,8 @@ class UserPreferences(context: Context, storage: SharedPreferences = PreferenceM
 		val newHomeEnabled = booleanPreference("new_home_enabled", true)
 		/** The new Home's outer layout: side menu (default) or top bar with a full backdrop. */
 		val homeStyle = enumPreference("home_style", org.jellyfin.androidtv.preference.constant.HomeStyle.SIDE_MENU)
+		/** The one-time hint that title cards have a menu (#84) was shown. */
+		val cardMenuHintSeen = booleanPreference("card_menu_hint_seen", false)
 		/** Card shapes (#123) for Continue Watching, the other Home rows and library grids. */
 		val continueWatchingCardShape = enumPreference("card_shape_continue_watching", org.jellyfin.androidtv.preference.constant.CardShape.LANDSCAPE)
 		val homeRowsCardShape = enumPreference("card_shape_home_rows", org.jellyfin.androidtv.preference.constant.CardShape.LANDSCAPE)

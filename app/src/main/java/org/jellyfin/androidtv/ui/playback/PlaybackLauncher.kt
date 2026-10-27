@@ -43,6 +43,8 @@ class PlaybackLauncher(
 		replace: Boolean = false,
 		itemsPosition: Int = 0,
 		shuffle: Boolean = false,
+		// Play once in an external player app, whatever the player setting (#84)
+		external: Boolean = false,
 	) {
 		val isAudio = items.any { it.mediaType == MediaType.AUDIO }
 
@@ -57,8 +59,8 @@ class PlaybackLauncher(
 
 			if (items.isEmpty()) return
 
-			if (userPreferences[UserPreferences.useExternalPlayer] && items.all { it.supportsExternalPlayer }) {
-				context.startActivity(ActivityDestinations.externalPlayer(context, position?.milliseconds ?: Duration.ZERO))
+			if ((external || userPreferences[UserPreferences.useExternalPlayer]) && items.all { it.supportsExternalPlayer }) {
+				context.startActivity(ActivityDestinations.externalPlayer(context, position?.milliseconds ?: Duration.ZERO, oneOff = external))
 			} else if (userPreferences[UserPreferences.playbackRewriteVideoEnabled]) {
 				val destination = Destinations.videoPlayerNew(position)
 				navigationRepository.navigate(destination, replace)

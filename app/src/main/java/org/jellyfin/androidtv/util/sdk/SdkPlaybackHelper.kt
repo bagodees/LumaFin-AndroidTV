@@ -258,7 +258,7 @@ class SdkPlaybackHelper(
 		}
 	}
 
-	override fun retrieveAndPlay(itemId: UUID, shuffle: Boolean, context: Context) {
+	override fun retrieveAndPlay(itemId: UUID, shuffle: Boolean, context: Context, external: Boolean) {
 		getScope(context).launch {
 			val resumeSubtractDuration =
 				userPreferences[UserPreferences.resumeSubtractDuration].toIntOrNull()?.seconds
@@ -281,6 +281,7 @@ class SdkPlaybackHelper(
 				playbackControllerContainer.playbackController?.hasFragment() == true,
 				0,
 				shuffle,
+				external,
 			)
 		}
 	}

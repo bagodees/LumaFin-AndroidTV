@@ -48,6 +48,8 @@ import kotlin.time.Duration.Companion.milliseconds
 class ExternalPlayerActivity : FragmentActivity() {
 	companion object {
 		const val EXTRA_POSITION = "position"
+		/** Play once in an external app even when the external player setting is off. */
+		const val EXTRA_ONE_OFF = "one_off"
 	}
 
 	private var currentPlayer: ExternalPlayerApi? = null
@@ -121,7 +123,7 @@ class ExternalPlayerActivity : FragmentActivity() {
 
 			// Set configured app to launch
 			externalAppRepository
-				.getCurrentExternalPlayerApp(this@ExternalPlayerActivity)
+				.getCurrentExternalPlayerApp(this@ExternalPlayerActivity, ignoreSetting = intent.getBooleanExtra(EXTRA_ONE_OFF, false))
 				?.componentName
 				?.let(::setComponent)
 

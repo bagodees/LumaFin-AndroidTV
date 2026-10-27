@@ -2,6 +2,9 @@ package org.jellyfin.androidtv.ui.itemhandling
 
 import android.view.KeyEvent
 import android.view.View
+import android.widget.Toast
+import org.jellyfin.androidtv.R
+import org.jellyfin.androidtv.preference.UserPreferences
 import org.jellyfin.androidtv.preference.constant.CardLongPressAction
 import org.jellyfin.androidtv.ui.home.HomeShortcutRowItem
 import org.jellyfin.androidtv.ui.navigation.Destinations
@@ -31,4 +34,17 @@ internal fun handleCardLongPress(view: View, item: BaseRowItem, configured: Card
 	}
 	// Consume the hold even when disabled/unsupported, so release cannot also trigger a short click.
 	return true
+}
+
+/**
+ * Tells people once that title cards have a menu (#84), the first time one is focused. Only while the
+ * long-press shortcut opens the menu; anyone who changed it already knows.
+ */
+internal fun showCardMenuHintOnce(view: View, item: BaseRowItem) {
+	val preferences = GlobalContext.get().get<UserPreferences>()
+	if (preferences[UserPreferences.cardMenuHintSeen]) return
+	if (item.baseRowType != BaseRowType.BaseItem || item.baseItem?.type !in setOf(BaseItemKind.MOVIE, BaseItemKind.EPISODE, BaseItemKind.SERIES)) return
+	if (preferences[UserPreferences.cardLongPressAction] != CardLongPressAction.MENU) return
+	preferences[UserPreferences.cardMenuHintSeen] = true
+	Toast.makeText(view.context, R.string.card_menu_hint, Toast.LENGTH_LONG).show()
 }

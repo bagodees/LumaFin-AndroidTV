@@ -101,3 +101,7 @@ fun FragmentActivity.playFirstUnwatchedItem(parentId: UUID) {
 		)
 	}
 }
+
+/** Single videos that can be played once in an external player app (#84). */
+fun canPlayExternally(item: BaseItemDto): Boolean =
+	item.type in setOf(BaseItemKind.MOVIE, BaseItemKind.EPISODE, BaseItemKind.VIDEO, BaseItemKind.RECORDING)
