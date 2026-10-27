@@ -29,6 +29,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
@@ -138,6 +139,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 	private var currentRow: ListRow? = null
 	private var justLoaded = true
 	private var handledPlaybackRevision = 0L
+	private var serverChanged = false
 	private var loadedHomeSections: List<HomeSectionType> = emptyList()
 	private var loadedLatestMoviesLimit = 50
 	private var loadedLatestShowsLimit = 50
@@ -226,16 +228,19 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 						}
 					}
 					.launchIn(this)
-
-				api.webSocket.subscribe<UserDataChangedMessage>()
-					.onEach { refreshRows(force = true, delayed = false) }
-					.launchIn(this)
-
-				api.webSocket.subscribe<LibraryChangedMessage>()
-					.onEach { refreshRows(force = true, delayed = false) }
-					.launchIn(this)
 			}
 		}
+
+		// Changes from the server never move rows while Home is on screen; they're picked up the
+		// next time Home comes back. Servers also send metadata-only updates often (every minute
+		// on some), and only added or removed titles change what Home shows.
+		api.webSocket.subscribe<UserDataChangedMessage>()
+			.onEach { serverChanged = true }
+			.launchIn(lifecycleScope)
+		api.webSocket.subscribe<LibraryChangedMessage>()
+			.filter { message -> message.data?.let { it.itemsAdded.isNotEmpty() || it.itemsRemoved.isNotEmpty() } == true }
+			.onEach { serverChanged = true }
+			.launchIn(lifecycleScope)
 
 		// Subscribe to Audio messages
 		mediaManager.addAudioEventListener(this)
@@ -569,10 +574,11 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 						// Home section preferences changed (e.g. reordered in Settings) - rebuild from scratch
 						loadHomeRows()
 					} else {
-						// Refresh rows in place so the cursor stays where it was.
-						// Playback and watch-status changes rebuild rows through playbackUpdates and the
-						// websocket, which also brings back rows that were empty.
-						refreshRows(delayed = false)
+						// Refresh rows in place so the cursor stays where it was; server changes since
+						// Home was last shown reload every row. Playback rebuilds rows through
+						// playbackUpdates, which also brings back rows that were empty.
+						refreshRows(force = serverChanged, delayed = false)
+						serverChanged = false
 					}
 				}
 			}
@@ -593,11 +599,6 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 	}
 
 	private fun refreshRows(force: Boolean = false, delayed: Boolean = true) {
-		if (force) {
-			// Server watch-status changes can make a previously empty row visible.
-			loadHomeRows()
-			return
-		}
 		lifecycleScope.launch {
 			if (delayed) delay(1.5.seconds)
 
