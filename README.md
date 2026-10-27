@@ -30,26 +30,26 @@ This is not an officially supported Jellyfin project - it's built for personal u
 ### Home screen
 
 <p align="center">
-  <img alt="LumaFin home screen with Continue Watching and Latest Movies rows" src="docs/screenshots/home-screen.png" width="100%" />
+  <img alt="LumaFin home screen with the side menu, Latest Movies row and a preview of the focused title" src="docs/screenshots/home-screen.png" width="100%" />
 </p>
 
 ### Details screens
 
 | Movie details | Episode details |
 | --- | --- |
-| <img alt="LumaFin movie details screen" src="docs/screenshots/movie-details.png" /> | <img alt="LumaFin episode details screen" src="docs/screenshots/episode-details.png" /> |
+| <img alt="LumaFin movie details screen with title logo, quality tags, actions, audio and subtitle choices and cast" src="docs/screenshots/movie-details.png" /> | <img alt="LumaFin episode details screen with Resume, Restart and Previous episode buttons and a Next episode row" src="docs/screenshots/episode-details.png" /> |
 
 ### Playback
 
 | Player controls | Player menus |
 | --- | --- |
-| <img alt="LumaFin player controls on a dark gradient band" src="docs/screenshots/player-controls.png" /> | <img alt="LumaFin subtitles menu during playback" src="docs/screenshots/player-menu.png" /> |
+| <img alt="LumaFin player controls on a dark gradient band" src="docs/screenshots/player-controls.png" /> | <img alt="LumaFin subtitles menu during playback with English checked and Subtitle Timing" src="docs/screenshots/player-menu.png" /> |
 
 ### Libraries
 
 | Library grid | Filters |
 | --- | --- |
-| <img alt="LumaFin library grid" src="docs/screenshots/library-grid.png" /> | <img alt="LumaFin library Filters panel with switches" src="docs/screenshots/library-filters.png" /> |
+| <img alt="LumaFin movie library with tabs, a grid of landscape cards and an A to Z strip" src="docs/screenshots/library-grid.png" /> | <img alt="LumaFin library Filters panel with switches" src="docs/screenshots/library-filters.png" /> |
 
 ### Home customization and profiles
 
