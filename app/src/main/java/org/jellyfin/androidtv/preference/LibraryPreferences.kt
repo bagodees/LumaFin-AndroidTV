@@ -53,6 +53,8 @@ class LibraryPreferences(
 		val filterMinimumRating = intPreference("FilterMinimumRating", 0)
 		val filterRuntimeMinutes = intPreference("FilterRuntimeMinutes", 0)
 		val filterResolution = enumPreference("FilterResolution", org.jellyfin.androidtv.data.model.LibraryResolution.ANY)
+		/** The Type filter in mixed video and photo libraries (#86). */
+		val filterMediaType = enumPreference("FilterMediaType", org.jellyfin.androidtv.data.model.LibraryMediaType.ALL)
 
 		// Item sorting
 		val sortBy = enumPreference("SortBy", ItemSortBy.SORT_NAME)

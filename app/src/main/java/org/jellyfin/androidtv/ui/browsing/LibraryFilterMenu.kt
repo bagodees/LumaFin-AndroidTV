@@ -17,6 +17,7 @@ import kotlinx.coroutines.launch
 import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.auth.repository.SessionRepository
 import org.jellyfin.androidtv.data.model.FilterOptions
+import org.jellyfin.androidtv.data.model.LibraryMediaType
 import org.jellyfin.androidtv.data.model.LibraryResolution
 import org.jellyfin.androidtv.ui.base.dialog.LumaFinMenuDialog
 import org.jellyfin.androidtv.ui.itemhandling.ItemRowAdapter
@@ -61,7 +62,7 @@ fun updateHideWatchedButton(button: TextView, active: Boolean) {
 	button.contentDescription = button.context.getString(R.string.library_hide_watched_state, state)
 }
 
-internal fun BrowseGridFragment.showModernLibraryFilters(adapter: ItemRowAdapter, api: ApiClient, allowResolution: Boolean, onChanged: () -> Unit) {
+internal fun BrowseGridFragment.showModernLibraryFilters(adapter: ItemRowAdapter, api: ApiClient, allowResolution: Boolean, onChanged: () -> Unit, allowMediaType: Boolean = false) {
 	val request = adapter.itemsRequest ?: return
 	val root = view ?: return
 	val sessions = GlobalContext.get().get<SessionRepository>()
@@ -77,7 +78,7 @@ internal fun BrowseGridFragment.showModernLibraryFilters(adapter: ItemRowAdapter
 			finished = true
 			loading.dismiss()
 			if (current()) modernFilterMenu(adapter, available.genres.orEmpty().distinct().sorted(), available.years.orEmpty().distinct().sortedDescending(),
-				allowResolution, { if (current()) onChanged() }, ::current)
+				allowResolution, { if (current()) onChanged() }, ::current, allowMediaType = allowMediaType)
 		} catch (cancelled: CancellationException) {
 			throw cancelled
 		} catch (failure: Exception) {
@@ -87,7 +88,7 @@ internal fun BrowseGridFragment.showModernLibraryFilters(adapter: ItemRowAdapter
 			if (current()) {
 				val error = LumaFinMenuDialog(requireContext(), viewLifecycleOwner, getString(R.string.library_filters_title), getString(R.string.library_filter_load_failed))
 				error.button(getString(android.R.string.cancel)) { error.dismiss() }
-				error.button(getString(R.string.home_shortcut_retry), true) { error.dismiss(); if (current()) showModernLibraryFilters(adapter, api, allowResolution, onChanged) }
+				error.button(getString(R.string.home_shortcut_retry), true) { error.dismiss(); if (current()) showModernLibraryFilters(adapter, api, allowResolution, onChanged, allowMediaType) }
 				error.show()
 			}
 		}
@@ -100,12 +101,13 @@ internal fun BrowseGridFragment.showModernLibraryFilters(adapter: ItemRowAdapter
 private fun BrowseGridFragment.modernFilterMenu(
 	adapter: ItemRowAdapter, genres: List<String>, years: List<Int>, allowResolution: Boolean,
 	onChanged: () -> Unit, current: () -> Boolean, draft: FilterOptions = adapter.filters.copy(), focus: Int = 0,
+	allowMediaType: Boolean = false,
 ) {
 	if (!current()) return
 	val any = getString(R.string.library_filter_any)
 	val menu = LumaFinMenuDialog(requireContext(), viewLifecycleOwner, getString(R.string.library_filters_title), getString(R.string.library_filter_menu_description))
 	var selectedFocus = focus
-	fun redisplay() = modernFilterMenu(adapter, genres, years, allowResolution, onChanged, current, draft, selectedFocus)
+	fun redisplay() = modernFilterMenu(adapter, genres, years, allowResolution, onChanged, current, draft, selectedFocus, allowMediaType)
 	fun choose(title: Int, labels: List<String>, selected: Int, action: (Int) -> Unit) {
 		if (!current()) return
 		var picked = false
@@ -126,6 +128,13 @@ private fun BrowseGridFragment.modernFilterMenu(
 			selectedFocus = rowIndex
 			menu.dismiss()
 			if (current()) action()
+		}
+	}
+	// Videos or photos, in libraries that hold both (#86)
+	if (allowMediaType) {
+		val types = LibraryMediaType.entries
+		row(R.string.library_type_title, getString(draft.mediaType.labelRes)) {
+			choose(R.string.library_type_title, types.map { getString(it.labelRes) }, types.indexOf(draft.mediaType)) { draft.mediaType = types[it] }
 		}
 	}
 	row(R.string.library_filter_genre_title, draft.genre ?: any) {
@@ -153,7 +162,7 @@ private fun BrowseGridFragment.modernFilterMenu(
 	}
 	row(R.string.library_filter_reset) {
 		draft.genre = null; draft.year = null; draft.minimumRating = null; draft.isFavoriteOnly = false; draft.isUnwatchedOnly = false
-		draft.resolution = LibraryResolution.ANY; draft.runtimeMinutes = null
+		draft.resolution = LibraryResolution.ANY; draft.runtimeMinutes = null; draft.mediaType = LibraryMediaType.ALL
 		redisplay()
 	}
 	menu.button(getString(android.R.string.cancel)) { menu.dismiss() }

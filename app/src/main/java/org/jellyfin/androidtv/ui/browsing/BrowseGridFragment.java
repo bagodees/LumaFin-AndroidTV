@@ -49,6 +49,7 @@ import org.jellyfin.androidtv.preference.LibraryPreferences;
 import org.jellyfin.androidtv.preference.UserPreferences;
 import org.koin.java.KoinJavaComponent;
 import org.jellyfin.androidtv.preference.constant.CardShape;
+import org.jellyfin.androidtv.data.model.LibraryMediaType;
 import org.jellyfin.androidtv.preference.PreferencesRepository;
 import org.jellyfin.androidtv.ui.AlphaPickerView;
 import org.jellyfin.androidtv.ui.home.SideMenuFrame;
@@ -800,6 +801,9 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
         filters.setYear(savedYear > 0 ? savedYear : null);
         int savedRating = libraryPreferences.get(LibraryPreferences.Companion.getFilterMinimumRating());
         filters.setMinimumRating(savedRating > 0 && savedRating <= 10 ? savedRating : null);
+        if (LibraryMediaType.appliesTo(mFolder.getCollectionType())) {
+            filters.setMediaType(libraryPreferences.get(LibraryPreferences.Companion.getFilterMediaType()));
+        }
         if (mFolder.getCollectionType() == CollectionType.MOVIES) {
             filters.setResolution(libraryPreferences.get(LibraryPreferences.Companion.getFilterResolution()));
             int duration = libraryPreferences.get(LibraryPreferences.Companion.getFilterRuntimeMinutes());
@@ -878,6 +882,7 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
         libraryPreferences.set(LibraryPreferences.Companion.getFilterYear(), active.getYear() == null ? 0 : active.getYear());
         libraryPreferences.set(LibraryPreferences.Companion.getFilterMinimumRating(), active.getMinimumRating() == null ? 0 : active.getMinimumRating());
         libraryPreferences.set(LibraryPreferences.Companion.getFilterResolution(), active.getResolution());
+        libraryPreferences.set(LibraryPreferences.Companion.getFilterMediaType(), active.getMediaType());
         libraryPreferences.set(LibraryPreferences.Companion.getFilterRuntimeMinutes(), active.getRuntimeMinutes() == null ? 0 : active.getRuntimeMinutes());
         libraryPreferences.saveBrowsingChoices(mFavoritesShortcut ? libraryPreferences.get(LibraryPreferences.Companion.getFilterFavoritesOnly()) : mAdapter.getFilters().isFavoriteOnly(),
                 mAdapter.getFilters().isUnwatchedOnly(), mAdapter.getSortBy(), mAdapter.getSortOrder());
@@ -957,7 +962,7 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
             combinedFilters.setMaxHeight(size);
             combinedFilters.setAdjustViewBounds(true);
             combinedFilters.setContentDescription(getString(R.string.library_filters_title));
-            combinedFilters.setOnClickListener(v -> BrowseGridFragmentHelperKt.showCombinedFilters(this, mAdapter, api.getValue(), mFolder.getCollectionType() == CollectionType.MOVIES, () -> {
+            combinedFilters.setOnClickListener(v -> BrowseGridFragmentHelperKt.showCombinedFilters(this, mAdapter, api.getValue(), mFolder.getCollectionType() == CollectionType.MOVIES, LibraryMediaType.appliesTo(mFolder.getCollectionType()), () -> {
                 LibraryFilterMenuKt.updateHideWatchedButton(mUnwatchedButton, mAdapter.getFilters().isUnwatchedOnly());
                 mFavoriteButton.setActivated(mAdapter.getFilters().isFavoriteOnly());
                 updateDisplayPrefs();

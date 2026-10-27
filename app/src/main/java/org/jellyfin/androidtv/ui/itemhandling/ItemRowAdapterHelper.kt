@@ -693,4 +693,5 @@ fun setCombinedItemsFilter(request: GetItemsRequest, options: org.jellyfin.andro
     minCommunityRating = options.minimumRating?.toDouble() ?: base.minCommunityRating,
     minWidth = listOfNotNull(base.minWidth, options.resolution.minWidth).maxOrNull(),
     maxWidth = listOfNotNull(base.maxWidth, options.resolution.maxWidth).minOrNull(),
+    excludeItemTypes = (base.excludeItemTypes.orEmpty() + options.mediaType.excluded).takeIf { it.isNotEmpty() },
 )

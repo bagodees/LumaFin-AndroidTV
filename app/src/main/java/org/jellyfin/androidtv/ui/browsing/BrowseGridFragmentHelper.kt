@@ -94,8 +94,9 @@ fun BrowseGridFragment.showCombinedFilters(
     adapter: org.jellyfin.androidtv.ui.itemhandling.ItemRowAdapter,
     api: org.jellyfin.sdk.api.client.ApiClient,
     allowResolution: Boolean,
+    allowMediaType: Boolean,
     onChanged: () -> Unit,
-) = showModernLibraryFilters(adapter, api, allowResolution, onChanged)
+) = showModernLibraryFilters(adapter, api, allowResolution, onChanged, allowMediaType)
 
 fun BrowseGridFragment.createRuntimeController(
     adapter: org.jellyfin.androidtv.ui.itemhandling.ItemRowAdapter,
@@ -105,7 +106,7 @@ fun BrowseGridFragment.createRuntimeController(
     return org.jellyfin.androidtv.ui.itemhandling.RuntimeFilterController(requireContext(), viewLifecycleOwner, adapter, api,
         onRestored = onRestored,
         onOpenFilters = {
-            if (isAdded && view != null) showCombinedFilters(adapter, api, true) {
+            if (isAdded && view != null) showCombinedFilters(adapter, api, true, false) {
                 onRestored()
                 adapter.Retrieve()
             }

@@ -11,11 +11,12 @@ class FilterOptions {
 	var minimumRating: Int? = null
 	var resolution = LibraryResolution.ANY
 	var runtimeMinutes: Int? = null
+	var mediaType = LibraryMediaType.ALL
 
 	fun copy() = FilterOptions().also {
 		it.isFavoriteOnly = isFavoriteOnly; it.isUnwatchedOnly = isUnwatchedOnly
 		it.genre = genre; it.year = year; it.minimumRating = minimumRating
-		it.resolution = resolution; it.runtimeMinutes = runtimeMinutes
+		it.resolution = resolution; it.runtimeMinutes = runtimeMinutes; it.mediaType = mediaType
 	}
 
 	val filters: Set<ItemFilter>
