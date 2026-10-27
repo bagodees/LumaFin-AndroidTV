@@ -20,6 +20,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.withFrameNanos
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -30,6 +33,11 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -72,10 +80,21 @@ fun SettingsWorkspace(onDismissRequest: () -> Unit) {
 	val contentFocus = remember { FocusRequester() }
 	var selected by remember { mutableStateOf(Routes.HOME) }
 	var categoriesFocused by remember { mutableStateOf(true) }
+	// Set by Up/Down in the category list, so only moving through it switches the page. Focus that falls
+	// back onto a category (when a page's focused option disappears) must not reopen that category.
+	var movingThroughCategories by remember { mutableStateOf(false) }
+	// Pages opened from the category list keep focus there; any other page change (a search result,
+	// a nested link) moves focus into the options. Starts true for the page shown on opening.
+	var openedFromCategory by remember { mutableStateOf(true) }
+	// Where focus last was, and whether the user chose to leave the options (Left or Back). When a page
+	// changes under focus, the system can drop it onto the categories; it's sent back into the options.
+	var focusInContent by remember { mutableStateOf(false) }
+	var leavingContent by remember { mutableStateOf(false) }
+	val scope = rememberCoroutineScope()
 	val currentRoute = router.backStack.lastOrNull()?.route
 
 	fun open(route: String) {
-		if (router.backStack.lastOrNull()?.route == route && router.backStack.size == 2) return
+		if (router.backStack.lastOrNull()?.route == route && router.backStack.size == 2) { openedFromCategory = false; return }
 		router.backStack.clear()
 		router.push(Routes.MAIN)
 		router.push(route)
@@ -88,6 +107,11 @@ fun SettingsWorkspace(onDismissRequest: () -> Unit) {
 		}?.let { selected = it.route }
 	}
 	LaunchedEffect(Unit) { runCatching { categoryFocus.requestFocus() } }
+	// A page opened from inside the options (a search result, a nested link) keeps focus in the options
+	LaunchedEffect(currentRoute) {
+		if (!openedFromCategory) runCatching { contentFocus.requestFocus() }
+		openedFromCategory = false
+	}
 
 	Row(Modifier.fillMaxSize().background(LumaFinPalette.Background).padding(horizontal = 48.dp, vertical = 32.dp)) {
 		Column(
@@ -95,7 +119,19 @@ fun SettingsWorkspace(onDismissRequest: () -> Unit) {
 			modifier = Modifier
 				.width(300.dp)
 				.fillMaxHeight()
-				.onFocusChanged { categoriesFocused = it.hasFocus }
+				.onFocusChanged {
+					if (it.hasFocus && !categoriesFocused && focusInContent && !leavingContent) {
+						scope.launch { withFrameNanos { }; runCatching { contentFocus.requestFocus() } }
+					}
+					// Coming back from the options always lands on the highlighted category
+					if (it.hasFocus && !categoriesFocused && leavingContent) scope.launch { runCatching { categoryFocus.requestFocus() } }
+					if (it.hasFocus) { focusInContent = false; leavingContent = false }
+					categoriesFocused = it.hasFocus
+				}
+				.onPreviewKeyEvent {
+					if (it.type == KeyEventType.KeyDown && (it.key == Key.DirectionUp || it.key == Key.DirectionDown)) movingThroughCategories = true
+					false
+				}
 				.focusRestorer(categoryFocus)
 				.focusGroup(),
 		) {
@@ -114,7 +150,12 @@ fun SettingsWorkspace(onDismissRequest: () -> Unit) {
 					modifier = Modifier
 						.then(if (active) Modifier.focusRequester(categoryFocus) else Modifier)
 						.focusProperties { right = contentFocus }
-						.onFocusChanged { if (it.isFocused) { selected = category.route; open(category.route) } },
+						.onFocusChanged {
+						if (it.isFocused) {
+							if (movingThroughCategories) { selected = category.route; openedFromCategory = true; open(category.route) }
+							movingThroughCategories = false
+						}
+					},
 					onClick = { open(category.route); runCatching { contentFocus.requestFocus() } },
 				)
 			}
@@ -126,6 +167,11 @@ fun SettingsWorkspace(onDismissRequest: () -> Unit) {
 				.widthIn(max = 1100.dp)
 				.fillMaxHeight()
 				.focusRequester(contentFocus)
+				.onFocusChanged { if (it.hasFocus) focusInContent = true }
+				.onPreviewKeyEvent {
+					if (it.type == KeyEventType.KeyDown && it.key == Key.DirectionLeft) leavingContent = true
+					false
+				}
 				.focusRestorer()
 				.focusGroup(),
 		) {
@@ -134,7 +180,7 @@ fun SettingsWorkspace(onDismissRequest: () -> Unit) {
 	}
 
 	// Inside a category's options, Back first returns to the categories (deeper pages still go back a level)
-	BackHandler(enabled = !categoriesFocused && router.backStack.size <= 2) { runCatching { categoryFocus.requestFocus() } }
+	BackHandler(enabled = !categoriesFocused && router.backStack.size <= 2) { leavingContent = true; runCatching { categoryFocus.requestFocus() } }
 	BackHandler(enabled = categoriesFocused, onBack = onDismissRequest)
 }
 
