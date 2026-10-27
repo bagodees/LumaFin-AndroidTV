@@ -494,6 +494,12 @@
     <string name="grid_from_letter">Starting at %1$s</string>
     <string name="settings_category_appearance">Appearance</string>
     <string name="action_menu_title">Options</string>
+    <string name="home_shortcut_favorite_movies">Favorite movies</string>
+    <string name="home_shortcut_favorite_shows">Favorite shows</string>
+    <string name="home_shortcut_favorites_in">Favorites · %1$s</string>
+    <string name="home_shortcut_add_section">Add to Home</string>
+    <string name="home_shortcut_add">Add %1$s</string>
+    <string name="home_shortcut_add_favorites_description">Opens %1$s with only your favorites.</string>
     <string name="play_in_external_player">Play in external player</string>
     <string name="card_menu_hint">Hold OK or press Menu on a title for more options</string>
     <string name="card_shape_landscape">Landscape</string>
@@ -885,7 +891,7 @@
     <string name="home_shortcut_move_later">Move Later</string>
     <string name="home_shortcut_manage">Select to move or unpin</string>
     <string name="home_shortcuts_settings_description">Reorder or remove pinned libraries, collections and shows.</string>
-    <string name="home_shortcuts_hint">Long-press a library, collection or show and choose Pin to Home. Select a shortcut here to move or unpin it. Unpinning only changes Home; Libraries remains available at the top.</string>
+    <string name="home_shortcuts_hint">Long-press a library, collection, show or playlist, or a genre or studio tile in a library, and choose Pin to Home. Select a shortcut here to move or unpin it.</string>
     <string name="home_shortcuts_empty">No Pinned Shortcuts</string>
     <string name="home_libraries_empty">No libraries are available for this account.</string>
     <string name="home_libraries_failed">Libraries could not be loaded. Check the server connection and try again.</string>

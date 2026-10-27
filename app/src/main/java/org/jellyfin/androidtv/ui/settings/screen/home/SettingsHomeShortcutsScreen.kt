@@ -1,7 +1,14 @@
 package org.jellyfin.androidtv.ui.settings.screen.home
 
 import androidx.appcompat.app.AlertDialog
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.runtime.collectAsState
+import org.jellyfin.androidtv.constant.CustomMessage
+import org.jellyfin.androidtv.data.repository.CustomMessageRepository
+import org.jellyfin.androidtv.data.repository.UserViewsRepository
+import org.jellyfin.sdk.model.api.BaseItemDto
+import org.jellyfin.sdk.model.api.CollectionType
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -23,13 +30,37 @@ import org.koin.compose.koinInject
 fun SettingsHomeShortcutsScreen() {
 	val preferences = koinInject<HomeShortcutPreferences>()
 	val context = LocalContext.current
+	val koinMessages = koinInject<CustomMessageRepository>()
 	var shortcuts by remember { mutableStateOf(preferences.shortcuts) }
+	// Movies and TV libraries whose favorites can be pinned (#96); others pin from their cards and tiles
+	val views by koinInject<UserViewsRepository>().views.collectAsState(emptyList())
+	val favoriteLibraries = views.filter { it.collectionType == CollectionType.MOVIES || it.collectionType == CollectionType.TVSHOWS }
+	fun favoritesName(library: BaseItemDto) = when {
+		favoriteLibraries.count { it.collectionType == library.collectionType } > 1 -> context.getString(R.string.home_shortcut_favorites_in, library.name.orEmpty())
+		library.collectionType == CollectionType.MOVIES -> context.getString(R.string.home_shortcut_favorite_movies)
+		else -> context.getString(R.string.home_shortcut_favorite_shows)
+	}
 	SettingsColumn {
 		item {
 			ListSection(
 				overlineContent = { Text(stringResource(R.string.home_prefs).uppercase()) },
 				headingContent = { Text(stringResource(R.string.home_shortcuts)) },
 				captionContent = { Text(stringResource(R.string.home_shortcuts_hint)) },
+			)
+		}
+		val addable = favoriteLibraries.filterNot { library -> shortcuts.any { it.id == preferences.favoritesId(library).toString() } }
+		if (addable.isNotEmpty()) item { ListSection(headingContent = { Text(stringResource(R.string.home_shortcut_add_section)) }) }
+		items(addable, key = { "add_favorites_${it.id}" }) { library ->
+			val name = favoritesName(library)
+			ListButton(
+				headingContent = { Text(stringResource(R.string.home_shortcut_add, name)) },
+				captionContent = { Text(stringResource(R.string.home_shortcut_add_favorites_description, library.name.orEmpty())) },
+				modifier = Modifier.focusKey("add_favorites_${library.id}"),
+				onClick = {
+					preferences.pinFavorites(library, name)
+					koinMessages.pushMessage(CustomMessage.HomeShortcutsChanged)
+					shortcuts = preferences.shortcuts
+				},
 			)
 		}
 		if (shortcuts.isEmpty()) item { ListSection(headingContent = { Text(stringResource(R.string.home_shortcuts_empty)) }) }

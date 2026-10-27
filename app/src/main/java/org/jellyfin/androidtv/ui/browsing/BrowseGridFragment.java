@@ -99,6 +99,7 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
     private PosterSize mPosterSizeSetting = PosterSize.MED;
     private ImageType mImageType = ImageType.POSTER;
     private CardShape mCardShape = CardShape.LANDSCAPE;
+    private boolean mFavoritesShortcut = false;
     private GridDirection mGridDirection = GridDirection.HORIZONTAL;
     private BrowseGridLayout mLayout;
     private boolean mCompactList = false;
@@ -789,7 +790,9 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
         }
 
         FilterOptions filters = new FilterOptions();
-        filters.setFavoriteOnly(libraryPreferences.get(LibraryPreferences.Companion.getFilterFavoritesOnly()));
+        // A pinned Favorites shortcut (#96) opens with only favorites, leaving the library's own setting alone
+        mFavoritesShortcut = getArguments() != null && getArguments().getBoolean(Extras.FavoritesOnly, false);
+        filters.setFavoriteOnly(mFavoritesShortcut || libraryPreferences.get(LibraryPreferences.Companion.getFilterFavoritesOnly()));
         filters.setUnwatchedOnly(libraryPreferences.get(LibraryPreferences.Companion.getFilterUnwatchedOnly()));
         String savedGenre = libraryPreferences.get(LibraryPreferences.Companion.getFilterGenre());
         filters.setGenre(savedGenre.isEmpty() ? null : savedGenre);
@@ -876,7 +879,7 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
         libraryPreferences.set(LibraryPreferences.Companion.getFilterMinimumRating(), active.getMinimumRating() == null ? 0 : active.getMinimumRating());
         libraryPreferences.set(LibraryPreferences.Companion.getFilterResolution(), active.getResolution());
         libraryPreferences.set(LibraryPreferences.Companion.getFilterRuntimeMinutes(), active.getRuntimeMinutes() == null ? 0 : active.getRuntimeMinutes());
-        libraryPreferences.saveBrowsingChoices(mAdapter.getFilters().isFavoriteOnly(),
+        libraryPreferences.saveBrowsingChoices(mFavoritesShortcut ? libraryPreferences.get(LibraryPreferences.Companion.getFilterFavoritesOnly()) : mAdapter.getFilters().isFavoriteOnly(),
                 mAdapter.getFilters().isUnwatchedOnly(), mAdapter.getSortBy(), mAdapter.getSortOrder());
         setStatusText(mFolder.getName());
     }

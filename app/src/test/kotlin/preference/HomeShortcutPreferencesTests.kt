@@ -98,6 +98,11 @@ class HomeShortcutPreferencesTests : FunSpec({
 		prefs.shortcuts[1].entryId shouldBe comedy.id.toString()
 		prefs.unpin(prefs.filterId(movies, comedy).toString())
 		prefs.isPinned(prefs.filterId(shows, comedy)) shouldBe true
+		prefs.pinFavorites(movies, "Favorite movies")
+		prefs.pinFavorites(movies, "Favorite movies")
+		prefs.shortcuts.count { it.favorites } shouldBe 1
+		prefs.isPinned(prefs.favoritesId(movies)) shouldBe true
+		prefs.isPinned(prefs.favoritesId(shows)) shouldBe false
 		val old = java.util.UUID.randomUUID()
 		values[requireNotNull(prefs.scope)] = """[{"id":"$old","name":"Old","type":"Series"}]"""
 		prefs.shortcuts.single().libraryId shouldBe null

@@ -45,7 +45,7 @@ class HomeShortcutRowItem(
 	override fun getSubText(context: Context): String? = if (available) null else context.getString(R.string.home_shortcut_unavailable)
 }
 
-data class HomeShortcutFilter(val library: BaseItemDto, val title: String, val genre: String?, val studioId: String?)
+data class HomeShortcutFilter(val library: BaseItemDto, val title: String, val genre: String?, val studioId: String?, val favoritesOnly: Boolean = false)
 
 class HomeFragmentShortcutsRow(private val items: List<HomeShortcutRowItem>, private val title: Int = R.string.home_shortcuts) : HomeFragmentRow {
 	override suspend fun addToRowsAdapter(context: Context, cardPresenter: CardPresenter, rowsAdapter: MutableObjectAdapter<Row>) {
@@ -78,7 +78,7 @@ suspend fun loadHomeShortcuts(api: ApiClient, shortcuts: List<HomeShortcut>, lib
 /** A pinned genre or studio: available while its library is, shown with the genre's or studio's artwork. */
 private suspend fun loadFilterShortcut(api: ApiClient, shortcut: HomeShortcut, id: UUID, libraries: Collection<BaseItemDto>): HomeShortcutRowItem {
 	val library = libraries.firstOrNull { it.id.toString() == shortcut.libraryId }
-	val entry = shortcut.entryId?.let { entryId ->
+	val entry = shortcut.entryId?.takeUnless { shortcut.favorites }?.let { entryId ->
 		try {
 			api.userLibraryApi.getItem(itemId = UUID.fromString(entryId)).content
 		} catch (error: CancellationException) {
@@ -92,9 +92,12 @@ private suspend fun loadFilterShortcut(api: ApiClient, shortcut: HomeShortcut, i
 	// of titles from every library. A studio's own card or logo is the fallback.
 	val artwork = library?.let { representativeBackdrop(api, it, shortcut) }
 		?: entry?.let { it.itemImages[ImageType.THUMB] ?: it.itemImages[ImageType.PRIMARY] }
+		// With nothing to show yet (no favorites, say), the library's own artwork
+		?: library?.let { it.itemImages[ImageType.PRIMARY] ?: it.itemImages[ImageType.THUMB] }
 	val filter = library?.let {
 		val name = shortcut.filterName.orEmpty()
-		HomeShortcutFilter(it, name, genre = name.takeIf { shortcut.type == BaseItemKind.GENRE }, studioId = shortcut.entryId.takeIf { shortcut.type == BaseItemKind.STUDIO })
+		if (shortcut.favorites) HomeShortcutFilter(it, shortcut.name, genre = null, studioId = null, favoritesOnly = true)
+		else HomeShortcutFilter(it, name, genre = name.takeIf { shortcut.type == BaseItemKind.GENRE }, studioId = shortcut.entryId.takeIf { shortcut.type == BaseItemKind.STUDIO })
 	}
 	return HomeShortcutRowItem(item, available = filter != null, filter = filter, artwork = artwork)
 }
@@ -105,6 +108,7 @@ private suspend fun representativeBackdrop(api: ApiClient, library: BaseItemDto,
 		includeItemTypes = setOf(if (library.collectionType == CollectionType.TVSHOWS) BaseItemKind.SERIES else BaseItemKind.MOVIE),
 		recursive = true,
 		genres = shortcut.filterName.takeIf { shortcut.type == BaseItemKind.GENRE }?.let(::setOf),
+		isFavorite = true.takeIf { shortcut.favorites },
 		studioIds = shortcut.entryId?.takeIf { shortcut.type == BaseItemKind.STUDIO }?.let { setOf(UUID.fromString(it)) },
 		imageTypes = setOf(ImageType.BACKDROP),
 		sortBy = setOf(ItemSortBy.COMMUNITY_RATING),

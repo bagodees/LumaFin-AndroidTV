@@ -15,7 +15,7 @@ import java.util.UUID
 /**
  * A pinned Home shortcut. Genres and studios (#96) belong to a library: [libraryId] is that library,
  * [entryId] the genre or studio and [filterName] its own name; [id] combines library and entry so the
- * same genre can be pinned for two libraries.
+ * same genre can be pinned for two libraries. [favorites] pins a library's favorites (#96).
  */
 @Serializable
 data class HomeShortcut(
@@ -25,6 +25,7 @@ data class HomeShortcut(
 	val libraryId: String? = null,
 	val entryId: String? = null,
 	val filterName: String? = null,
+	val favorites: Boolean = false,
 )
 
 class HomeShortcutPreferences internal constructor(private val preferences: SharedPreferences, private val servers: ServerRepository, private val users: UserRepository) {
@@ -49,6 +50,14 @@ class HomeShortcutPreferences internal constructor(private val preferences: Shar
 		save(shortcuts + HomeShortcut(item.id.toString(), item.name.orEmpty(), requireNotNull(item.type)))
 	}
 	fun unpin(id: String) = save(shortcuts.filterNot { it.id == id })
+
+	/** A Movies or TV [library]'s favorites, opening that library with only favorites (#96). */
+	fun favoritesId(library: BaseItemDto): UUID = UUID.nameUUIDFromBytes("${library.id}|favorites".toByteArray())
+	fun pinFavorites(library: BaseItemDto, name: String) {
+		val id = favoritesId(library)
+		if (scope == null || isPinned(id)) return
+		save(shortcuts + HomeShortcut(id.toString(), name, BaseItemKind.COLLECTION_FOLDER, library.id.toString(), favorites = true))
+	}
 
 	/** A genre or studio [entry] of [library], opening that library limited to it (#96). */
 	fun filterId(library: BaseItemDto, entry: BaseItemDto): UUID = UUID.nameUUIDFromBytes("${library.id}|${entry.id}".toByteArray())

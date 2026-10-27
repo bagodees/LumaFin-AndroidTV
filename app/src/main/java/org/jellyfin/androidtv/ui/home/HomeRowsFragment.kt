@@ -604,7 +604,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 			}
 			// A pinned genre or studio opens its library limited to it (#96)
 			if (item is HomeShortcutRowItem) item.filter?.let { filter ->
-				navigationRepository.navigate(Destinations.libraryFiltered(filter.library, filter.title, genre = filter.genre, studioId = filter.studioId))
+				navigationRepository.navigate(Destinations.libraryFiltered(filter.library, filter.title, genre = filter.genre, studioId = filter.studioId, favoritesOnly = filter.favoritesOnly))
 				return
 			}
 			if (item !is BaseRowItem) return

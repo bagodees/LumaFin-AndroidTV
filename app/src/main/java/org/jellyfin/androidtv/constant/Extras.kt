@@ -10,4 +10,6 @@ object Extras {
 	const val Genre = "genre"
 	const val StudioId = "studio_id"
 	const val FilterTitle = "filter_title"
+	/** Opens a library grid with only favorites, without changing the library's own Favorites setting (#96). */
+	const val FavoritesOnly = "favorites_only"
 }
