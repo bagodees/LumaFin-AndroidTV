@@ -19,8 +19,8 @@ import org.koin.android.ext.android.inject
 
 fun addHomeShortcutMenu(menu: PopupMenu, activity: FragmentActivity, item: BaseItemDto) {
 	val preferences by activity.inject<HomeShortcutPreferences>()
-	if (!preferences.canPin(item)) return
 	val pinned = preferences.isPinned(item.id)
+	if (!pinned && !preferences.canPin(item)) return
 	menu.menu.add(0, 1003, 40, if (pinned) R.string.home_shortcut_unpin else R.string.home_shortcut_pin)
 		.setOnMenuItemClickListener {
 			if (pinned) preferences.unpin(item.id.toString()) else preferences.pin(item)

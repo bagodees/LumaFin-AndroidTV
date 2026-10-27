@@ -426,6 +426,13 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 			menu.showLumaFin(v ?: requireView(), item.getCardName(requireContext()))
 			return true
 		}
+		// A pinned genre or studio (#96) only offers Unpin
+		if (keyCode == KeyEvent.KEYCODE_MENU && item is HomeShortcutRowItem && item.filter != null) {
+			val menu = PopupMenu(requireContext(), v ?: requireView())
+			item.baseItem?.let { addHomeShortcutMenu(menu, requireActivity(), it) }
+			menu.showLumaFin(v ?: requireView(), item.baseItem?.name)
+			return true
+		}
 		if (keyCode == KeyEvent.KEYCODE_MENU && header != null && item?.baseItem != null) {
 			val menu = keyProcessor.createItemMenu(item, item.baseItem?.userData, requireActivity())
 			menu.menu.add(0, 1001, 300, R.string.recommendation_why).setOnMenuItemClickListener {
@@ -593,6 +600,11 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 
 			if (item is HomeShortcutRowItem && !item.available) {
 				android.widget.Toast.makeText(requireContext(), if (item.watchLater) R.string.watch_later_unavailable_hint else R.string.home_shortcut_unavailable_hint, android.widget.Toast.LENGTH_LONG).show()
+				return
+			}
+			// A pinned genre or studio opens its library limited to it (#96)
+			if (item is HomeShortcutRowItem) item.filter?.let { filter ->
+				navigationRepository.navigate(Destinations.libraryFiltered(filter.library, filter.title, genre = filter.genre, studioId = filter.studioId))
 				return
 			}
 			if (item !is BaseRowItem) return

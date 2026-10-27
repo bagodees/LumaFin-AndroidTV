@@ -12,8 +12,20 @@ import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.BaseItemKind
 import java.util.UUID
 
+/**
+ * A pinned Home shortcut. Genres and studios (#96) belong to a library: [libraryId] is that library,
+ * [entryId] the genre or studio and [filterName] its own name; [id] combines library and entry so the
+ * same genre can be pinned for two libraries.
+ */
 @Serializable
-data class HomeShortcut(val id: String, val name: String, val type: BaseItemKind)
+data class HomeShortcut(
+	val id: String,
+	val name: String,
+	val type: BaseItemKind,
+	val libraryId: String? = null,
+	val entryId: String? = null,
+	val filterName: String? = null,
+)
 
 class HomeShortcutPreferences internal constructor(private val preferences: SharedPreferences, private val servers: ServerRepository, private val users: UserRepository) {
 	constructor(context: Context, servers: ServerRepository, users: UserRepository) : this(PreferenceManager.getDefaultSharedPreferences(context), servers, users)
@@ -30,13 +42,22 @@ class HomeShortcutPreferences internal constructor(private val preferences: Shar
 				.filter { it.type in supportedTypes && runCatching { UUID.fromString(it.id) }.isSuccess }
 				.distinctBy { it.id }
 		}.orEmpty()
-	fun canPin(item: BaseItemDto) = scope != null && item.type in supportedTypes
+	fun canPin(item: BaseItemDto) = scope != null && item.type in itemTypes
 	fun isPinned(id: UUID) = shortcuts.any { it.id == id.toString() }
 	fun pin(item: BaseItemDto) {
 		if (!canPin(item) || isPinned(item.id)) return
 		save(shortcuts + HomeShortcut(item.id.toString(), item.name.orEmpty(), requireNotNull(item.type)))
 	}
 	fun unpin(id: String) = save(shortcuts.filterNot { it.id == id })
+
+	/** A genre or studio [entry] of [library], opening that library limited to it (#96). */
+	fun filterId(library: BaseItemDto, entry: BaseItemDto): UUID = UUID.nameUUIDFromBytes("${library.id}|${entry.id}".toByteArray())
+	fun pinFilter(library: BaseItemDto, entry: BaseItemDto) {
+		val id = filterId(library, entry)
+		if (scope == null || entry.type !in filterTypes || isPinned(id)) return
+		save(shortcuts + HomeShortcut(id.toString(), "${entry.name.orEmpty()} · ${library.name.orEmpty()}", requireNotNull(entry.type),
+			library.id.toString(), entry.id.toString(), entry.name.orEmpty()))
+	}
 	fun move(id: String, delta: Int) {
 		val list = shortcuts.toMutableList()
 		val index = list.indexOfFirst { it.id == id }
@@ -50,6 +71,10 @@ class HomeShortcutPreferences internal constructor(private val preferences: Shar
 		preferences.edit().putString(key, Json.encodeToString(items)).apply()
 	}
 	companion object {
-		private val supportedTypes = setOf(BaseItemKind.USER_VIEW, BaseItemKind.COLLECTION_FOLDER, BaseItemKind.BOX_SET, BaseItemKind.SERIES)
+		/** Items pinned from their own card menu. */
+		private val itemTypes = setOf(BaseItemKind.USER_VIEW, BaseItemKind.COLLECTION_FOLDER, BaseItemKind.BOX_SET, BaseItemKind.SERIES, BaseItemKind.PLAYLIST)
+		/** Pinned from a library's Genres or Studios tab, together with that library. */
+		private val filterTypes = setOf(BaseItemKind.GENRE, BaseItemKind.STUDIO)
+		private val supportedTypes = itemTypes + filterTypes
 	}
 }

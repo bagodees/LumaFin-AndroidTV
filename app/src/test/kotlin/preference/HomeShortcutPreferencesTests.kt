@@ -76,6 +76,33 @@ class HomeShortcutPreferencesTests : FunSpec({
 		prefs.shortcuts.map { it.id } shouldBe listOf(library, show).map { it.id.toString() }
 	}
 
+	test("playlists pin directly; genres and studios pin per library and older shortcuts still load") {
+		val servers = mockk<ServerRepository>()
+		val users = mockk<UserRepository>()
+		every { servers.currentServer } returns MutableStateFlow(server())
+		every { users.currentUser } returns MutableStateFlow(user())
+		val values = mutableMapOf<String, String>()
+		val prefs = HomeShortcutPreferences(storage(values), servers, users)
+		val movies = item(BaseItemKind.COLLECTION_FOLDER)
+		val shows = item(BaseItemKind.COLLECTION_FOLDER)
+		val comedy = item(BaseItemKind.GENRE)
+		prefs.pin(item(BaseItemKind.PLAYLIST))
+		// A genre has no library of its own, so it can only be pinned with one
+		prefs.pin(comedy)
+		prefs.pinFilter(movies, comedy)
+		prefs.pinFilter(shows, comedy)
+		prefs.pinFilter(movies, comedy)
+		prefs.shortcuts.map { it.type } shouldBe listOf(BaseItemKind.PLAYLIST, BaseItemKind.GENRE, BaseItemKind.GENRE)
+		prefs.isPinned(prefs.filterId(movies, comedy)) shouldBe true
+		prefs.shortcuts[1].libraryId shouldBe movies.id.toString()
+		prefs.shortcuts[1].entryId shouldBe comedy.id.toString()
+		prefs.unpin(prefs.filterId(movies, comedy).toString())
+		prefs.isPinned(prefs.filterId(shows, comedy)) shouldBe true
+		val old = java.util.UUID.randomUUID()
+		values[requireNotNull(prefs.scope)] = """[{"id":"$old","name":"Old","type":"Series"}]"""
+		prefs.shortcuts.single().libraryId shouldBe null
+	}
+
 	test("malformed storage and invalid targets cannot break Home") {
 		val servers = mockk<ServerRepository>()
 		val users = mockk<UserRepository>()

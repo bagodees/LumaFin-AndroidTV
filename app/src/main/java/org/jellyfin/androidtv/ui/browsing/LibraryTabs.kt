@@ -75,6 +75,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import org.jellyfin.androidtv.R
+import android.widget.Toast
+import org.jellyfin.androidtv.constant.CustomMessage
+import org.jellyfin.androidtv.data.repository.CustomMessageRepository
+import org.jellyfin.androidtv.preference.HomeShortcutPreferences
+import org.jellyfin.androidtv.ui.base.dialog.LumaFinMenuDialog
+import org.koin.core.context.GlobalContext
 import org.jellyfin.androidtv.constant.Extras
 import org.jellyfin.androidtv.data.repository.ItemRepository
 import org.jellyfin.androidtv.data.service.BackgroundService
@@ -502,11 +508,28 @@ class LibraryNameTilesFragment : Fragment() {
 					cardUrl = thumb?.getUrl(api, maxWidth = 480),
 					backdropUrl = backdropOptions.getOrNull(backdropIndex),
 					onBackdropFailed = { backdropIndex++ },
+					onMenu = { showTileMenu(entry) },
 				) {
 					navigationRepository.navigate(Destinations.libraryFiltered(folder, entry.name.orEmpty(),
 						genre = if (studios) null else entry.name, studioId = if (studios) entry.id.toString() else null))
 				}
 			}
+		}
+	}
+
+	/** Pin to Home or Unpin for a genre or studio of this library (#96). */
+	private fun showTileMenu(entry: BaseItemDto) {
+		val shortcuts = GlobalContext.get().get<HomeShortcutPreferences>()
+		val id = shortcuts.filterId(folder, entry)
+		val pinned = shortcuts.isPinned(id)
+		LumaFinMenuDialog(requireContext(), viewLifecycleOwner, entry.name.orEmpty(), fitContent = true).apply {
+			row(getString(if (pinned) R.string.home_shortcut_unpin else R.string.home_shortcut_pin), navigates = false) {
+				dismiss()
+				if (pinned) shortcuts.unpin(id.toString()) else shortcuts.pinFilter(folder, entry)
+				GlobalContext.get().get<CustomMessageRepository>().pushMessage(CustomMessage.HomeShortcutsChanged)
+				Toast.makeText(requireContext(), if (pinned) R.string.home_shortcut_unpinned else R.string.home_shortcut_pinned, Toast.LENGTH_SHORT).show()
+			}
+			show()
 		}
 	}
 
@@ -516,13 +539,14 @@ class LibraryNameTilesFragment : Fragment() {
 }
 
 @Composable
-private fun NameTile(name: String, logoUrl: String?, cardUrl: String?, backdropUrl: String?, onBackdropFailed: () -> Unit, onClick: () -> Unit) {
+private fun NameTile(name: String, logoUrl: String?, cardUrl: String?, backdropUrl: String?, onBackdropFailed: () -> Unit, onMenu: () -> Unit, onClick: () -> Unit) {
 	val strongFocus = koinInject<UserPreferences>()[UserPreferences.strongFocus]
 	val interactionSource = remember { MutableInteractionSource() }
 	val focused by interactionSource.collectIsFocusedAsState()
 	val shape = RoundedCornerShape(12.dp)
 	ButtonBase(
 		onClick = onClick,
+		onLongClick = onMenu,
 		shape = shape,
 		interactionSource = interactionSource,
 		colors = ButtonDefaults.colors(
@@ -534,6 +558,8 @@ private fun NameTile(name: String, logoUrl: String?, cardUrl: String?, backdropU
 		modifier = Modifier
 			.fillMaxWidth()
 			.height(112.dp)
+			// The remote's Menu key opens the same menu as holding OK
+			.onPreviewKeyEvent { if (it.key == Key.Menu) { if (it.type == KeyEventType.KeyUp) onMenu(); true } else false }
 			.then(if (focused) Modifier.border(if (strongFocus) 3.dp else 2.dp, if (strongFocus) Color.White else LumaFinPalette.Cyan, shape) else Modifier),
 	) {
 		when {
