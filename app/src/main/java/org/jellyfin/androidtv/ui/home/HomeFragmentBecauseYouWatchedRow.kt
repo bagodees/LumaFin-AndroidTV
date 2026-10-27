@@ -53,7 +53,7 @@ class HomeFragmentBecauseYouWatchedRow(
 	}
 
 	companion object {
-		private const val SEED_COUNT = 5
+		private const val SEED_COUNT = 2
 		private const val SIMILAR_ITEM_LIMIT = 20
 	}
 }

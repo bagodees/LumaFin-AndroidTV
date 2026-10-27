@@ -551,7 +551,7 @@
     <string name="card_shape_continue_watching">Continue Watching</string>
     <string name="card_shape_continue_watching_description">Cards in Continue Watching and Up Next on Home.</string>
     <string name="card_shape_home_rows">Other Home rows</string>
-    <string name="card_shape_home_rows_description">Cards in every other Home row, such as Latest Movies.</string>
+    <string name="card_shape_home_rows_description">Cards in every other Home row, such as New Movie Releases.</string>
     <string name="card_shape_libraries">Library grids</string>
     <string name="card_shape_libraries_description">Movies and shows in library grids. Music keeps square covers.</string>
     <string name="home_style">Home style</string>
@@ -594,8 +594,8 @@
     <string name="home_section_active_recordings">Recordings</string>
     <string name="home_section_next_up">Up Next</string>
     <string name="home_section_livetv">Live TV</string>
-    <string name="home_section_latest_movies">Latest Movies</string>
-    <string name="home_section_latest_shows">Latest Shows</string>
+    <string name="home_section_latest_movies">New Movie Releases</string>
+    <string name="home_section_latest_shows">New Show Releases</string>
     <string name="home_section_because_you_watched">Because You Watched</string>
     <string name="home_section_collections">Collections</string>
     <string name="home_section_watch_again">Watch Again</string>

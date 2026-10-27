@@ -47,7 +47,6 @@ enum class HomeLayoutPreset(
 			HomeSectionType.LATEST_SHOWS,
 			HomeSectionType.BECAUSE_YOU_WATCHED,
 			HomeSectionType.LIBRARY_TILES_SMALL,
-			HomeSectionType.LATEST_MEDIA,
 			HomeSectionType.WATCH_AGAIN,
 			HomeSectionType.COLLECTIONS,
 			HomeSectionType.GENRES,

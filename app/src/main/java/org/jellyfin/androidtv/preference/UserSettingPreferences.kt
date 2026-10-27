@@ -44,7 +44,7 @@ class UserSettingPreferences(context: Context, storage: SharedPreferences = Pref
 			enumPreference("homesection3", HomeSectionType.LATEST_SHOWS),
 			enumPreference("homesection4", HomeSectionType.BECAUSE_YOU_WATCHED),
 			enumPreference("homesection5", HomeSectionType.LIBRARY_TILES_SMALL),
-			enumPreference("homesection6", HomeSectionType.LATEST_MEDIA),
+			enumPreference("homesection6", HomeSectionType.NONE),
 			enumPreference("homesection7", HomeSectionType.WATCH_AGAIN),
 			enumPreference("homesection8", HomeSectionType.COLLECTIONS),
 			enumPreference("homesection9", HomeSectionType.GENRES),
@@ -58,6 +58,7 @@ class UserSettingPreferences(context: Context, storage: SharedPreferences = Pref
 
 		// Default order for a fresh install (no legacy slots configured either)
 		val defaultHomeSectionOrder = HomeLayoutPreset.MIXED_LIBRARY.sections
+		private const val OLD_MIXED_DEFAULT = "resume,nextup,latestmovies,latestshows,becauseyouwatched,smalllibrarytiles,latestmedia,watchagain,collections,genres"
 	}
 
 	/**
@@ -68,6 +69,13 @@ class UserSettingPreferences(context: Context, storage: SharedPreferences = Pref
 	var activeHomesections: List<HomeSectionType>
 		get() {
 			val raw = this[homeSectionOrderRaw]
+			// The Mixed default used to also show Recently Added by Library, which repeated the
+			// Latest rows; an untouched old default drops it (Watch Later may have been added to it)
+			if (raw.removeSuffix(",watchlater") == OLD_MIXED_DEFAULT) {
+				val order = defaultHomeSectionOrder + listOfNotNull(HomeSectionType.WATCH_LATER.takeIf { raw != OLD_MIXED_DEFAULT })
+				activeHomesections = order
+				return order
+			}
 			if (raw.isNotBlank()) {
 				return raw.split(',').mapNotNull { name -> HomeSectionType.entries.find { it.serializedName == name } }
 			}
