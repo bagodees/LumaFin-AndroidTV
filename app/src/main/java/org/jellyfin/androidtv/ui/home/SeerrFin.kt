@@ -32,6 +32,8 @@ import androidx.leanback.widget.Presenter
 import androidx.leanback.widget.Row
 import androidx.lifecycle.LifecycleOwner
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -61,7 +63,9 @@ data class SeerrItem(
 	val name: String,
 	val mediaType: String,
 	val mediaId: Int,
+	/** Landscape artwork; replaced with the titled English backdrop when SeerrFin has one. */
 	val imageUrl: String?,
+	val posterUrl: String? = null,
 	val year: Int?,
 	val rating: Float? = null,
 	val tmdbId: Int? = null,
@@ -106,24 +110,41 @@ object SeerrFin {
 		else json.decodeFromString(BaseItemDtoQueryResult.serializer(), response.body.decodeToString()).items.mapNotNull { item ->
 			val ids = item.providerIds.orEmpty()
 			val id = ids["Jellyseerr"]?.toIntOrNull() ?: return@mapNotNull null
+			fun absolute(url: String?) = url?.takeIf { it.isNotBlank() }?.let { if (it.startsWith("/")) api.baseUrl?.trimEnd('/') + it else it }
 			val image = ids["JellyseerrBackdrop"]?.takeIf { it.isNotBlank() } ?: ids["JellyseerrPoster"]?.takeIf { it.isNotBlank() }
 			SeerrItem(
 				name = item.name.orEmpty(),
 				mediaType = item.sourceType ?: if (path.contains("/tv/")) "tv" else "movie",
 				mediaId = id,
 				// Cached images are served by the Jellyfin server
-				imageUrl = image?.let { if (it.startsWith("/")) api.baseUrl?.trimEnd('/') + it else it },
+				imageUrl = absolute(image),
+				posterUrl = absolute(ids["JellyseerrPoster"]),
 				year = item.premiereDate?.year?.takeIf { it > 1970 },
 				rating = item.communityRating,
 				tmdbId = ids["Tmdb"]?.toIntOrNull(),
 			)
-		}
+		// Seerr's pages can repeat a title
+		}.distinctBy { it.mediaType to it.mediaId }
 	} catch (error: CancellationException) {
 		throw error
 	} catch (error: Exception) {
 		Timber.d(error, "SeerrFin not available")
 		null
 	}
+
+	/** The English backdrop with the title on it, like the artwork on LumaFin's other cards; null without one. */
+	suspend fun titledBackdrop(api: ApiClient, item: SeerrItem): String? = try {
+		val tmdbId = item.tmdbId
+		if (tmdbId == null) null else {
+			val response = get(api, "backdrop/${item.mediaType}/$tmdbId")
+			if (response.status !in 200..299) null
+			else json.parseToJsonElement(response.body.decodeToString()).jsonObject.let { body ->
+				if (body["hasEnglishBackdrop"]?.jsonPrimitive?.content != "true") null
+				else body["backdropUrl"]?.jsonPrimitive?.content?.takeIf { it.isNotBlank() }
+					?.let { if (it.startsWith("/")) api.baseUrl?.trimEnd('/') + it else it }
+			}
+		}
+	} catch (error: CancellationException) { throw error } catch (error: Exception) { null }
 
 	/** Logos for previewed Seerr titles, by preview item id; read by the preview's logo. */
 	val logos = MutableStateFlow<Map<java.util.UUID, String>>(emptyMap())
@@ -197,15 +218,22 @@ object SeerrFin {
 /** A Home row of Seerr titles; selecting one offers to request it. */
 class SeerrDiscoverRow(private val api: ApiClient, private val title: Int, private val path: String) : HomeFragmentRow {
 	override suspend fun addToRowsAdapter(context: Context, cardPresenter: CardPresenter, rowsAdapter: MutableObjectAdapter<Row>) {
-		val items = SeerrFin.discover(api, path).orEmpty()
-		if (items.isEmpty()) return
-		val adapter = ArrayObjectAdapter(SeerrCardPresenter()).apply { addAll(0, items) }
+		val discovered = SeerrFin.discover(api, path).orEmpty()
+		if (discovered.isEmpty()) return
+		val preferences = org.koin.core.context.GlobalContext.get().get<org.jellyfin.androidtv.preference.UserPreferences>()
+		val portrait = preferences[org.jellyfin.androidtv.preference.UserPreferences.homeRowsCardShape] == org.jellyfin.androidtv.preference.constant.CardShape.PORTRAIT
+		// Landscape cards use the titled backdrop like other cards; portrait cards use the poster
+		val items = if (portrait) discovered else coroutineScope {
+			discovered.map { item -> async { SeerrFin.titledBackdrop(api, item)?.let { item.copy(imageUrl = it) } ?: item } }
+				.map { it.await() }
+		}
+		val adapter = ArrayObjectAdapter(SeerrCardPresenter(portrait)).apply { addAll(0, items) }
 		rowsAdapter.add(ListRow(HeaderItem(context.getString(title)), adapter))
 	}
 }
 
 /** Landscape cards for Seerr titles, sized like Home's own cards. */
-class SeerrCardPresenter : Presenter() {
+class SeerrCardPresenter(private val portrait: Boolean = false) : Presenter() {
 	override fun onCreateViewHolder(parent: ViewGroup): ViewHolder {
 		// Rows measure cards before they're attached, so borrow the row's composition and lifecycle like CardPresenter
 		val view = ComposeView(parent.context).apply {
@@ -233,26 +261,40 @@ class SeerrCardPresenter : Presenter() {
 		val view = viewHolder.view as ComposeView
 		val focused = MutableStateFlow(view.isFocused)
 		view.onFocusChangeListener = android.view.View.OnFocusChangeListener { _, hasFocus -> focused.value = hasFocus }
+		val preferences = org.koin.core.context.GlobalContext.get().get<org.jellyfin.androidtv.preference.UserPreferences>()
 		view.setContent {
 			val isFocused by focused.collectAsState()
+			// Same sizes and title style as LumaFin's own Home cards; titles follow "Show titles under cards"
+			val titlesHidden by preferences.homeCardTitlesHiddenChanges.collectAsState(
+				initial = preferences[org.jellyfin.androidtv.preference.UserPreferences.newHomeEnabled] && !preferences[org.jellyfin.androidtv.preference.UserPreferences.newHomeCardTitles]
+			)
+			val height = if (portrait) 168.dp else 150.dp
+			val width = if (portrait) height * 2f / 3f else height * 16f / 9f
 			val shape = RoundedCornerShape(12.dp)
-			Column(modifier = Modifier.width(267.dp)) {
+			Column(modifier = Modifier.width(width)) {
 				Box(
 					modifier = Modifier
-						.width(267.dp)
-						.height(150.dp)
+						.width(width)
+						.height(height)
 						.clip(shape)
 						.then(if (isFocused) Modifier.border(3.dp, LumaFinPalette.Cyan, shape) else Modifier),
 				) {
-					AsyncImage(url = seerr.imageUrl, aspectRatio = 16f / 9f, modifier = Modifier.fillMaxSize())
+					AsyncImage(
+						url = if (portrait) seerr.posterUrl ?: seerr.imageUrl else seerr.imageUrl,
+						aspectRatio = if (portrait) 2f / 3f else 16f / 9f,
+						scaleType = android.widget.ImageView.ScaleType.CENTER_CROP,
+						modifier = Modifier.fillMaxSize(),
+					)
 				}
-				Text(
+				if (!titlesHidden) Text(
 					seerr.name,
-					fontSize = 14.sp,
-					color = if (isFocused) Color.White else LumaFinPalette.SecondaryText,
-					maxLines = 1,
+					fontSize = 15.sp,
+					lineHeight = 18.sp,
+					fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
+					color = Color.White,
+					maxLines = 2,
 					overflow = TextOverflow.Ellipsis,
-					modifier = Modifier.padding(top = 6.dp, start = 4.dp),
+					modifier = Modifier.padding(top = 6.dp),
 				)
 			}
 		}
