@@ -2,7 +2,9 @@ package org.jellyfin.androidtv.ui.settings.screen.customization
 
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
+import org.jellyfin.androidtv.preference.constant.CardShape
 import org.jellyfin.androidtv.preference.constant.MediaCardSize
+import org.jellyfin.androidtv.ui.base.LumaFinPalette
 import org.jellyfin.androidtv.preference.constant.TextScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.fragment.app.FragmentActivity
@@ -86,6 +88,24 @@ fun SettingsCustomizationScreen() {
 			ListButton(navigates = true, headingContent = { Text(stringResource(R.string.remote_shortcuts)) },
 				captionContent = { Text(stringResource(longPress.nameRes)) },
 				onClick = { router.push(Routes.REMOTE_SHORTCUTS) }, modifier = Modifier.focusKey(Routes.REMOTE_SHORTCUTS))
+		}
+		// Card style (#123): OK switches between Landscape and Portrait
+		item { ListSection(headingContent = { Text(stringResource(R.string.card_shapes)) }) }
+		listOf(
+			Triple(UserPreferences.continueWatchingCardShape, R.string.card_shape_continue_watching, R.string.card_shape_continue_watching_description),
+			Triple(UserPreferences.homeRowsCardShape, R.string.card_shape_home_rows, R.string.card_shape_home_rows_description),
+			Triple(UserPreferences.libraryCardShape, R.string.card_shape_libraries, R.string.card_shape_libraries_description),
+		).forEach { (preference, title, description) ->
+			item(key = preference.key) {
+				var shape by rememberPreference(userPreferences, preference)
+				ListButton(
+					headingContent = { Text(stringResource(title)) },
+					captionContent = { Text(stringResource(description)) },
+					trailingContent = { Text(stringResource(shape.nameRes), color = LumaFinPalette.Cyan) },
+					onClick = { shape = if (shape == CardShape.PORTRAIT) CardShape.LANDSCAPE else CardShape.PORTRAIT },
+					modifier = Modifier.focusKey(preference.key),
+				)
+			}
 		}
 		item { ListSection(headingContent = { Text(stringResource(R.string.settings_appearance_display)) }) }
 		item {

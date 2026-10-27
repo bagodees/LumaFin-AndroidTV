@@ -493,6 +493,15 @@
     <string name="new_home_details">Details</string>
     <string name="grid_from_letter">Starting at %1$s</string>
     <string name="settings_category_appearance">Appearance</string>
+    <string name="card_shape_landscape">Landscape</string>
+    <string name="card_shape_portrait">Portrait</string>
+    <string name="card_shapes">Card style</string>
+    <string name="card_shape_continue_watching">Continue Watching</string>
+    <string name="card_shape_continue_watching_description">Cards in Continue Watching and Up Next on Home.</string>
+    <string name="card_shape_home_rows">Other Home rows</string>
+    <string name="card_shape_home_rows_description">Cards in every other Home row, such as Latest Movies.</string>
+    <string name="card_shape_libraries">Library grids</string>
+    <string name="card_shape_libraries_description">Movies and shows in library grids. Music keeps square covers.</string>
     <string name="home_style">Home style</string>
     <string name="home_style_description">How Home is laid out. Your Home rows, cards and settings stay the same.</string>
     <string name="home_style_side_menu">Side menu</string>

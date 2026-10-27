@@ -81,8 +81,8 @@ class CardPresenter @JvmOverloads constructor(
 	val compactList: Boolean = false,
 	/** Height of Home cards in dp, before the card size setting. */
 	val homeCardHeight: Int = 150,
-	/** Home cards show portrait posters instead of landscape artwork. */
-	val homePosters: Boolean = false,
+	/** Portrait cover art instead of landscape artwork (card style setting, #123). */
+	val portrait: Boolean = false,
 ) : Presenter() {
 	private val preferences by lazy { GlobalContext.get().get<UserPreferences>() }
 	constructor(showInfo: Boolean, imageType: ImageType, staticHeight: Int) : this(showInfo, imageType, staticHeight, false)
@@ -92,9 +92,9 @@ class CardPresenter @JvmOverloads constructor(
 
 	companion object {
 		fun homeRows() = CardPresenter(true, ImageType.THUMB, 150, true, homeRow = true)
-		/** Home cards at [height] dp, as portrait posters when [posters] is set (the top bar Home style). */
-		fun homeRows(height: Int, posters: Boolean) = CardPresenter(true, if (posters) ImageType.POSTER else ImageType.THUMB, 150, true,
-			homeRow = true, homeCardHeight = height, homePosters = posters)
+		/** Home cards at [height] dp, as portrait covers when [portrait] is set. */
+		fun homeRows(height: Int, portrait: Boolean) = CardPresenter(true, ImageType.THUMB, 150, true,
+			homeRow = true, homeCardHeight = height, portrait = portrait)
 	}
 
 	override fun onCreateViewHolder(parent: ViewGroup): ViewHolder {
@@ -162,7 +162,7 @@ class CardPresenter @JvmOverloads constructor(
 					uniformAspect = uniformAspect,
 					homeRow = homeRow,
 					homeCardHeight = homeCardHeight,
-					homePosters = homePosters,
+					portrait = portrait,
 				)
 			}
 
@@ -325,7 +325,7 @@ private fun CardViewHolderContent(
 	uniformAspect: Boolean,
 	homeRow: Boolean,
 	homeCardHeight: Int = 150,
-	homePosters: Boolean = false,
+	portrait: Boolean = false,
 ) {
 	val context = LocalContext.current
 	val localDensity = LocalDensity.current
@@ -337,13 +337,21 @@ private fun CardViewHolderContent(
 	val homeTitlesHidden by preferences.homeCardTitlesHiddenChanges.collectAsState(
 		initial = preferences[UserPreferences.newHomeEnabled] && !preferences[UserPreferences.newHomeCardTitles]
 	)
-	val displayConfig = remember(item, imageType, uniformAspect, hideArtwork) { item?.getDisplayConfig(imageType, uniformAspect) }
+	// Portrait cards use cover art; landscape cards use wide artwork even where a library's image type is Poster
+	val artType = when {
+		portrait -> ImageType.POSTER
+		imageType == ImageType.POSTER -> ImageType.THUMB
+		else -> imageType
+	}
+	val displayConfig = remember(item, artType, uniformAspect, hideArtwork) { item?.getDisplayConfig(artType, uniformAspect) }
 	if (item == null || displayConfig == null) return
 
 	val image = displayConfig.image
 	val aspectRatio = when {
-		homeRow && homePosters -> ImageHelper.ASPECT_RATIO_2_3.toFloat()
+		homeRow && portrait -> ImageHelper.ASPECT_RATIO_2_3.toFloat()
 		homeRow -> ImageHelper.ASPECT_RATIO_16_9.toFloat()
+		// Square music covers and banners keep their own shape
+		portrait && displayConfig.aspectRatio == ImageHelper.ASPECT_RATIO_16_9.toFloat() -> ImageHelper.ASPECT_RATIO_2_3.toFloat()
 		else -> displayConfig.aspectRatio.takeIf { it >= 0.1f } ?: image?.aspectRatio?.takeIf { it >= 0.1f } ?: 1f
 	}
 

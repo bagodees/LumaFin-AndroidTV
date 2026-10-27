@@ -16,6 +16,7 @@ import org.jellyfin.androidtv.preference.constant.AppTheme
 import org.jellyfin.androidtv.preference.constant.CardLongPressAction
 import org.jellyfin.androidtv.preference.constant.BackdropBehavior
 import org.jellyfin.androidtv.preference.constant.ClockBehavior
+import org.jellyfin.androidtv.preference.constant.CardShape
 import org.jellyfin.androidtv.preference.constant.HomeStyle
 import org.jellyfin.androidtv.preference.constant.MediaCardSize
 import org.jellyfin.androidtv.preference.constant.WatchedIndicatorBehavior
@@ -56,6 +57,9 @@ internal object SettingsBackup {
 		enumeration("backdrop_behavior", BackdropBehavior.BACKDROP_WITH_BLUR.name, BackdropBehavior.entries.map { it.name }),
 		enumeration("media_card_size", MediaCardSize.DEFAULT.name, MediaCardSize.entries.map { it.name }),
 		enumeration("home_style", HomeStyle.SIDE_MENU.name, HomeStyle.entries.map { it.name }),
+		enumeration("card_shape_continue_watching", CardShape.LANDSCAPE.name, CardShape.entries.map { it.name }),
+		enumeration("card_shape_home_rows", CardShape.LANDSCAPE.name, CardShape.entries.map { it.name }),
+		enumeration("card_shape_libraries", CardShape.LANDSCAPE.name, CardShape.entries.map { it.name }),
 		enumeration("pref_clock_behavior", ClockBehavior.ALWAYS.name, ClockBehavior.entries.map { it.name }),
 		enumeration("pref_watched_indicator_behavior", WatchedIndicatorBehavior.ALWAYS.name, WatchedIndicatorBehavior.entries.map { it.name }),
 		Field("reduced_motion", false), Field("new_home_enabled", true), Field("new_home_card_titles", false), Field("hide_unwatched_episode_artwork", false), Field("hide_unwatched_episode_descriptions", false),

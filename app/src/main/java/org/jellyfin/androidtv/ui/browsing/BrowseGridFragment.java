@@ -46,6 +46,9 @@ import org.jellyfin.androidtv.data.service.BackgroundService;
 import org.jellyfin.androidtv.databinding.HorizontalGridBrowseBinding;
 import org.jellyfin.androidtv.databinding.PopupEmptyBinding;
 import org.jellyfin.androidtv.preference.LibraryPreferences;
+import org.jellyfin.androidtv.preference.UserPreferences;
+import org.koin.java.KoinJavaComponent;
+import org.jellyfin.androidtv.preference.constant.CardShape;
 import org.jellyfin.androidtv.preference.PreferencesRepository;
 import org.jellyfin.androidtv.ui.AlphaPickerView;
 import org.jellyfin.androidtv.ui.home.SideMenuFrame;
@@ -95,6 +98,7 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
     private boolean justLoaded = true;
     private PosterSize mPosterSizeSetting = PosterSize.MED;
     private ImageType mImageType = ImageType.POSTER;
+    private CardShape mCardShape = CardShape.LANDSCAPE;
     private GridDirection mGridDirection = GridDirection.HORIZONTAL;
     private BrowseGridLayout mLayout;
     private boolean mCompactList = false;
@@ -160,6 +164,7 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
         libraryPreferences = preferencesRepository.getValue().getLibraryPreferences(Objects.requireNonNull(mFolder.getDisplayPreferencesId()));
         mPosterSizeSetting = libraryPreferences.get(LibraryPreferences.Companion.getPosterSize());
         mImageType = libraryPreferences.get(LibraryPreferences.Companion.getImageType());
+        mCardShape = KoinJavaComponent.<UserPreferences>get(UserPreferences.class).get(UserPreferences.Companion.getLibraryCardShape());
         mGridDirection = libraryPreferences.get(LibraryPreferences.Companion.getGridDirection());
         mCompactList = CompactLibraryKt.supportsCompactList(mFolder.getCollectionType()) && libraryPreferences.get(LibraryPreferences.Companion.getCompactList());
         mCardFocusScale = getResources().getFraction(R.fraction.card_scale_focus, 1, 1);
@@ -423,6 +428,11 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
         mRowDef = rowDef;
     }
 
+    /** Portrait cards (#123) apply where the library shows Poster images; Thumb and Banner keep their shapes. */
+    private boolean isPortrait() {
+        return mCardShape == CardShape.PORTRAIT && mImageType == ImageType.POSTER;
+    }
+
     private double getCardWidthBy(final double cardHeight, ImageType imageType, BaseItemDto folder) {
         switch (imageType) {
             case POSTER:
@@ -433,7 +443,7 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
                 } else if (fType == BaseItemKind.COLLECTION_FOLDER && CollectionType.MUSIC.equals(folder.getCollectionType())) {
                     return cardHeight;
                 } else {
-                    return cardHeight * ImageHelper.ASPECT_RATIO_16_9;
+                    return cardHeight * (isPortrait() ? ImageHelper.ASPECT_RATIO_2_3 : ImageHelper.ASPECT_RATIO_16_9);
                 }
             case THUMB:
                 return cardHeight * ImageHelper.ASPECT_RATIO_16_9;
@@ -454,7 +464,7 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
                 } else if (fType == BaseItemKind.COLLECTION_FOLDER && CollectionType.MUSIC.equals(folder.getCollectionType())) {
                     return cardWidth;
                 } else {
-                    return cardWidth / ImageHelper.ASPECT_RATIO_16_9;
+                    return cardWidth / (isPortrait() ? ImageHelper.ASPECT_RATIO_2_3 : ImageHelper.ASPECT_RATIO_16_9);
                 }
             case THUMB:
                 return cardWidth / ImageHelper.ASPECT_RATIO_16_9;
@@ -493,6 +503,16 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
                 default:
                     throw new IllegalStateException("Unexpected value: " + mPosterSizeSetting);
             }
+            // Portrait posters are narrower, so more fit across (#123)
+            if (isPortrait()) {
+                switch (posterSize) {
+                    case SMALLEST: numCols = 9; break;
+                    case SMALL: numCols = 8; break;
+                    case MED: numCols = 7; break;
+                    case LARGE: numCols = 5; break;
+                    default: numCols = 4; break;
+                }
+            }
             ((VerticalGridPresenter) mGridPresenter).setNumberOfColumns(numCols);
         } else if (mGridPresenter instanceof HorizontalGridPresenter) {
             int numRows;
@@ -514,6 +534,15 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
                     break;
                 default:
                     throw new IllegalStateException("Unexpected value: " + mPosterSizeSetting);
+            }
+            // Portrait posters are taller, so fewer rows fit (#123)
+            if (isPortrait()) {
+                switch (posterSize) {
+                    case SMALLEST: numRows = 3; break;
+                    case SMALL:
+                    case MED: numRows = 2; break;
+                    default: numRows = 1; break;
+                }
             }
             ((HorizontalGridPresenter) mGridPresenter).setNumberOfRows(numRows);
         }
@@ -658,16 +687,18 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
 
         PosterSize posterSizeSetting = libraryPreferences.get(LibraryPreferences.Companion.getPosterSize());
         ImageType imageType = libraryPreferences.get(LibraryPreferences.Companion.getImageType());
+        CardShape cardShape = KoinJavaComponent.<UserPreferences>get(UserPreferences.class).get(UserPreferences.Companion.getLibraryCardShape());
         GridDirection gridDirection = libraryPreferences.get(LibraryPreferences.Companion.getGridDirection());
 
         boolean compactList = CompactLibraryKt.supportsCompactList(mFolder.getCollectionType()) && libraryPreferences.get(LibraryPreferences.Companion.getCompactList());
 
-        if (mCompactList != compactList || mImageType != imageType || mPosterSizeSetting != posterSizeSetting || mGridDirection != gridDirection || mDirty) {
+        if (mCompactList != compactList || mImageType != imageType || mCardShape != cardShape || mPosterSizeSetting != posterSizeSetting || mGridDirection != gridDirection || mDirty) {
             determiningPosterSize = true;
             mDirty = true;
             mCompactList = compactList;
 
             mImageType = imageType;
+            mCardShape = cardShape;
             mPosterSizeSetting = posterSizeSetting;
             mGridDirection = gridDirection;
 
@@ -705,7 +736,7 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
     private void buildAdapter() {
         if (mAdapter != null) mAdapter.getPageRequest().cancel();
         if (mAdapter != null && mAdapter.getRuntimeController() != null) mAdapter.getRuntimeController().clear();
-        mCardPresenter = new CardPresenter(false, mImageType, mCardHeight, true, false, mCompactList);
+        mCardPresenter = new CardPresenter(false, mImageType, mCardHeight, true, false, mCompactList, 150, isPortrait());
 
         Timber.d("buildAdapter cardHeight <%s> getCardWidthBy <%s> chunks <%s> type <%s>", mCardHeight, (int) getCardWidthBy(mCardHeight, mImageType, mFolder), mRowDef.getChunkSize(), mRowDef.getQueryType().toString());
 

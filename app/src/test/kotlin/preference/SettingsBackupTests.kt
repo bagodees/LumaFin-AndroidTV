@@ -24,6 +24,13 @@ class SettingsBackupTests : FunSpec({
 		SettingsBackup.review(backup(""""home_style":"TOP_BAR"""")).values["home_style"] shouldBe "TOP_BAR"
 		shouldThrowAny { SettingsBackup.review(backup(""""home_style":"GRID"""")) }
 	}
+	test("card shapes default to landscape and round trip") {
+		listOf("card_shape_continue_watching", "card_shape_home_rows", "card_shape_libraries").forEach { key ->
+			defaults()[key] shouldBe "LANDSCAPE"
+			SettingsBackup.review(backup(""""$key":"PORTRAIT"""")).values[key] shouldBe "PORTRAIT"
+		}
+		shouldThrowAny { SettingsBackup.review(backup(""""card_shape_libraries":"SQUARE"""")) }
+	}
 	test("partial restore retains omissions and reports unsupported fields without applying them") {
 		val review = SettingsBackup.review(backup(""""subtitle_brightness":60,"access_token":"ignore","new_future_setting":true"""))
 		review.values shouldBe mapOf("subtitle_brightness" to 60)
