@@ -62,6 +62,8 @@ import org.jellyfin.androidtv.ui.navigation.Destinations
 import org.jellyfin.androidtv.ui.navigation.NavigationRepository
 import org.jellyfin.androidtv.ui.playback.AudioEventListener
 import org.jellyfin.androidtv.ui.playback.MediaManager
+import org.jellyfin.androidtv.preference.UserPreferences
+import org.jellyfin.androidtv.preference.constant.HomeStyle
 import org.jellyfin.androidtv.ui.presentation.CardPresenter
 import org.jellyfin.androidtv.ui.presentation.MutableObjectAdapter
 import java.io.IOException
@@ -76,7 +78,11 @@ import org.koin.android.ext.android.inject
 import timber.log.Timber
 import kotlin.time.Duration.Companion.seconds
 
+/** Card height in dp for the top bar style's Continue Watching and poster rows (the other rows use 150). */
+private const val TOP_BAR_LARGE_CARD_HEIGHT = 168
+
 class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyListener {
+	private val userPreferences by inject<UserPreferences>()
 	private val api by inject<ApiClient>()
 	private val sessionRepository by inject<SessionRepository>()
 	private var homeLoadGeneration = 0L
@@ -135,6 +141,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 	private var loadedHiddenRecommendations: Map<String, String> = emptyMap()
 	private var loadedHideWatchedLatestMovies = false
 	private var loadedHideWatchedRecentlyAddedMovies = false
+	private var loadedHomeStyle = HomeStyle.SIDE_MENU
 
 	private fun homePreferencesChanged() = watchLaterPreferences.items != loadedWatchLater || shortcutPreferences.shortcuts != loadedShortcuts || recommendationPreferences.hiddenRows != loadedHiddenRecommendations || userSettingPreferences.activeHomesections != loadedHomeSections ||
 		userSettingPreferences[UserSettingPreferences.latestMoviesItemLimit] != loadedLatestMoviesLimit ||
@@ -142,7 +149,8 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 		userSettingPreferences[UserSettingPreferences.recentlyAddedMoviesItemLimit] != loadedRecentlyAddedMoviesLimit ||
 		userSettingPreferences[UserSettingPreferences.recentlyAddedShowsItemLimit] != loadedRecentlyAddedShowsLimit ||
 		userSettingPreferences[UserSettingPreferences.hideWatchedLatestMovies] != loadedHideWatchedLatestMovies ||
-		userSettingPreferences[UserSettingPreferences.hideWatchedRecentlyAddedMovies] != loadedHideWatchedRecentlyAddedMovies
+		userSettingPreferences[UserSettingPreferences.hideWatchedRecentlyAddedMovies] != loadedHideWatchedRecentlyAddedMovies ||
+		userPreferences[UserPreferences.homeStyle] != loadedHomeStyle
 
 	// Special rows
 	private val notificationsRow by lazy { NotificationsHomeFragmentRow(lifecycleScope, notificationsRepository) }
@@ -277,6 +285,12 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 
 		// Make sure the rows are empty
 		val rows = mutableListOf<HomeFragmentRow>(HomeFragmentShortcutsRow(shortcuts))
+		// The top bar Home style shows larger Continue Watching cards and Latest Movies as posters
+		loadedHomeStyle = userPreferences[UserPreferences.homeStyle]
+		val topBar = userPreferences[UserPreferences.newHomeEnabled] && loadedHomeStyle == HomeStyle.TOP_BAR
+		val rowPresenters = mutableMapOf<HomeFragmentRow, CardPresenter>()
+		fun MutableList<HomeFragmentRow>.addLarge(row: HomeFragmentRow) { add(row); if (topBar) rowPresenters[row] = CardPresenter.homeRows(TOP_BAR_LARGE_CARD_HEIGHT, posters = false) }
+		fun MutableList<HomeFragmentRow>.addPosters(row: HomeFragmentRow) { add(row); if (topBar) rowPresenters[row] = CardPresenter.homeRows(TOP_BAR_LARGE_CARD_HEIGHT, posters = true) }
 
 		// Check for coroutine cancellation
 		if (!current()) throw CancellationException("Home load replaced")
@@ -286,7 +300,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 			HomeSectionType.LATEST_MEDIA -> rows.add(helper.loadRecentlyAdded(userViewsRepository.views.first(), loadedRecentlyAddedMoviesLimit, loadedRecentlyAddedShowsLimit, loadedHideWatchedRecentlyAddedMovies))
 			HomeSectionType.LIBRARY_TILES_SMALL -> rows.add(HomeFragmentViewsRow(small = false))
 			HomeSectionType.LIBRARY_BUTTONS -> rows.add(HomeFragmentViewsRow(small = true))
-			HomeSectionType.RESUME -> rows.add(helper.loadResumeVideo())
+			HomeSectionType.RESUME -> rows.addLarge(helper.loadResumeVideo())
 			HomeSectionType.RESUME_AUDIO -> rows.add(helper.loadResumeAudio())
 			HomeSectionType.RESUME_BOOK -> Unit // Books are not (yet) supported
 			HomeSectionType.ACTIVE_RECORDINGS -> rows.add(helper.loadLatestLiveTvRecordings())
@@ -296,13 +310,13 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 				rows.add(helper.loadOnNow())
 			}
 
-			HomeSectionType.LATEST_MOVIES -> rows.add(helper.loadLatestMovies(loadedLatestMoviesLimit, loadedHideWatchedLatestMovies))
+			HomeSectionType.LATEST_MOVIES -> rows.addPosters(helper.loadLatestMovies(loadedLatestMoviesLimit, loadedHideWatchedLatestMovies))
 			HomeSectionType.LATEST_SHOWS -> rows.add(helper.loadLatestShows(loadedLatestShowsLimit))
 			HomeSectionType.BECAUSE_YOU_WATCHED -> rows.add(HomeFragmentBecauseYouWatchedRow(api, loadedHiddenRecommendations))
 			HomeSectionType.COLLECTIONS -> rows.add(HomeFragmentCollectionsRow(api, userViewsRepository.views.first()))
 			HomeSectionType.WATCH_AGAIN -> rows.add(helper.loadWatchAgain())
 			HomeSectionType.GENRES -> rows.add(HomeFragmentGenreRow(api))
-			HomeSectionType.CONTINUE_WATCHING_NEXT_UP -> rows.add(HomeFragmentContinueWatchingNextUpRow(api))
+			HomeSectionType.CONTINUE_WATCHING_NEXT_UP -> rows.addLarge(HomeFragmentContinueWatchingNextUpRow(api))
 			HomeSectionType.WATCH_LATER -> rows.add(HomeFragmentShortcutsRow(loadHomeShortcuts(api, loadedWatchLater, emptyList(), true), R.string.watch_later))
 			HomeSectionType.FAVORITES -> rows.add(helper.loadFavorites())
 			HomeSectionType.RECENTLY_ADDED_MOVIES -> rows.add(helper.loadRecentlyAddedMovies(loadedRecentlyAddedMoviesLimit, loadedHideWatchedRecentlyAddedMovies))
@@ -337,7 +351,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 			// Add rows in order
 			notificationsRow.addToRowsAdapter(requireContext(), cardPresenter, rowsAdapter)
 			nowPlaying.addToRowsAdapter(requireContext(), cardPresenter, rowsAdapter)
-			for (row in rows) row.addToRowsAdapter(requireContext(), cardPresenter, rowsAdapter)
+			for (row in rows) row.addToRowsAdapter(requireContext(), rowPresenters[row] ?: cardPresenter, rowsAdapter)
 
 			// Wire up Live TV sibling rows so the On Now row removes the buttons row when empty
 			for (i in 0 until rowsAdapter.size()) {

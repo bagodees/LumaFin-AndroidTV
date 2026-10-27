@@ -79,6 +79,10 @@ class CardPresenter @JvmOverloads constructor(
 	val uniformAspect: Boolean,
 	val homeRow: Boolean = false,
 	val compactList: Boolean = false,
+	/** Height of Home cards in dp, before the card size setting. */
+	val homeCardHeight: Int = 150,
+	/** Home cards show portrait posters instead of landscape artwork. */
+	val homePosters: Boolean = false,
 ) : Presenter() {
 	private val preferences by lazy { GlobalContext.get().get<UserPreferences>() }
 	constructor(showInfo: Boolean, imageType: ImageType, staticHeight: Int) : this(showInfo, imageType, staticHeight, false)
@@ -88,6 +92,9 @@ class CardPresenter @JvmOverloads constructor(
 
 	companion object {
 		fun homeRows() = CardPresenter(true, ImageType.THUMB, 150, true, homeRow = true)
+		/** Home cards at [height] dp, as portrait posters when [posters] is set (the top bar Home style). */
+		fun homeRows(height: Int, posters: Boolean) = CardPresenter(true, if (posters) ImageType.POSTER else ImageType.THUMB, 150, true,
+			homeRow = true, homeCardHeight = height, homePosters = posters)
 	}
 
 	override fun onCreateViewHolder(parent: ViewGroup): ViewHolder {
@@ -154,6 +161,8 @@ class CardPresenter @JvmOverloads constructor(
 					staticHeight = staticHeight,
 					uniformAspect = uniformAspect,
 					homeRow = homeRow,
+					homeCardHeight = homeCardHeight,
+					homePosters = homePosters,
 				)
 			}
 
@@ -315,6 +324,8 @@ private fun CardViewHolderContent(
 	staticHeight: Int,
 	uniformAspect: Boolean,
 	homeRow: Boolean,
+	homeCardHeight: Int = 150,
+	homePosters: Boolean = false,
 ) {
 	val context = LocalContext.current
 	val localDensity = LocalDensity.current
@@ -330,15 +341,18 @@ private fun CardViewHolderContent(
 	if (item == null || displayConfig == null) return
 
 	val image = displayConfig.image
-	val aspectRatio = if (homeRow) ImageHelper.ASPECT_RATIO_16_9.toFloat() else displayConfig.aspectRatio.takeIf { it >= 0.1f }
-		?: image?.aspectRatio?.takeIf { it >= 0.1f } ?: 1f
+	val aspectRatio = when {
+		homeRow && homePosters -> ImageHelper.ASPECT_RATIO_2_3.toFloat()
+		homeRow -> ImageHelper.ASPECT_RATIO_16_9.toFloat()
+		else -> displayConfig.aspectRatio.takeIf { it >= 0.1f } ?: image?.aspectRatio?.takeIf { it >= 0.1f } ?: 1f
+	}
 
 	val cardSize by preferences.mediaCardSizeChanges.collectAsState(initial = preferences[UserPreferences.mediaCardSize])
 	val mediaTypes = setOf(BaseItemKind.MOVIE, BaseItemKind.SERIES, BaseItemKind.SEASON, BaseItemKind.EPISODE,
 		BaseItemKind.AUDIO, BaseItemKind.MUSIC_ALBUM, BaseItemKind.MUSIC_VIDEO, BaseItemKind.BOOK, BaseItemKind.AUDIO_BOOK,
 		BaseItemKind.USER_VIEW, BaseItemKind.COLLECTION_FOLDER)
 	val scale = if (homeRow || item.baseItem?.type in mediaTypes) cardSize.scale else 1f
-	val baseSize = if (homeRow) DpSize(150.dp * aspectRatio, 150.dp) else when (item.staticHeight) {
+	val baseSize = if (homeRow) DpSize(homeCardHeight.dp * aspectRatio, homeCardHeight.dp) else when (item.staticHeight) {
 		true -> DpSize(staticHeight.dp * aspectRatio, staticHeight.dp)
 		false if (aspectRatio > 1f) -> DpSize(130.dp * aspectRatio, 130.dp)
 		else -> DpSize(150.dp * aspectRatio, 150.dp)

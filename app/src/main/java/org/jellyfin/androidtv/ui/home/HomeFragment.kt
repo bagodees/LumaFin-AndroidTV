@@ -48,7 +48,7 @@ import org.koin.android.ext.android.inject
 import org.koin.compose.viewmodel.koinActivityViewModel
 
 /** Height of the focused title's details in the top bar style, between the bar and the rows. */
-private val TopBarInfoHeight = 216.dp
+private val TopBarInfoHeight = 196.dp
 
 class HomeFragment : Fragment() {
 	private val sessionRepository by inject<SessionRepository>()
