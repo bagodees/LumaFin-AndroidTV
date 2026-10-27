@@ -81,6 +81,13 @@ watched-status changes. GitHub and the website/update feed are live. Google Play
 Alpha is submitted and verified in review (submission 10, October 26).
 Amazon remains untouched. Release notes: [1.1.1](docs/releases/1.1.1.md).
 
+Next bug-fix release (1.1.2, not released): fixes found on the owner's Sony X90J on
+October 26. Audio no longer starts late and stays seconds behind the picture when the
+TV briefly reports a negative audio position as Dolby passthrough starts; the player
+controls no longer relayout every frame while open; and the app no longer crashes when
+it goes to the background while signed out on leave. 1.1.2-test.1 (code 1010201) is
+installed on the TV for checking; nothing is uploaded or published.
+
 1. [x] Design two Home concepts and choose one ([#80](https://github.com/bagodees/LumaFin-AndroidTV/issues/80)): concept A (side rail with a preview area) chosen; concept B (top bar with backdrop) becomes a Home style option in 1.2
 2. [x] New Home screen, concept A ([#81](https://github.com/bagodees/LumaFin-AndroidTV/issues/81))
 3. [x] LumaFin layout by default, with "Switch to classic Jellyfin style" ([#82](https://github.com/bagodees/LumaFin-AndroidTV/issues/82))

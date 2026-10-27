@@ -4,6 +4,7 @@ import static java.lang.Math.round;
 
 import android.content.Context;
 import android.os.Handler;
+import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -450,13 +451,16 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
                 }
             }
         }
-        mFocusLabel.setText(label != null ? label : "");
+        // This also runs from a layout listener; setting an unchanged text or width would request
+        // another layout and loop every frame.
+        CharSequence text = label != null ? label : "";
+        if (!TextUtils.equals(mFocusLabel.getText(), text)) mFocusLabel.setText(text);
         if (label != null && focused != null) {
             View selected = entry != null ? entry : focused;
             int labelWidth = (int) Math.ceil(mFocusLabel.getPaint().measureText(label.toString()))
                     + mFocusLabel.getPaddingLeft() + mFocusLabel.getPaddingRight();
-            mFocusLabel.setWidth(labelWidth);
-            mFocusLabel.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+            if (mFocusLabel.getMinWidth() != labelWidth || mFocusLabel.getMaxWidth() != labelWidth) mFocusLabel.setWidth(labelWidth);
+            if (mFocusLabel.getTextAlignment() != View.TEXT_ALIGNMENT_CENTER) mFocusLabel.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
             mFocusLabel.post(() -> {
                 int[] selectedLocation = new int[2];
                 int[] parentLocation = new int[2];

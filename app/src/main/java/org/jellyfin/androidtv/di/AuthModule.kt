@@ -1,5 +1,7 @@
 package org.jellyfin.androidtv.di
 
+import android.os.Handler
+import android.os.Looper
 import org.jellyfin.androidtv.auth.repository.AuthenticationRepository
 import org.jellyfin.androidtv.auth.repository.AuthenticationRepositoryImpl
 import org.jellyfin.androidtv.auth.repository.ServerRepository
@@ -36,7 +38,12 @@ val authModule = module {
 	single<SessionRepository> {
 		val jellyfin = get<Jellyfin>()
 		SessionRepositoryImpl(get(), get(), get(), get(), get(defaultDeviceInfo), get(), get(), get(), get(), get(),
-			{ get<org.jellyfin.androidtv.ui.playback.MediaManager>().clearAudioQueue() },
+			{
+				// Sessions are restored and destroyed on Dispatchers.IO, but the player must only be used on main.
+				val clear = { get<org.jellyfin.androidtv.ui.playback.MediaManager>().clearAudioQueue() }
+				if (Looper.myLooper() == Looper.getMainLooper()) clear()
+				else Handler(Looper.getMainLooper()).post { clear() }
+			},
 			{ server, session, device ->
 				val api = jellyfin.createApi(server.address, deviceInfo = device)
 				api.update(accessToken = session.accessToken)
