@@ -65,6 +65,7 @@ import org.jellyfin.androidtv.ui.playback.MediaManager
 import org.jellyfin.androidtv.preference.UserPreferences
 import org.jellyfin.androidtv.preference.constant.CardShape
 import org.jellyfin.androidtv.preference.constant.HomeStyle
+import org.jellyfin.androidtv.ui.base.dialog.showLumaFin
 import org.jellyfin.androidtv.ui.presentation.CardPresenter
 import org.jellyfin.androidtv.ui.presentation.MutableObjectAdapter
 import java.io.IOException
@@ -422,12 +423,12 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 			val menu = PopupMenu(requireContext(), v ?: requireView())
 			item.baseItem?.let { if (item.watchLater) org.jellyfin.androidtv.util.addWatchLaterMenu(menu, requireActivity(), it) else addHomeShortcutMenu(menu, requireActivity(), it) }
 			menu.menu.add(R.string.home_shortcut_retry).setOnMenuItemClickListener { loadHomeRows(); true }
-			menu.show()
+			menu.showLumaFin(v ?: requireView(), item.getCardName(requireContext()))
 			return true
 		}
 		if (keyCode == KeyEvent.KEYCODE_MENU && header != null && item?.baseItem != null) {
 			val menu = keyProcessor.createItemMenu(item, item.baseItem?.userData, requireActivity())
-			menu.menu.add(0, 1001, 0, R.string.recommendation_why).setOnMenuItemClickListener {
+			menu.menu.add(0, 1001, 300, R.string.recommendation_why).setOnMenuItemClickListener {
 				LumaFinMenuDialog(requireContext(), viewLifecycleOwner, getString(R.string.because_you_watched, header.seedName),
                     getString(R.string.recommendation_explanation, header.seedName), fitContent = true).apply {
                     button(getString(android.R.string.ok), primary = true) { dismiss() }
@@ -435,7 +436,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
                 }
 				true
 			}
-			menu.menu.add(0, 1002, 0, R.string.recommendation_hide).setOnMenuItemClickListener {
+			menu.menu.add(0, 1002, 301, R.string.recommendation_hide).setOnMenuItemClickListener {
 				recommendationPreferences.hide(header.seedId, header.seedName)
 				loadedHiddenRecommendations = recommendationPreferences.hiddenRows
 				@Suppress("UNCHECKED_CAST")
@@ -448,6 +449,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 				android.widget.Toast.makeText(requireContext(), R.string.recommendation_hidden, android.widget.Toast.LENGTH_LONG).show()
 				true
 			}
+			menu.showLumaFin(requireActivity(), item.baseItem?.name)
 			return true
 		}
 		return keyProcessor.handleKey(keyCode, currentItem, activity)

@@ -8,6 +8,7 @@ import android.view.SubMenu
 import android.view.View
 import android.widget.PopupMenu
 import androidx.annotation.GravityInt
+import org.jellyfin.androidtv.ui.base.dialog.showLumaFin
 
 class MenuBuilder(
 	private val menu: Menu
@@ -36,7 +37,7 @@ fun popupMenu(
 	MenuBuilder(menu).init()
 }
 
-fun PopupMenu.showIfNotEmpty() = if (menu.hasVisibleItems()) {
-	show()
-	true
+/** Shows the menu in LumaFin's menu panel (#84) when it has anything to show. */
+fun PopupMenu.showIfNotEmpty(anchor: View) = if (menu.hasVisibleItems()) {
+	showLumaFin(anchor)
 } else false

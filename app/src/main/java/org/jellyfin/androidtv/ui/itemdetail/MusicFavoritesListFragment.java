@@ -12,6 +12,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
+
+import org.jellyfin.androidtv.ui.base.dialog.LumaFinActionMenu;
 import android.widget.ScrollView;
 
 import androidx.annotation.NonNull;
@@ -263,7 +265,7 @@ public class MusicFavoritesListFragment extends Fragment implements View.OnKeyLi
 
         }
 
-        menu.show();
+        LumaFinActionMenu.showLumaFin(menu, row != null ? row : requireActivity().getCurrentFocus());
     }
 
     private Function1<List<BaseItemDto>, Unit> itemResponse = (List<BaseItemDto> items) -> {

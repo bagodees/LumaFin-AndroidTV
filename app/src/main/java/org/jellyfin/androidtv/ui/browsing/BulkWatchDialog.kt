@@ -74,7 +74,7 @@ fun showBulkWatchSelection(view: View, focused: UUID?) { bulkWatchHost(view)?.sh
 fun addBulkWatchMenuItem(menu: PopupMenu, anchor: View?, focused: UUID) {
 	val host = bulkWatchHost(anchor) ?: return
 	if (host.targets().size < 2) return
-	menu.menu.add(R.string.bulk_watch_title).setOnMenuItemClickListener {
+	menu.menu.add(0, android.view.Menu.NONE, 210, R.string.bulk_watch_title).setOnMenuItemClickListener {
 		host.root.post { host.show(focused) }; true
 	}
 }

@@ -493,6 +493,7 @@
     <string name="new_home_details">Details</string>
     <string name="grid_from_letter">Starting at %1$s</string>
     <string name="settings_category_appearance">Appearance</string>
+    <string name="action_menu_title">Options</string>
     <string name="card_shape_landscape">Landscape</string>
     <string name="card_shape_portrait">Portrait</string>
     <string name="card_shapes">Card style</string>

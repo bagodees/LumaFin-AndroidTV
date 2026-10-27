@@ -112,7 +112,7 @@ class ServerButtonView @JvmOverloads constructor(
 
 	fun setPopupMenu(init: MenuBuilder.() -> Unit) {
 		setOnLongClickListener {
-			popupMenu(context, this, init = init).showIfNotEmpty()
+			popupMenu(context, this, init = init).showIfNotEmpty(this)
 		}
 	}
 

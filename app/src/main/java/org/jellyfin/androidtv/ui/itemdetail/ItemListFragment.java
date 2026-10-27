@@ -14,6 +14,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
+
+import org.jellyfin.androidtv.ui.base.dialog.LumaFinActionMenu;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
@@ -296,7 +298,7 @@ public class ItemListFragment extends Fragment implements View.OnKeyListener {
 
         }
 
-        menu.show();
+        LumaFinActionMenu.showLumaFin(menu, row != null ? row : requireActivity().getCurrentFocus());
     }
 
     public void setBaseItem(BaseItemDto item) {

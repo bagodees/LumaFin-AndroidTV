@@ -5,6 +5,8 @@ import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.widget.PopupMenu;
 
+import org.jellyfin.androidtv.ui.base.dialog.LumaFinActionMenu;
+
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.LifecycleOwner;
 
@@ -49,6 +51,7 @@ public class KeyProcessor {
     public static final int MENU_CLEAR_QUEUE = 12;
     public static final int MENU_TOGGLE_SHUFFLE = 13;
     public static final int MENU_REMOVE_CONTINUE_WATCHING = 14;
+    public static final int MENU_GOTO_SERIES = 15;
 
     private final Lazy<MediaManager> mediaManager = KoinJavaComponent.<MediaManager>inject(MediaManager.class);
     private final Lazy<NavigationRepository> navigationRepository = KoinJavaComponent.<NavigationRepository>inject(NavigationRepository.class);
@@ -75,7 +78,7 @@ public class KeyProcessor {
                         switch (item.getType()) {
                             case AUDIO:
                                 if (rowItem instanceof AudioQueueBaseRowItem) {
-                                    createItemMenu(rowItem, item.getUserData(), activity);
+                                    showItemMenu(rowItem, item.getUserData(), activity);
                                     return true;
                                 }
                                 //fall through...
@@ -158,7 +161,7 @@ public class KeyProcessor {
                             case AUDIO:
                             case TRAILER:
                                 // generate a standard item menu
-                                createItemMenu(rowItem, item.getUserData(), activity);
+                                showItemMenu(rowItem, item.getUserData(), activity);
                                 break;
                         }
                         break;
@@ -208,11 +211,14 @@ public class KeyProcessor {
                 menu.getMenu().add(0, MENU_CLEAR_QUEUE, order++, R.string.lbl_clear_queue);
             }
         } else {
-            if (KeyProcessorHelperKt.canRemoveFromContinueWatching(item)) {
-                menu.getMenu().add(0, MENU_REMOVE_CONTINUE_WATCHING, order++, R.string.remove_continue_watching);
-            }
+            // One order for every card (#84): play options, then watch state and favorites, then navigation
             boolean isLibrary = item.getType() == BaseItemKind.USER_VIEW || item.getType() == BaseItemKind.COLLECTION_FOLDER;
             boolean isFolder = item.isFolder() != null && item.isFolder();
+            boolean isMusic = item.getType() == BaseItemKind.MUSIC_ALBUM
+                    || item.getType() == BaseItemKind.MUSIC_ARTIST
+                    || item.getType() == BaseItemKind.AUDIO
+                    || (item.getType() == BaseItemKind.PLAYLIST && MediaType.AUDIO.equals(item.getMediaType()));
+
             if (!isLibrary && BaseItemExtensionsKt.canPlay(item)) {
                 if (isFolder
                         && item.getType() != BaseItemKind.MUSIC_ALBUM
@@ -229,16 +235,8 @@ public class KeyProcessor {
                 }
             }
 
-            boolean isMusic = item.getType() == BaseItemKind.MUSIC_ALBUM
-                    || item.getType() == BaseItemKind.MUSIC_ARTIST
-                    || item.getType() == BaseItemKind.AUDIO
-                    || (item.getType() == BaseItemKind.PLAYLIST && MediaType.AUDIO.equals(item.getMediaType()));
-
             if (isMusic) {
                 menu.getMenu().add(0, MENU_ADD_QUEUE, order++, R.string.lbl_add_to_queue);
-            }
-
-            if (isMusic) {
                 if (item.getType() != BaseItemKind.PLAYLIST) {
                     menu.getMenu().add(0, MENU_INSTANT_MIX, order++, R.string.lbl_instant_mix);
                 }
@@ -250,6 +248,10 @@ public class KeyProcessor {
                 }
             }
 
+            if (KeyProcessorHelperKt.canRemoveFromContinueWatching(item)) {
+                menu.getMenu().add(0, MENU_REMOVE_CONTINUE_WATCHING, order++, R.string.remove_continue_watching);
+            }
+
             if (!isLibrary && userData != null) {
                 if (userData.isFavorite()) {
                     menu.getMenu().add(0, MENU_UNMARK_FAVORITE, order++, activity.getString(R.string.lbl_remove_favorite));
@@ -257,13 +259,23 @@ public class KeyProcessor {
                     menu.getMenu().add(0, MENU_MARK_FAVORITE, order++, activity.getString(R.string.lbl_add_favorite));
                 }
             }
+
+            if ((item.getType() == BaseItemKind.EPISODE || item.getType() == BaseItemKind.SEASON) && item.getSeriesId() != null) {
+                menu.getMenu().add(0, MENU_GOTO_SERIES, 200, R.string.lbl_goto_series);
+            }
         }
 
         HomeShortcutMenuKt.addHomeShortcutMenu(menu, activity, item);
         WatchLaterMenuKt.addWatchLaterMenu(menu, activity, item);
         org.jellyfin.androidtv.ui.browsing.BulkWatchDialogKt.addBulkWatchMenuItem(menu, activity.getCurrentFocus(), item.getId());
         menu.setOnMenuItemClickListener(new KeyProcessorItemMenuClickListener(activity, rowItem));
-        menu.show();
+        return menu;
+    }
+
+    /** Builds a card's menu and shows it in LumaFin's menu panel, titled with the item's name. */
+    public PopupMenu showItemMenu(BaseRowItem rowItem, UserItemDataDto userData, FragmentActivity activity) {
+        PopupMenu menu = createItemMenu(rowItem, userData, activity);
+        LumaFinActionMenu.showLumaFin(menu, activity, rowItem.getBaseItem() != null ? rowItem.getBaseItem().getName() : null);
         return menu;
     }
 
@@ -280,7 +292,7 @@ public class KeyProcessor {
         }
 
         menu.setOnMenuItemClickListener(new KeyProcessorItemMenuClickListener(activity, rowItem));
-        menu.show();
+        LumaFinActionMenu.showLumaFin(menu, activity, rowItem.getBaseItem().getName());
     }
 
     private class KeyProcessorItemMenuClickListener implements PopupMenu.OnMenuItemClickListener {
@@ -355,6 +367,9 @@ public class KeyProcessor {
                     return true;
                 case MENU_INSTANT_MIX:
                     playbackHelper.getValue().playInstantMix(activity, item);
+                    return true;
+                case MENU_GOTO_SERIES:
+                    navigationRepository.getValue().navigate(Destinations.INSTANCE.itemDetails(item.getSeriesId()));
                     return true;
             }
 

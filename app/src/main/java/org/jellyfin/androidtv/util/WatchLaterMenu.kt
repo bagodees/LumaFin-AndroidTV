@@ -34,6 +34,6 @@ fun toggleWatchLater(context: Context, item: BaseItemDto) {
 fun addWatchLaterMenu(menu: PopupMenu, activity: FragmentActivity, item: BaseItemDto) {
 	val preferences = GlobalContext.get().get<WatchLaterPreferences>()
 	if (!preferences.canSave(item)) return
-	menu.menu.add(0, 1004, 0, if (preferences.contains(item.id)) R.string.watch_later_remove else R.string.watch_later_add)
+	menu.menu.add(0, 1004, 30, if (preferences.contains(item.id)) R.string.watch_later_remove else R.string.watch_later_add)
 		.setOnMenuItemClickListener { toggleWatchLater(activity, item); true }
 }

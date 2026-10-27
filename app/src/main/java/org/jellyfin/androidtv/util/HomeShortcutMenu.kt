@@ -21,7 +21,7 @@ fun addHomeShortcutMenu(menu: PopupMenu, activity: FragmentActivity, item: BaseI
 	val preferences by activity.inject<HomeShortcutPreferences>()
 	if (!preferences.canPin(item)) return
 	val pinned = preferences.isPinned(item.id)
-	menu.menu.add(0, 1003, 0, if (pinned) R.string.home_shortcut_unpin else R.string.home_shortcut_pin)
+	menu.menu.add(0, 1003, 40, if (pinned) R.string.home_shortcut_unpin else R.string.home_shortcut_pin)
 		.setOnMenuItemClickListener {
 			if (pinned) preferences.unpin(item.id.toString()) else preferences.pin(item)
 			val messages by activity.inject<CustomMessageRepository>()
