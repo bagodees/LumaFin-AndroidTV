@@ -85,7 +85,7 @@ Next bug-fix release (1.1.2, not released): fixes found on the owner's Sony X90J
 October 26. Audio no longer starts late and stays seconds behind the picture when the
 TV briefly reports a negative audio position as Dolby passthrough starts; the player
 controls no longer relayout every frame while open; and the app no longer crashes when
-it goes to the background while signed out on leave. 1.1.2-test.1 (code 1010201) is
+it goes to the background while signed out on leave. 1.1.2-test.2 (code 1010202) is
 installed on the TV for checking; nothing is uploaded or published.
 
 1. [x] Design two Home concepts and choose one ([#80](https://github.com/bagodees/LumaFin-AndroidTV/issues/80)): concept A (side rail with a preview area) chosen; concept B (top bar with backdrop) becomes a Home style option in 1.2
