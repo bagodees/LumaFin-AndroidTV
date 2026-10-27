@@ -20,6 +20,8 @@ import org.jellyfin.sdk.api.client.ApiClient
 import org.jellyfin.sdk.api.client.HttpMethod
 import org.jellyfin.sdk.api.client.extensions.itemsApi
 import org.jellyfin.sdk.model.api.BaseItemDto
+import org.jellyfin.sdk.model.api.BaseItemKind
+import org.jellyfin.sdk.model.api.ItemFields
 import org.jellyfin.sdk.model.api.BaseItemDtoQueryResult
 import timber.log.Timber
 import java.util.UUID
@@ -106,14 +108,15 @@ object HomeScreenSectionsPlugin {
 
 	/**
 	 * The plugin leaves out descriptions, logos and other details Home's preview shows, so the
-	 * same titles are loaded again from Jellyfin, keeping the plugin's order.
+	 * same titles are loaded again from Jellyfin, keeping the plugin's order. It also lists shows
+	 * that don't have any episodes yet, which are left out.
 	 */
 	private suspend fun withFullDetails(api: ApiClient, userId: UUID, items: List<BaseItemDto>): List<BaseItemDto> {
 		if (items.isEmpty()) return items
 		val full = try {
 			withContext(Dispatchers.IO) {
-				api.itemsApi.getItems(userId = userId, ids = items.map { it.id }, fields = ItemRepository.browseFields,
-					enableTotalRecordCount = false).content.items
+				api.itemsApi.getItems(userId = userId, ids = items.map { it.id },
+					fields = ItemRepository.browseFields + ItemFields.RECURSIVE_ITEM_COUNT, enableTotalRecordCount = false).content.items
 			}.associateBy { it.id }
 		} catch (error: CancellationException) {
 			throw error
@@ -121,7 +124,10 @@ object HomeScreenSectionsPlugin {
 			Timber.w(error, "Failed to load details for plugin section items")
 			return items
 		}
-		return items.map { full[it.id] ?: it }
+		return items.map { full[it.id] ?: it }.filterNot { item ->
+			(item.type == BaseItemKind.SERIES && item.recursiveItemCount == 0)
+				.also { empty -> if (empty) Timber.d("Leaving out %s from a plugin row: no episodes", item.name) }
+		}
 	}
 }
 
