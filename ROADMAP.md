@@ -113,6 +113,7 @@ Status: Planned. Milestone: [1.2](https://github.com/bagodees/LumaFin-AndroidTV/
 6. [ ] Video/photo filter for mixed libraries ([#86](https://github.com/bagodees/LumaFin-AndroidTV/issues/86))
 7. [ ] Use the Home Screen Sections plugin when the server has it, with LumaFin's own sections otherwise ([#107](https://github.com/bagodees/LumaFin-AndroidTV/issues/107))
 8. [ ] Choose which libraries appear in the side menu ([#113](https://github.com/bagodees/LumaFin-AndroidTV/issues/113))
+9. [ ] Request movies and shows through Seerr ([#100](https://github.com/bagodees/LumaFin-AndroidTV/issues/100)); moved from 1.x later on October 27 with the owner's approval
 
 ---
 
@@ -125,6 +126,7 @@ Status: Planned. Milestone: [1.3](https://github.com/bagodees/LumaFin-AndroidTV/
 3. [ ] Accent color themes ([#90](https://github.com/bagodees/LumaFin-AndroidTV/issues/90))
 4. [ ] PIN lock for switching users ([#98](https://github.com/bagodees/LumaFin-AndroidTV/issues/98))
 5. [ ] Optional theme music on details pages ([#99](https://github.com/bagodees/LumaFin-AndroidTV/issues/99))
+6. [ ] Choose which tab library pages open on ([#114](https://github.com/bagodees/LumaFin-AndroidTV/issues/114))
 
 ---
 
@@ -136,12 +138,14 @@ These move into a numbered version when it's planned. Unordered.
 
 - [ ] Redesign series and season browsing ([#91](https://github.com/bagodees/LumaFin-AndroidTV/issues/91))
 - [ ] Light theme, once every main screen supports themes ([#93](https://github.com/bagodees/LumaFin-AndroidTV/issues/93))
-- [ ] Request movies and shows through Seerr ([#100](https://github.com/bagodees/LumaFin-AndroidTV/issues/100))
 - [ ] Install updates from inside the app on Fire TV ([#101](https://github.com/bagodees/LumaFin-AndroidTV/issues/101))
 - [ ] Live TV: quick channel switching and stall recovery ([#102](https://github.com/bagodees/LumaFin-AndroidTV/issues/102))
 - [ ] Evaluate wider playback format support ([#103](https://github.com/bagodees/LumaFin-AndroidTV/issues/103))
 - [ ] SyncPlay group watching ([#104](https://github.com/bagodees/LumaFin-AndroidTV/issues/104))
 - [ ] Kids mode, after the PIN lock ([#105](https://github.com/bagodees/LumaFin-AndroidTV/issues/105))
+- [ ] Show two subtitle tracks at once ([#115](https://github.com/bagodees/LumaFin-AndroidTV/issues/115))
+- [ ] Subtitle language priority with fallback ([#116](https://github.com/bagodees/LumaFin-AndroidTV/issues/116))
+- [ ] Performance check on low-end Fire TV sticks ([#117](https://github.com/bagodees/LumaFin-AndroidTV/issues/117))
 
 ---
 
@@ -149,8 +153,9 @@ These move into a numbered version when it's planned. Unordered.
 
 Status: Planned. Milestone: [2.0](https://github.com/bagodees/LumaFin-AndroidTV/milestone/6).
 
-1. [ ] Remove the old Home and details screens ([#94](https://github.com/bagodees/LumaFin-AndroidTV/issues/94))
-2. [ ] Launch 2.0: store listings, website, README and release notes ([#95](https://github.com/bagodees/LumaFin-AndroidTV/issues/95))
+1. [ ] Back and resume consistency pass ([#118](https://github.com/bagodees/LumaFin-AndroidTV/issues/118))
+2. [ ] Remove the old Home and details screens ([#94](https://github.com/bagodees/LumaFin-AndroidTV/issues/94))
+3. [ ] Launch 2.0: store listings, website, README and release notes ([#95](https://github.com/bagodees/LumaFin-AndroidTV/issues/95))
 
 ---
 
