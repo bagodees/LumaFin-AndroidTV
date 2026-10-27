@@ -143,6 +143,8 @@ class UserPreferences(context: Context, storage: SharedPreferences = PreferenceM
 		val newHomeEnabled = booleanPreference("new_home_enabled", true)
 		/** The new Home's outer layout: side menu (default) or top bar with a full backdrop. */
 		val homeStyle = enumPreference("home_style", org.jellyfin.androidtv.preference.constant.HomeStyle.SIDE_MENU)
+		/** Seerr discover rows on Home, through the SeerrFin plugin (#100). */
+		val seerrRows = booleanPreference("seerr_rows", true)
 		/** Use the server's Home Screen Sections layout (#107). Kept when the plugin is removed and reinstalled. */
 		val serverHomeLayout = enumPreference("server_home_layout", org.jellyfin.androidtv.preference.constant.ServerHomeLayout.ASK)
 		/** Plugin-only Home rows added to LumaFin's own layout (#107), section keys separated by ;; */

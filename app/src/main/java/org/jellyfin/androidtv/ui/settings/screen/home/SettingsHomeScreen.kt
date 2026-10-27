@@ -83,6 +83,8 @@ fun SettingsHomeScreen() {
 	var newHomeCardTitles by rememberPreference(userPreferences, UserPreferences.newHomeCardTitles)
 	var homeStyle by rememberPreference(userPreferences, UserPreferences.homeStyle)
 	var serverLayout by rememberPreference(userPreferences, UserPreferences.serverHomeLayout)
+	var seerrRows by rememberPreference(userPreferences, UserPreferences.seerrRows)
+	val seerrAvailable by org.jellyfin.androidtv.ui.home.SeerrFin.available.collectAsState()
 	val pluginAvailable by org.jellyfin.androidtv.ui.home.HomeScreenSectionsPlugin.available.collectAsState()
 	val pluginSections by org.jellyfin.androidtv.ui.home.HomeScreenSectionsPlugin.lastSections.collectAsState()
 	val serverLayoutOn = serverLayout == org.jellyfin.androidtv.preference.constant.ServerHomeLayout.ON
@@ -157,6 +159,19 @@ fun SettingsHomeScreen() {
 				overlineContent = { Text(stringResource(R.string.pref_customization).uppercase()) },
 				headingContent = { Text(stringResource(R.string.home_prefs)) },
 				captionContent = { Text(stringResource(R.string.home_sections_hint)) },
+			)
+		}
+
+		// Only while the SeerrFin plugin is on the server (#100)
+		if (seerrAvailable) item(key = "seerr_rows") {
+			ListButton(
+				toggleState = seerrRows,
+				headingContent = { Text(stringResource(R.string.seerr_rows)) },
+				captionContent = { Text(stringResource(R.string.seerr_rows_description)) },
+				trailingContent = { SettingsSwitch(checked = seerrRows) },
+				enabled = grabbed == null,
+				onClick = { seerrRows = !seerrRows },
+				modifier = Modifier.focusKey("seerr_rows")
 			)
 		}
 

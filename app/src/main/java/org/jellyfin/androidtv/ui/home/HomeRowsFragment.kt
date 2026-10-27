@@ -149,6 +149,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 	private var loadedHomeStyle = HomeStyle.SIDE_MENU
 	private var loadedServerLayout = ServerHomeLayout.ASK
 	private var loadedPluginRows = emptySet<String>()
+	private var loadedSeerrRows = true
 	private var loadedContinueWatchingShape = CardShape.LANDSCAPE
 	private var loadedHomeRowsShape = CardShape.LANDSCAPE
 
@@ -162,6 +163,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 		userPreferences[UserPreferences.homeStyle] != loadedHomeStyle ||
 		userPreferences[UserPreferences.serverHomeLayout] != loadedServerLayout ||
 		HomeScreenSectionsPlugin.addedKeys() != loadedPluginRows ||
+		userPreferences[UserPreferences.seerrRows] != loadedSeerrRows ||
 		userPreferences[UserPreferences.continueWatchingCardShape] != loadedContinueWatchingShape ||
 		userPreferences[UserPreferences.homeRowsCardShape] != loadedHomeRowsShape
 
@@ -374,6 +376,12 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 
 			HomeSectionType.NONE -> Unit
 		}
+		// Seerr discover rows through the SeerrFin plugin (#100); a probe also tells settings it's there
+		loadedSeerrRows = userPreferences[UserPreferences.seerrRows]
+		val seerrAvailable = SeerrFin.discover(api, SeerrFin.rows.first().second) != null
+		SeerrFin.available.value = seerrAvailable
+		if (seerrAvailable && loadedSeerrRows) SeerrFin.rows.forEach { (title, path) -> rows.add(SeerrDiscoverRow(api, title, path)) }
+
 		// Rows only the server's plugin offers, added in Settings > Home (#107)
 		if (!usePlugin && pluginSections != null) {
 			loadedPluginRows = HomeScreenSectionsPlugin.addedKeys()
@@ -640,6 +648,12 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 					LiveTvOption.LIVE_TV_RECORDINGS_OPTION_ID -> navigationRepository.navigate(Destinations.liveTvRecordings)
 					LiveTvOption.LIVE_TV_SERIES_OPTION_ID -> navigationRepository.navigate(Destinations.liveTvSeriesRecordings)
 				}
+			}
+
+			// A Seerr title (#100) offers to request it
+			if (item is SeerrItem) {
+				showSeerrRequest(requireContext(), viewLifecycleOwner, api, item, lifecycleScope)
+				return
 			}
 
 			if (item is GenreTile) {
