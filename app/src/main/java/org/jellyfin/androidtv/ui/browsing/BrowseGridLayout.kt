@@ -42,6 +42,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.MutableStateFlow
+import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.databinding.HorizontalGridBrowseBinding
 import org.jellyfin.androidtv.preference.UserPreferences
 import org.jellyfin.androidtv.ui.home.FocusedTitleInfo
@@ -72,6 +73,8 @@ class BrowseGridLayout(private val binding: HorizontalGridBrowseBinding, private
 		private const val LETTERS = "#ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 		/** How much taller the preview is than the classic title and info row. */
 		const val EXTRA_PREVIEW_HEIGHT_DP = 32
+		/** Height of the fade behind the status line at the bottom. */
+		private const val FOOTER_FADE_DP = 64
 
 		@JvmStatic
 		fun isEnabled() = KoinJavaComponent.get<UserPreferences>(UserPreferences::class.java)[UserPreferences.newHomeEnabled]
@@ -158,6 +161,18 @@ class BrowseGridLayout(private val binding: HorizontalGridBrowseBinding, private
 		// The footer lined up with the hidden title; line it up with the grid instead
 		(binding.libraryFooter.layoutParams as RelativeLayout.LayoutParams).marginStart =
 			((GRID_START_MARGIN_DP + 12) * context.resources.displayMetrics.density).toInt()
+		// Cards may draw past the grid so the focused one can zoom; fade them out under the footer text
+		val background = context.getColor(R.color.lumafin_background)
+		val footerFade = View(context).apply {
+			this.background = android.graphics.drawable.GradientDrawable(
+				android.graphics.drawable.GradientDrawable.Orientation.BOTTOM_TOP,
+				intArrayOf(background, androidx.core.graphics.ColorUtils.setAlphaComponent(background, 0)),
+			)
+		}
+		root.addView(footerFade, root.indexOfChild(binding.libraryFooter), RelativeLayout.LayoutParams(
+			RelativeLayout.LayoutParams.MATCH_PARENT,
+			(FOOTER_FADE_DP * context.resources.displayMetrics.density).toInt(),
+		).apply { addRule(RelativeLayout.ALIGN_PARENT_BOTTOM) })
 		(binding.rowsFragment.layoutParams as RelativeLayout.LayoutParams).apply {
 			addRule(RelativeLayout.BELOW, preview.id)
 			marginStart = (GRID_START_MARGIN_DP * context.resources.displayMetrics.density).toInt()
