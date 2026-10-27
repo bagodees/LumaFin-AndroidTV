@@ -63,6 +63,11 @@ Submitted October 24, 2026; waiting for Amazon's review. Details: [Amazon prepar
 - [ ] Confirm the approved listing installs and updates on a physical Fire TV
 - [ ] Point the website's Fire TV card to the Appstore listing
 
+### Open bugs
+
+- [ ] Subtitles sit behind the player controls while they're open ([#119](https://github.com/bagodees/LumaFin-AndroidTV/issues/119))
+- [ ] Library status line overlaps the last row of cards ([#120](https://github.com/bagodees/LumaFin-AndroidTV/issues/120))
+
 ### Physical TV checks ([#78](https://github.com/bagodees/LumaFin-AndroidTV/issues/78))
 
 - [x] Confirm the October fixes on a real TV ([checklist](docs/v1-remaining-checks.md)); completed by the owner on the Sony X90J, October 2026
@@ -146,6 +151,8 @@ These move into a numbered version when it's planned. Unordered.
 - [ ] Show two subtitle tracks at once ([#115](https://github.com/bagodees/LumaFin-AndroidTV/issues/115))
 - [ ] Subtitle language priority with fallback ([#116](https://github.com/bagodees/LumaFin-AndroidTV/issues/116))
 - [ ] Performance check on low-end Fire TV sticks ([#117](https://github.com/bagodees/LumaFin-AndroidTV/issues/117))
+- [ ] Option to hide player controls when pausing ([#121](https://github.com/bagodees/LumaFin-AndroidTV/issues/121))
+- [ ] Follow the server's Next Up settings ([#122](https://github.com/bagodees/LumaFin-AndroidTV/issues/122))
 
 ---
 
