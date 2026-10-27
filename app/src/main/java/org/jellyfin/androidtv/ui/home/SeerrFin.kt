@@ -63,7 +63,17 @@ data class SeerrItem(
 	val mediaId: Int,
 	val imageUrl: String?,
 	val year: Int?,
-)
+	val rating: Float? = null,
+) {
+	/** A stand-in item for the preview above the rows: title, year, rating and kind. */
+	fun previewItem() = org.jellyfin.sdk.model.api.BaseItemDto(
+		id = java.util.UUID.nameUUIDFromBytes("seerr|$mediaType|$mediaId".toByteArray()),
+		name = name,
+		type = if (mediaType == "tv") org.jellyfin.sdk.model.api.BaseItemKind.SERIES else org.jellyfin.sdk.model.api.BaseItemKind.MOVIE,
+		productionYear = year,
+		communityRating = rating,
+	)
+}
 
 /**
  * Seerr through the SeerrFin plugin on the Jellyfin server (#100): discover rows and requests use the
@@ -102,6 +112,7 @@ object SeerrFin {
 				// Cached images are served by the Jellyfin server
 				imageUrl = image?.let { if (it.startsWith("/")) api.baseUrl?.trimEnd('/') + it else it },
 				year = item.premiereDate?.year?.takeIf { it > 1970 },
+				rating = item.communityRating,
 			)
 		}
 	} catch (error: CancellationException) {

@@ -687,6 +687,14 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 			// Adapter rebuilding/restored focus can report a temporary null selection.
 			// Keep the backdrop until an actual replacement item is selected.
 			if (item == null) return
+			// A Seerr title (#100): fill the preview and backdrop from Seerr
+			if (item is SeerrItem) {
+				currentItem = null
+				focusedItem.value = item.previewItem()
+				focusedItemIndex = (row as? ListRow)?.adapter?.positionOf(item) ?: -1
+				backgroundService.setBackgroundUrl(item.imageUrl)
+				return
+			}
 			if (item !is BaseRowItem) {
 				currentItem = null
 				focusedItem.value = null

@@ -91,6 +91,15 @@ class BackgroundService(
 		loadBackgrounds(backdropUrls)
 	}
 
+	/** A backdrop from an image address, for titles not in the library such as Seerr's (#100). */
+	fun setBackgroundUrl(url: String?) {
+		lastBackgroundItem = null
+		val backdropBehavior = userPreferences[UserPreferences.backdropBehavior]
+		if (url.isNullOrBlank() || backdropBehavior == BackdropBehavior.DISABLED) return clearBackgrounds()
+		_blurBackground.value = backdropBehavior == BackdropBehavior.BACKDROP_WITH_BLUR
+		loadBackgrounds(setOf(url))
+	}
+
 	/**
 	 * Use splashscreen from [server] as background.
 	 */
