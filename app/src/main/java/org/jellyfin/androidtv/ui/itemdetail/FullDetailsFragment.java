@@ -554,6 +554,45 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
         row.Retrieve();
     }
 
+    /**
+     * Loads the show's actors and adds them as a Cast row above Guest Stars (or Chapters when an
+     * episode has no guests). Guest stars aren't repeated in it.
+     */
+    private void addEpisodeCastRow(MutableObjectAdapter<Row> adapter) {
+        final UUID episodeId = mBaseItem.getId();
+        FullDetailsFragmentHelperKt.getItem(this, mBaseItem.getSeriesId(), series -> {
+            if (series == null || series.getPeople() == null || !isAdded() || mBaseItem == null || !episodeId.equals(mBaseItem.getId())) return null;
+            List<UUID> guests = new ArrayList<>();
+            if (mBaseItem.getPeople() != null) {
+                for (BaseItemPerson person : mBaseItem.getPeople()) {
+                    if (person.getType() == PersonKind.GUEST_STAR) guests.add(person.getId());
+                }
+            }
+            List<BaseItemPerson> cast = new ArrayList<>();
+            for (BaseItemPerson person : series.getPeople()) {
+                if (person.getType() == PersonKind.ACTOR && !guests.contains(person.getId())) cast.add(person);
+            }
+            if (cast.isEmpty()) return null;
+
+            ItemRowAdapter castAdapter = new ItemRowAdapter(cast, requireContext(), new CardPresenter(true, 130), adapter);
+            ListRow castRow = new ListRow(new HeaderItem(0, getString(R.string.lbl_cast)), castAdapter);
+            int position = adapter.size();
+            for (int i = 0; i < adapter.size(); i++) {
+                Row row = adapter.get(i);
+                String name = row != null && row.getHeaderItem() != null ? row.getHeaderItem().getName() : null;
+                if (getString(R.string.lbl_guest_stars).equals(name) || getString(R.string.lbl_chapters).equals(name)) {
+                    position = i;
+                    break;
+                }
+            }
+            adapter.add(position, castRow);
+            castAdapter.setRow(castRow);
+            seriesFocus.observe(castAdapter);
+            castAdapter.Retrieve();
+            return null;
+        });
+    }
+
     protected void addAdditionalRows(MutableObjectAdapter<Row> adapter) {
         Timber.d("Item type: %s", mBaseItem.getType().toString());
 
@@ -670,6 +709,9 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
                     ItemRowAdapter nextAdapter = new ItemRowAdapter(requireContext(), BrowsingUtils.createNextEpisodesRequest(mBaseItem.getSeasonId(), mBaseItem.getIndexNumber()), 0, false, true, titleCards(), adapter);
                     addItemRow(adapter, nextAdapter, 5, getString(R.string.lbl_next_episode));
                 }
+
+                // The show's cast, above the guest stars: episodes mostly list only their guests
+                if (mBaseItem.getSeriesId() != null) addEpisodeCastRow(adapter);
 
                 //Guest stars
                 if (mBaseItem.getPeople() != null && !mBaseItem.getPeople().isEmpty()) {

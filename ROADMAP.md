@@ -162,6 +162,14 @@ These move into a numbered version when it's planned. Unordered.
 - [ ] Show the current value on every settings row ([#126](https://github.com/bagodees/LumaFin-AndroidTV/issues/126))
 - [ ] App version and update status in About ([#127](https://github.com/bagodees/LumaFin-AndroidTV/issues/127))
 
+Note for later (October 27): ideas from server plugins whose features other TV players don't offer. No issues yet; the owner will come back to these.
+
+- Featured banner at the top of Home (like the Media Bar plugin)
+- Upcoming releases calendar (like Jellyfin Enhanced's Sonarr/Radarr calendar)
+- Most Watched row and watch stats (Playback Reporting plugin)
+- "Pick something for me" random button
+- Player bookmarks and household reviews (Jellyfin Enhanced)
+
 ---
 
 ## 2.0: the all-new LumaFin
