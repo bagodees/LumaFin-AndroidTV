@@ -115,7 +115,7 @@ fun SettingsAboutScreen(launchedFromLogin: Boolean = false) {
 }
 
 private val STORES = mapOf("com.android.vending" to "Google Play", "com.amazon.venezia" to "Amazon Appstore")
-private const val RELEASES_URL = "https://github.com/bagodees/LumaFin-AndroidTV/releases/latest"
+private const val RELEASES_URL = "https://github.com/bagodees/LumaFin-Android/releases/latest"
 
 /** Whether this install is up to date (#127): stores update the app themselves, other installs check the website feed. */
 @Composable

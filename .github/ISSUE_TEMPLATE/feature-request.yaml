@@ -9,7 +9,7 @@ body:
       label: "Before submitting:"
       description: Please confirm the following.
       options:
-        - label: I have searched existing [LumaFin feature requests](https://github.com/bagodees/LumaFin-AndroidTV/issues?q=is%3Aissue%20label%3Aenhancement) and this has not already been requested.
+        - label: I have searched existing [LumaFin feature requests](https://github.com/bagodees/LumaFin-Android/issues?q=is%3Aissue%20label%3Aenhancement) and this has not already been requested.
           required: true
   - type: textarea
     attributes:
@@ -48,6 +48,6 @@ body:
     attributes:
       label: Other sources
       description: Link related issues, mockups, or discussions, if any.
-      placeholder: https://github.com/bagodees/LumaFin-AndroidTV/issues/…
+      placeholder: https://github.com/bagodees/LumaFin-Android/issues/…
     validations:
       required: false

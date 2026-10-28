@@ -99,7 +99,7 @@ object TelemetryService {
 			appendLine("---")
 			appendLine("client: LumaFin for Android TV")
 			appendLine("client_version: ${BuildConfig.VERSION_NAME}")
-			appendLine("client_repository: https://github.com/bagodees/LumaFin-AndroidTV")
+			appendLine("client_repository: https://github.com/bagodees/LumaFin-Android")
 			appendLine("type: crash_report")
 			appendLine("format: markdown")
 			appendLine("---")

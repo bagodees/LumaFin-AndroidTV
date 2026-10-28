@@ -9,7 +9,7 @@ body:
       label: "Before submitting:"
       description: Please confirm the following.
       options:
-        - label: I have searched the existing [LumaFin issues](https://github.com/bagodees/LumaFin-AndroidTV/issues) and this has not already been reported.
+        - label: I have searched the existing [LumaFin issues](https://github.com/bagodees/LumaFin-Android/issues) and this has not already been reported.
           required: true
         - label: This report addresses one issue only.
           required: true
@@ -97,6 +97,6 @@ body:
     attributes:
       label: Other sources
       description: Link related issues or discussions, if any.
-      placeholder: https://github.com/bagodees/LumaFin-AndroidTV/issues/…
+      placeholder: https://github.com/bagodees/LumaFin-Android/issues/…
     validations:
       required: false

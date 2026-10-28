@@ -1,16 +1,16 @@
 <p align="center">
 <img alt="LumaFin" src="docs/branding/lumafin-wordmark.png" width="520"/>
 </p>
-<h3 align="center">A modified Android TV client for <a href="https://jellyfin.org">Jellyfin</a></h3>
+<h3 align="center">A modified Android TV, phone and tablet client for <a href="https://jellyfin.org">Jellyfin</a></h3>
 
 ---
 
 <p align="center">
-<a href="https://github.com/bagodees/LumaFin-AndroidTV/blob/lumafin-main/LICENSE">
-<img alt="GPL 2.0 License" src="https://img.shields.io/github/license/bagodees/LumaFin-AndroidTV.svg"/>
+<a href="https://github.com/bagodees/LumaFin-Android/blob/lumafin-main/LICENSE">
+<img alt="GPL 2.0 License" src="https://img.shields.io/github/license/bagodees/LumaFin-Android.svg"/>
 </a>
-<a href="https://github.com/bagodees/LumaFin-AndroidTV/releases">
-<img alt="Current Release" src="https://img.shields.io/github/v/release/bagodees/LumaFin-AndroidTV.svg"/>
+<a href="https://github.com/bagodees/LumaFin-Android/releases">
+<img alt="Current Release" src="https://img.shields.io/github/v/release/bagodees/LumaFin-Android.svg"/>
 </a>
 </p>
 <p align="center"><strong>Download and install: <a href="https://getlumafin.com">getlumafin.com</a></strong></p>
@@ -20,6 +20,9 @@ client for Android TV, Nvidia Shield, and Amazon Fire TV devices. It tracks upst
 features while layering on its own branding and home screen customizations, styled after a [JellyFrame](https://jellyfrom.tv/)
 webui setup using the "Better Jellyfin UI" theme by tromoSM, the "Rating Badges" mod by grimmdev, and the
 [jellyfin-plugin-home-sections](https://github.com/IAmParadox27/jellyfin-plugin-home-sections) plugin by IAmParadox27.
+
+The same repository also holds LumaFin for Android phones, tablets and foldables (the `mobile` module), currently in
+alpha. Its test builds are published as pre-releases tagged `phone-v…`.
 
 This is not an officially supported Jellyfin project - it's built for personal use and shared as-is. See
 [LICENSE](LICENSE) for license details, and the upstream project at

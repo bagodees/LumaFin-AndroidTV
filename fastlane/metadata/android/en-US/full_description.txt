@@ -16,6 +16,6 @@ LumaFin is free and open source, with no ads or developer-operated tracking serv
 LumaFin is an independent project based on Jellyfin for Android TV and is not affiliated with or endorsed by the Jellyfin project.
 
 Learn more: https://getlumafin.com
-Source code: https://github.com/bagodees/LumaFin-AndroidTV
+Source code: https://github.com/bagodees/LumaFin-Android
 
 Screenshots feature Creative Commons films by Blender Studio (https://studio.blender.org/films/) and Pioneer One by Josh Bernhard and Bracey Smith. Media is shown for demonstration and is not included with LumaFin.
