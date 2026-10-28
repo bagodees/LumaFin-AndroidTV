@@ -82,7 +82,7 @@ private val categories = listOf(
  * preference store is reused unchanged.
  */
 @Composable
-fun SettingsWorkspace(onDismissRequest: () -> Unit) {
+fun SettingsWorkspace(onDismissRequest: () -> Unit, onBackToHome: () -> Unit = onDismissRequest) {
 	val router = LocalRouter.current
 	val categoryFocus = remember { FocusRequester() }
 	val contentFocus = remember { FocusRequester() }
@@ -122,7 +122,8 @@ fun SettingsWorkspace(onDismissRequest: () -> Unit) {
 		openedFromCategory = false
 	}
 
-	Row(Modifier.fillMaxSize().background(LumaFinPalette.Background).padding(horizontal = 48.dp, vertical = 32.dp)) {
+	// The menu needs about 480dp of height; a 1080p TV gives 540, so the padding stays tight
+	Row(Modifier.fillMaxSize().background(LumaFinPalette.Background).padding(horizontal = 48.dp, vertical = 24.dp)) {
 		Column(
 			verticalArrangement = Arrangement.spacedBy(2.dp),
 			modifier = Modifier
@@ -180,7 +181,7 @@ fun SettingsWorkspace(onDismissRequest: () -> Unit) {
 				category = backToHome,
 				active = false,
 				modifier = Modifier.focusRequester(backToHomeFocus).focusProperties { right = contentFocus },
-				onClick = onDismissRequest,
+				onClick = onBackToHome,
 			)
 		}
 		Box(
@@ -216,7 +217,7 @@ private fun CategoryItem(category: SettingsCategory, active: Boolean, modifier: 
 			containerColor = if (active) LumaFinPalette.Raised else Color.Transparent,
 			contentColor = if (active) LumaFinPalette.Cyan else LumaFinPalette.SecondaryText,
 		),
-		modifier = modifier.fillMaxWidth().height(48.dp),
+		modifier = modifier.fillMaxWidth().height(46.dp),
 	) {
 		Row(
 			verticalAlignment = Alignment.CenterVertically,

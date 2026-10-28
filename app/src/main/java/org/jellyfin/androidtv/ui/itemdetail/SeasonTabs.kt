@@ -163,7 +163,7 @@ fun FullDetailsFragment.addSeasonEpisodeRows(rows: MutableObjectAdapter<Row>) {
 		var episodesRow: ListRow? = null
 		fun show(season: BaseItemDto) {
 			tabs.select(season.id)
-			val adapter = ItemRowAdapter(context, BrowsingUtils.createSeasonEpisodesRequest(season.id), 0, false, true, CardPresenter(true, 120), rows)
+			val adapter = ItemRowAdapter(context, BrowsingUtils.createSeasonEpisodesRequest(season.id), 0, false, true, CardPresenter.homeRows(), rows)
 			val row = ListRow(null, adapter)
 			adapter.setRow(row)
 			// An empty season removes its row, so fall back to inserting under the tabs

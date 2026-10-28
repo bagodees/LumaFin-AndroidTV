@@ -5,7 +5,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.LaunchedEffect
 import org.jellyfin.androidtv.preference.UserPreferences
+import org.jellyfin.androidtv.ui.navigation.Destinations
 import org.jellyfin.androidtv.ui.navigation.LocalRouter
+import org.jellyfin.androidtv.ui.navigation.NavigationRepository
 import org.jellyfin.androidtv.ui.navigation.ProvideRouter
 import org.jellyfin.androidtv.ui.settings.Routes
 import org.jellyfin.androidtv.ui.settings.composable.SettingsDialog
@@ -20,6 +22,7 @@ fun MainActivitySettings() {
 	val viewModel = koinActivityViewModel<SettingsViewModel>()
 	val visible by viewModel.visible.collectAsState()
 	val preferences = koinInject<UserPreferences>()
+	val navigationRepository = koinInject<NavigationRepository>()
 	LaunchedEffect(preferences.accountRevision) {
 		if (!preferences[UserPreferences.setupGuideSeen]) {
 			// Record presentation, so Back or an interrupted visit never forces setup again.
@@ -43,7 +46,14 @@ fun MainActivitySettings() {
 			fullScreen = true,
 			onDismissRequest = { viewModel.hide() }
 		) {
-			SettingsWorkspace(onDismissRequest = { viewModel.hide() })
+			SettingsWorkspace(
+				onDismissRequest = { viewModel.hide() },
+				// Back to Home closes settings on Home, wherever they were opened from
+				onBackToHome = {
+					viewModel.hide()
+					navigationRepository.reset(Destinations.home, clearHistory = true)
+				},
+			)
 		}
 	}
 }

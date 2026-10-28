@@ -348,6 +348,7 @@ class LibraryRowsFragment : RowsSupportFragment() {
 	private val folder by lazy { folderArgument() }
 	private val itemLauncher by inject<ItemLauncher>()
 	private val backgroundService by inject<BackgroundService>()
+	private val userPreferences by inject<UserPreferences>()
 	val focusedItem = MutableStateFlow<BaseItemDto?>(null)
 
 	override fun onCreate(savedInstanceState: Bundle?) {
@@ -386,10 +387,12 @@ class LibraryRowsFragment : RowsSupportFragment() {
 			limit = 30,
 		)
 		if (folder.collectionType == CollectionType.TVSHOWS) {
-			add(R.string.home_section_resume, ItemRowAdapter(context, BrowsingUtils.createResumeItemsRequest(id, BaseItemKind.EPISODE), 50, false, presenter, rows))
-			add(R.string.home_section_next_up, ItemRowAdapter(context, BrowsingUtils.createGetNextUpRequest(id), false, presenter, rows))
-			add(R.string.library_row_recently_aired, ItemRowAdapter(context, newest(BaseItemKind.EPISODE), 50, false, presenter, rows))
-			add(R.string.library_row_recently_added, ItemRowAdapter(context, BrowsingUtils.createLatestMediaRequest(id, BaseItemKind.EPISODE, true), false, presenter, rows))
+			// Episodes show the show's artwork, like the same rows on Home ("Use series thumbnails")
+			val seriesArt = userPreferences[UserPreferences.seriesThumbnailsEnabled]
+			add(R.string.home_section_resume, ItemRowAdapter(context, BrowsingUtils.createResumeItemsRequest(id, BaseItemKind.EPISODE), 50, seriesArt, presenter, rows))
+			add(R.string.home_section_next_up, ItemRowAdapter(context, BrowsingUtils.createGetNextUpRequest(id), seriesArt, presenter, rows))
+			add(R.string.library_row_recently_aired, ItemRowAdapter(context, newest(BaseItemKind.EPISODE), 50, seriesArt, presenter, rows))
+			add(R.string.library_row_recently_added, ItemRowAdapter(context, BrowsingUtils.createLatestMediaRequest(id, BaseItemKind.EPISODE, true), seriesArt, presenter, rows))
 			add(R.string.library_row_top_rated, ItemRowAdapter(context, topRated(BaseItemKind.SERIES), 30, false, presenter, rows))
 			add(R.string.lbl_favorites, ItemRowAdapter(context, BrowsingUtils.createFavoriteItemsRequest(id, BaseItemKind.SERIES), 60, false, presenter, rows))
 		} else {

@@ -100,6 +100,18 @@ class TextUnderButton @JvmOverloads constructor(
 		}
 	}
 
+	/**
+	 * Row style only: an icon-only pill when the details button row is short on room. The label stays
+	 * as the content description, so it's still read out.
+	 */
+	var compact = false
+		set(value) {
+			if (!rowStyle || field == value) return
+			field = value
+			binding.label.isVisible = !value && !binding.label.text.isNullOrEmpty()
+			if (value) setPadding(14.dp(context), 0, 14.dp(context), 0) else setPadding(14.dp(context), 0, 16.dp(context), 0)
+		}
+
 	fun setIcon(@DrawableRes resource: Int, maxHeight: Int? = null) {
 		binding.imageButton.setImageResource(resource)
 		binding.imageButton.maxHeight = maxHeight ?: Int.MAX_VALUE

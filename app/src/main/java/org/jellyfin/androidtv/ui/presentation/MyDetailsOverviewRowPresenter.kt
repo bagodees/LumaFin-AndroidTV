@@ -60,6 +60,23 @@ class MyDetailsOverviewRowPresenter(
 		private val binding get() = detailRowView.binding
 		private var currentRow: MyDetailsOverviewRow? = null
 		private var rowStyle = false
+		private fun fitActionRow(container: ViewGroup, row: MyDetailsOverviewRow) {
+			fun width(child: View): Int {
+				child.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
+				val margins = child.layoutParams as? ViewGroup.MarginLayoutParams
+				return child.measuredWidth + (margins?.leftMargin ?: 0) + (margins?.rightMargin ?: 0)
+			}
+			fun total() = container.children.filter { it.isVisible }.sumOf(::width)
+			if (container.width <= 0 || total() <= container.width) return
+			// The first button (Play or Resume) keeps its label
+			val candidates = row.actions.filter { it.isVisible }.drop(1).toMutableList()
+			while (total() > container.width && candidates.isNotEmpty()) {
+				val widest = candidates.maxBy(::width)
+				widest.compact = true
+				candidates.remove(widest)
+			}
+		}
+
 		private fun personPills(row: MyDetailsOverviewRow) = SideMenuFrame.isEnabled() && row.item.type == BaseItemKind.PERSON
 		private var lookupDialog: SubtitleLookupDialog? = null
 		private var choicesDialog: DialogInterface? = null
@@ -172,6 +189,7 @@ class MyDetailsOverviewRowPresenter(
 
 				// Person pages use the same pill buttons as the other details pages
 				if (rowStyle || personPills(row)) button.applyDetailsRowStyle() else button.applyDetailsStyle()
+				button.compact = false
 				binding.fdButtonRow.addView(button)
 			}
 			if (rowStyle) {
@@ -214,6 +232,15 @@ class MyDetailsOverviewRowPresenter(
 					(child.layoutParams as? ViewGroup.MarginLayoutParams)?.let { it.marginEnd = 10.dp(view.context); child.layoutParams = it }
 				}
 			}
+            // Buttons that always show (Resume, Restart, Previous episode, More) can still overflow and squeeze
+            // the track pickers. Previous episode arrives after the first layout, so check on every change.
+            (binding.fdButtonRow.getTag(R.id.fdButtonRow) as? View.OnLayoutChangeListener)?.let(binding.fdButtonRow::removeOnLayoutChangeListener)
+            if (rowStyle) View.OnLayoutChangeListener { container, _, _, _, _, _, _, _, _ ->
+                container.post { if (currentRow === row) fitActionRow(container as ViewGroup, row) }
+            }.also {
+                binding.fdButtonRow.addOnLayoutChangeListener(it)
+                binding.fdButtonRow.setTag(R.id.fdButtonRow, it)
+            }
             binding.fdButtonRow.doOnLayout { container ->
                 if (rowStyle) {
                     // Pills differ in width, so fit by the average width after the track pickers take their space
@@ -226,7 +253,10 @@ class MyDetailsOverviewRowPresenter(
                     }.average()
                     // Posted so the visibility changes get their own layout pass instead of landing mid-layout
                     val capacity = ((container.width - pickers) / average).toInt().coerceIn(2, 7)
-                    if (average > 0 && container.width > 0) container.post { if (currentRow === row) row.onActionRowLayout?.invoke(capacity) }
+                    if (average > 0 && container.width > 0) container.post {
+                        if (currentRow !== row) return@post
+                        row.onActionRowLayout?.invoke(capacity)
+                    }
                     return@doOnLayout
                 }
                 val widest = row.actions.maxOfOrNull { button ->
