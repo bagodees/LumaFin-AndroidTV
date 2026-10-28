@@ -108,7 +108,7 @@ Release notes: [1.1.2](docs/releases/1.1.2.md).
 
 ## 1.2: settings, menus and Home options
 
-Status: All items built (October 28, 2026); waiting for the owner's TV test of 1.2.0-test.8 and approval to release. Milestone: [1.2](https://github.com/bagodees/LumaFin-AndroidTV/milestone/3). Draft release notes: [1.2.0](docs/releases/1.2.0.md).
+Status: All items built (October 28, 2026); waiting for the owner's TV test of 1.2.0-test.9 and approval to release. Milestone: [1.2](https://github.com/bagodees/LumaFin-AndroidTV/milestone/3). Draft release notes: [1.2.0](docs/releases/1.2.0.md).
 
 Also done since 1.1.2 and shipping with 1.2: the show's cast on episode pages, whole posters in wide cards, a Top Rated row that favours well-reviewed titles, and fixes from the October 27 TV pass (Back to Home in Settings, the episode button row, season episode cards, matching Continue Watching artwork in the TV library).
 
@@ -122,7 +122,7 @@ The owner decided on October 27 to skip a 1.1.3 release unless something urgent 
 6. [x] Video/photo filter for mixed libraries ([#86](https://github.com/bagodees/LumaFin-AndroidTV/issues/86))
 7. [x] Use the Home Screen Sections plugin when the server has it, with LumaFin's own sections otherwise ([#107](https://github.com/bagodees/LumaFin-AndroidTV/issues/107))
 8. [x] Choose which libraries appear in the side menu ([#113](https://github.com/bagodees/LumaFin-AndroidTV/issues/113))
-9. [x] Request movies and shows through Seerr ([#100](https://github.com/bagodees/LumaFin-AndroidTV/issues/100)); moved from 1.x later on October 27 with the owner's approval. Uses the SeerrFin server plugin: Trending/Upcoming rows, a My Requests row with each request's status, and requesting missing seasons from a show's page. Issue left open for the owner to close
+9. [x] Request movies and shows through Seerr ([#100](https://github.com/bagodees/LumaFin-AndroidTV/issues/100)); moved from 1.x later on October 27 with the owner's approval. Uses the SeerrFin server plugin: Trending/Upcoming rows, a My Requests row with each request's status, a details page for titles not in the library (laid out like the movie pages, with Request, a season picker, Trailer, Cast and More Like This; added October 28 with the owner's approval), and requesting missing seasons from a show's page. Issue left open for the owner to close
 10. [x] Card style settings: Landscape or Portrait for Continue Watching, other Home rows and library grids ([#123](https://github.com/bagodees/LumaFin-AndroidTV/issues/123)); added October 27 with the owner's approval
 11. [x] One look across screens: Seerr, genre, details, actor and library grid cards match Home's cards and spacing; row titles in title case; card lines show year and rating; the clock in one spot; the side menu dims the page; fixes for watched checks on titles being rewatched, the Seerr request popup opening on Request, Search keeping the last backdrop and "0:00" on shows without episodes. Added October 27 with the owner's approval
 

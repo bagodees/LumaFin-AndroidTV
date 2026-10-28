@@ -657,11 +657,11 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 				}
 			}
 
-			// A Seerr title (#100) offers to request it; one of your requests that has arrived opens in the library
+			// A Seerr title (#100) opens its own page, where it can be requested; one that has arrived opens in the library
 			if (item is SeerrItem) {
 				val libraryItem = item.jellyfinItemId
 				if (libraryItem != null) navigationRepository.navigate(Destinations.itemDetails(libraryItem))
-				else showSeerrRequest(requireContext(), viewLifecycleOwner, api, item, lifecycleScope)
+				else navigationRepository.navigate(Destinations.seerrDetails(item.mediaType, item.mediaId))
 				return
 			}
 

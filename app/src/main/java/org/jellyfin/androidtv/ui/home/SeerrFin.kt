@@ -46,7 +46,6 @@ import androidx.leanback.widget.HeaderItem
 import androidx.leanback.widget.ListRow
 import androidx.leanback.widget.Presenter
 import androidx.leanback.widget.Row
-import androidx.lifecycle.LifecycleOwner
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -66,7 +65,6 @@ import kotlinx.serialization.json.put
 import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.ui.base.LumaFinPalette
 import org.jellyfin.androidtv.ui.base.Text
-import org.jellyfin.androidtv.ui.base.dialog.LumaFinMenuDialog
 import org.jellyfin.androidtv.ui.composable.AsyncImage
 import org.jellyfin.androidtv.ui.presentation.CardPresenter
 import org.jellyfin.androidtv.ui.presentation.MutableObjectAdapter
@@ -440,39 +438,6 @@ class SeerrCardPresenter(private val portrait: Boolean = false, private val card
 	}
 }
 
-/** Shows a Seerr title's status and offers Request (#100). Nothing is requested without choosing Request. */
-fun showSeerrRequest(context: Context, owner: LifecycleOwner, api: ApiClient, item: SeerrItem, scope: kotlinx.coroutines.CoroutineScope) {
-	scope.launch {
-		val status = SeerrFin.status(api, item)
-		val kind = context.getString(if (item.mediaType == "tv") R.string.seerr_kind_show else R.string.seerr_kind_movie)
-		val detail = listOfNotNull(item.year?.toString(), kind).joinToString(" · ")
-		LumaFinMenuDialog(context, owner, item.name, detail, fitContent = true).apply {
-			when (status) {
-				5 -> body(context.getString(R.string.seerr_status_available))
-				4 -> body(context.getString(R.string.seerr_status_partly_available))
-				2, 3 -> body(context.getString(R.string.seerr_status_requested))
-				else -> {
-					body(context.getString(if (item.mediaType == "tv") R.string.seerr_request_show_detail else R.string.seerr_request_movie_detail))
-					button(context.getString(R.string.seerr_request), primary = true) {
-						dismiss()
-						scope.launch {
-							val ok = SeerrFin.request(api, item)
-							android.widget.Toast.makeText(context,
-								context.getString(if (ok) R.string.seerr_requested else R.string.seerr_request_failed, item.name),
-								android.widget.Toast.LENGTH_LONG).show()
-						}
-					}
-				}
-			}
-			// "Close" when there's nothing to request
-			val canRequest = status !in setOf(2, 3, 4, 5)
-			val cancel = button(context.getString(if (canRequest) android.R.string.cancel else R.string.seerr_close)) { dismiss() }
-			show()
-			// Opens on Cancel, so a stray OK never sends a request
-			cancel.requestFocus()
-		}
-	}
-}
 
 /**
  * Aired seasons in Seerr's show [details] that Seerr hasn't requested, isn't getting and doesn't have.

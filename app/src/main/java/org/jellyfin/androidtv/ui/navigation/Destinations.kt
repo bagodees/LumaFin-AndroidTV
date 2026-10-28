@@ -105,6 +105,12 @@ object Destinations {
 			putString(Extras.Folder, Json.encodeToString(item))
 		}
 
+	// A Seerr title that may not be in the library yet (#100)
+	fun seerrDetails(mediaType: String, mediaId: Int) = fragmentDestination<org.jellyfin.androidtv.ui.seerr.SeerrDetailsFragment> {
+		putString(org.jellyfin.androidtv.ui.seerr.SeerrDetailsFragment.EXTRA_MEDIA_TYPE, mediaType)
+		putInt(org.jellyfin.androidtv.ui.seerr.SeerrDetailsFragment.EXTRA_MEDIA_ID, mediaId)
+	}
+
 	// Item details
 	fun itemDetails(item: UUID) = fragmentDestination<FullDetailsFragment> {
 		putString("ItemId", item.toString())
