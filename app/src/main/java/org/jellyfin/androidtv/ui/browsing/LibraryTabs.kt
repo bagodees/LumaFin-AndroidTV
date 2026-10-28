@@ -69,6 +69,8 @@ import androidx.leanback.widget.OnItemViewClickedListener
 import androidx.leanback.widget.OnItemViewSelectedListener
 import androidx.leanback.widget.Row
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.launch
+import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -349,6 +351,7 @@ class LibraryRowsFragment : RowsSupportFragment() {
 	private val itemLauncher by inject<ItemLauncher>()
 	private val backgroundService by inject<BackgroundService>()
 	private val userPreferences by inject<UserPreferences>()
+	private val api by inject<ApiClient>()
 	val focusedItem = MutableStateFlow<BaseItemDto?>(null)
 
 	override fun onCreate(savedInstanceState: Bundle?) {
@@ -376,16 +379,20 @@ class LibraryRowsFragment : RowsSupportFragment() {
 			imageTypeLimit = 1,
 			limit = 30,
 		)
-		fun topRated(type: BaseItemKind) = GetItemsRequest(
-			fields = ItemRepository.itemFields,
-			parentId = id,
-			includeItemTypes = setOf(type),
-			recursive = true,
-			sortBy = setOf(ItemSortBy.COMMUNITY_RATING),
-			sortOrder = setOf(SortOrder.DESCENDING),
-			imageTypeLimit = 1,
-			limit = 30,
-		)
+		// Ranked in the app (see TopRated.kt), then placed before Favorites, or last if Favorites is empty
+		// The rows live as long as the fragment, so this loads once, not each time the view is rebuilt
+		fun topRated(type: BaseItemKind) = lifecycleScope.launch {
+			val items = runCatching { loadTopRated(api, id, type, 30) }
+				.onFailure { if (it is CancellationException) throw it; Timber.w(it, "Top Rated didn't load") }
+				.getOrDefault(emptyList())
+			if (items.isEmpty() || !isAdded) return@launch
+			val adapter = ItemRowAdapter(context, items, presenter, rows, true)
+			val row = ListRow(HeaderItem(getString(R.string.library_row_top_rated)), adapter)
+			adapter.setRow(row)
+			val favorites = (0 until rows.size()).firstOrNull { (rows.get(it) as? ListRow)?.headerItem?.name == getString(R.string.lbl_favorites) }
+			if (favorites != null) rows.add(favorites, row) else rows.add(row)
+			adapter.Retrieve()
+		}
 		if (folder.collectionType == CollectionType.TVSHOWS) {
 			// Episodes show the show's artwork, like the same rows on Home ("Use series thumbnails")
 			val seriesArt = userPreferences[UserPreferences.seriesThumbnailsEnabled]
@@ -393,13 +400,13 @@ class LibraryRowsFragment : RowsSupportFragment() {
 			add(R.string.home_section_next_up, ItemRowAdapter(context, BrowsingUtils.createGetNextUpRequest(id), seriesArt, presenter, rows))
 			add(R.string.library_row_recently_aired, ItemRowAdapter(context, newest(BaseItemKind.EPISODE), 50, seriesArt, presenter, rows))
 			add(R.string.library_row_recently_added, ItemRowAdapter(context, BrowsingUtils.createLatestMediaRequest(id, BaseItemKind.EPISODE, true), seriesArt, presenter, rows))
-			add(R.string.library_row_top_rated, ItemRowAdapter(context, topRated(BaseItemKind.SERIES), 30, false, presenter, rows))
+			topRated(BaseItemKind.SERIES)
 			add(R.string.lbl_favorites, ItemRowAdapter(context, BrowsingUtils.createFavoriteItemsRequest(id, BaseItemKind.SERIES), 60, false, presenter, rows))
 		} else {
 			add(R.string.home_section_resume, ItemRowAdapter(context, BrowsingUtils.createResumeItemsRequest(id, BaseItemKind.MOVIE), 50, false, presenter, rows))
 			add(R.string.library_row_recently_released, ItemRowAdapter(context, newest(BaseItemKind.MOVIE), 50, false, presenter, rows))
 			add(R.string.library_row_recently_added, ItemRowAdapter(context, BrowsingUtils.createLatestMediaRequest(id), false, presenter, rows))
-			add(R.string.library_row_top_rated, ItemRowAdapter(context, topRated(BaseItemKind.MOVIE), 50, false, presenter, rows))
+			topRated(BaseItemKind.MOVIE)
 			add(R.string.lbl_favorites, ItemRowAdapter(context, BrowsingUtils.createFavoriteItemsRequest(id, BaseItemKind.MOVIE), 60, false, presenter, rows))
 		}
 
