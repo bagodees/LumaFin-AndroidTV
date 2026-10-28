@@ -184,8 +184,8 @@ Status: Planned. Milestone: [2.0](https://github.com/bagodees/LumaFin-AndroidTV/
 ## Phone, foldable and tablet app
 
 Status: In progress, started October 28, 2026 with the owner's approval (it runs alongside the TV
-versions; TV fixes stay first). The code is in `mobile/`, a separate app (`io.github.bagodees.lumafin.mobile`)
-in this repository. Every screen follows the window's width: bottom tabs on phones and folded
+versions; TV fixes stay first). The code is in `mobile/`. It ships under the TV app's ID (`io.github.bagodees.lumafin`)
+as a separate phone and tablet build on the same store listing (decided October 28); phone version codes start at 1,000,000,000. Every screen follows the window's width: bottom tabs on phones and folded
 foldables, a side rail on unfolded foldables, the side menu on tablets. Test devices: the owner's
 Fire HD 10 (2021) and a friend's Galaxy Z Fold, plus phone, foldable, tablet and Fire HD emulators.
 
