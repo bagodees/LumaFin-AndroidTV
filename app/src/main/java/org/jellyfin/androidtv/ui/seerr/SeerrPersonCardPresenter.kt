@@ -1,5 +1,6 @@
 package org.jellyfin.androidtv.ui.seerr
 
+import io.github.bagodees.lumafin.core.seerr.SeerrPerson
 import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.compose.foundation.Image

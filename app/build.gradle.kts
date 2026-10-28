@@ -149,6 +149,7 @@ tasks.register("versionTxt") {
 
 dependencies {
 	// Jellyfin
+	implementation(projects.core)
 	implementation(projects.design)
 	implementation(projects.playback.core)
 	implementation(projects.playback.jellyfin)

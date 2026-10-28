@@ -1,5 +1,9 @@
 package org.jellyfin.androidtv.ui.seerr
 
+import io.github.bagodees.lumafin.core.seerr.SeerrDetails
+import io.github.bagodees.lumafin.core.seerr.SeerrPerson
+import io.github.bagodees.lumafin.core.seerr.loadSeerrDetails
+import io.github.bagodees.lumafin.core.seerr.loadSeerrRecommendations
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View

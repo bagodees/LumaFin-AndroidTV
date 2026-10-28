@@ -1,4 +1,4 @@
-package org.jellyfin.androidtv.ui.seerr
+package io.github.bagodees.lumafin.core.seerr
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -11,8 +11,6 @@ import kotlinx.serialization.json.floatOrNull
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import org.jellyfin.androidtv.ui.home.SeerrItem
-import org.jellyfin.androidtv.ui.home.missingSeasons
 import org.jellyfin.sdk.api.client.ApiClient
 import org.jellyfin.sdk.api.client.HttpMethod
 import org.jellyfin.sdk.model.api.BaseItemKind
@@ -92,7 +90,7 @@ suspend fun loadSeerrDetails(api: ApiClient, mediaType: String, mediaId: Int): S
 	null
 }
 
-internal fun parseSeerrDetails(body: JsonObject, mediaType: String, mediaId: Int, today: LocalDate): SeerrDetails? {
+fun parseSeerrDetails(body: JsonObject, mediaType: String, mediaId: Int, today: LocalDate): SeerrDetails? {
 	val name = body.text("title") ?: body.text("name") ?: return null
 	val tv = mediaType == "tv"
 	val release = (body.text("releaseDate") ?: body.text("firstAirDate"))?.take(10)?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
@@ -187,6 +185,3 @@ suspend fun loadSeerrRecommendations(api: ApiClient, mediaType: String, mediaId:
 	}
 	return load("recommendations").ifEmpty { load("similar") }.take(20)
 }
-
-/** The library item type a Seerr title would be. */
-val SeerrItem.kind get() = if (mediaType == "tv") BaseItemKind.SERIES else BaseItemKind.MOVIE

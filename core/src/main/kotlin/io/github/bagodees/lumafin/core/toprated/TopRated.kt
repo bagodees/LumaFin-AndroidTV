@@ -1,14 +1,14 @@
-package org.jellyfin.androidtv.ui.browsing
+package io.github.bagodees.lumafin.core.toprated
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
-import org.jellyfin.androidtv.data.repository.ItemRepository
 import org.jellyfin.sdk.api.client.ApiClient
 import org.jellyfin.sdk.api.client.extensions.itemsApi
 import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.BaseItemKind
+import org.jellyfin.sdk.model.api.ItemFields
 import org.jellyfin.sdk.model.api.ItemSortBy
 import org.jellyfin.sdk.model.api.SortOrder
 import org.jellyfin.sdk.model.api.request.GetItemsRequest
@@ -28,7 +28,7 @@ private const val POOL_SIZE = 150
  * percentage) averaged when both exist. A title with only one of them counts a little lower, so one
  * strong number alone doesn't beat two good ones. Null when the title has neither.
  */
-internal fun topRatedScore(communityRating: Float?, criticRating: Float?): Double? {
+fun topRatedScore(communityRating: Float?, criticRating: Float?): Double? {
 	val community = communityRating?.toDouble()?.takeIf { it > 0 }
 		?.let { if (it >= UNRELIABLE_COMMUNITY_RATING) NEUTRAL_COMMUNITY_RATING else it }
 	val critic = criticRating?.toDouble()?.takeIf { it > 0 }?.let { if (it >= 100) PERFECT_CRITIC_RATING_COUNTS_AS else it }
@@ -41,7 +41,7 @@ internal fun topRatedScore(communityRating: Float?, criticRating: Float?): Doubl
 }
 
 /** The best [limit] of [items] by [topRatedScore], each title once. */
-internal fun rankTopRated(items: List<BaseItemDto>, limit: Int): List<BaseItemDto> = items
+fun rankTopRated(items: List<BaseItemDto>, limit: Int): List<BaseItemDto> = items
 	.distinctBy { it.id }
 	.mapNotNull { item -> topRatedScore(item.communityRating, item.criticRating)?.let { item to it } }
 	.sortedByDescending { it.second }
@@ -53,10 +53,10 @@ internal fun rankTopRated(items: List<BaseItemDto>, limit: Int): List<BaseItemDt
  * people first, and the server has no vote counts to filter them, so the best titles by audience and by
  * critics are fetched and ranked together here.
  */
-internal suspend fun loadTopRated(api: ApiClient, parentId: UUID, type: BaseItemKind, limit: Int): List<BaseItemDto> =
+suspend fun loadTopRated(api: ApiClient, parentId: UUID, type: BaseItemKind, limit: Int, fields: Collection<ItemFields>? = null): List<BaseItemDto> =
 	withContext(Dispatchers.IO) {
 		fun request(sort: ItemSortBy) = GetItemsRequest(
-			fields = ItemRepository.itemFields,
+			fields = fields,
 			parentId = parentId,
 			includeItemTypes = setOf(type),
 			recursive = true,

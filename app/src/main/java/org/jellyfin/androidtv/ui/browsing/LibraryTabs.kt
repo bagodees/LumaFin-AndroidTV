@@ -1,5 +1,6 @@
 package org.jellyfin.androidtv.ui.browsing
 
+import io.github.bagodees.lumafin.core.toprated.loadTopRated
 import android.os.Bundle
 import androidx.compose.ui.layout.ContentScale
 import coil3.compose.AsyncImage as CoilImage
@@ -379,10 +380,10 @@ class LibraryRowsFragment : RowsSupportFragment() {
 			imageTypeLimit = 1,
 			limit = 30,
 		)
-		// Ranked in the app (see TopRated.kt), then placed before Favorites, or last if Favorites is empty
+		// Ranked in the app (see core TopRated.kt), then placed before Favorites, or last if Favorites is empty
 		// The rows live as long as the fragment, so this loads once, not each time the view is rebuilt
 		fun topRated(type: BaseItemKind) = lifecycleScope.launch {
-			val items = runCatching { loadTopRated(api, id, type, 30) }
+			val items = runCatching { loadTopRated(api, id, type, 30, ItemRepository.itemFields) }
 				.onFailure { if (it is CancellationException) throw it; Timber.w(it, "Top Rated didn't load") }
 				.getOrDefault(emptyList())
 			if (items.isEmpty() || !isAdded) return@launch

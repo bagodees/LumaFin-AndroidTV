@@ -1,4 +1,4 @@
-package org.jellyfin.androidtv.ui.seerr
+package io.github.bagodees.lumafin.core.seerr
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe

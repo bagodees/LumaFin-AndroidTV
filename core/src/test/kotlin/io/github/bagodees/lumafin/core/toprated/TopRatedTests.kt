@@ -1,4 +1,4 @@
-package org.jellyfin.androidtv.ui.browsing
+package io.github.bagodees.lumafin.core.toprated
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
