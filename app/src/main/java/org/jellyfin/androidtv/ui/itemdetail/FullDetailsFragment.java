@@ -1109,6 +1109,14 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
             mDetailsOverviewRow.addAction(favButton);
         }
 
+        // Missing seasons Seerr can get (#100); shown once Seerr answers
+        if (mBaseItem.getType() == BaseItemKind.SERIES && SideMenuFrame.isEnabled()) {
+            TextUnderButton seerrSeasonsButton = TextUnderButton.create(requireContext(), R.drawable.ic_add, buttonSize, 0, getString(R.string.seerr_request_missing_seasons), v -> { });
+            seerrSeasonsButton.setVisibility(View.GONE);
+            mDetailsOverviewRow.addAction(seerrSeasonsButton);
+            SeerrSeasonsKt.populateSeerrSeasonsButton(this, seerrSeasonsButton);
+        }
+
         if (mBaseItem.getType() == BaseItemKind.EPISODE && mBaseItem.getSeriesId() != null) {
             //add the prev button first so it will be there in proper position - we'll show it later if needed
             mPrevButton = TextUnderButton.create(requireContext(), R.drawable.ic_previous_episode, buttonSize, 3, getString(R.string.lbl_previous_episode), new View.OnClickListener() {

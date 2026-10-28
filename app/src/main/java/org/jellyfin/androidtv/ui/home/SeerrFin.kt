@@ -57,6 +57,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonObject
@@ -72,6 +73,7 @@ import org.jellyfin.androidtv.ui.presentation.MutableObjectAdapter
 import org.jellyfin.sdk.api.client.ApiClient
 import org.jellyfin.sdk.api.client.HttpMethod
 import org.jellyfin.sdk.model.api.BaseItemDtoQueryResult
+import org.jellyfin.sdk.model.serializer.toUUID
 import timber.log.Timber
 
 /** A title from Seerr that may not be in the library yet (#100). [mediaId] is Seerr's (TMDB) id. */
@@ -85,6 +87,10 @@ data class SeerrItem(
 	val year: Int?,
 	val rating: Float? = null,
 	val tmdbId: Int? = null,
+	/** My Requests: where the request stands ("Available", "Downloading · 45%"), shown instead of the year. */
+	val statusLabel: String? = null,
+	/** My Requests: the library item once the title has arrived, opened instead of the request dialog. */
+	val jellyfinItemId: java.util.UUID? = null,
 ) {
 	/** A stand-in item for the preview above the rows: title, year, rating and kind. */
 	fun previewItem(overview: String? = null) = org.jellyfin.sdk.model.api.BaseItemDto(
@@ -217,9 +223,76 @@ object SeerrFin {
 		null
 	}
 
-	/** Requests a title; a show is requested with all seasons. True when Seerr accepted it. */
-	suspend fun request(api: ApiClient, item: SeerrItem): Boolean = try {
-		val body = buildJsonObject { put("MediaType", item.mediaType); put("MediaId", item.mediaId) }
+	/** The signed-in user's requests, newest first, with where each one stands. Null when SeerrFin can't answer. */
+	suspend fun myRequests(context: Context, api: ApiClient): List<SeerrItem>? = try {
+		val response = get(api, "requests", mapOf("take" to 20))
+		if (response.status !in 200..299) null
+		else json.parseToJsonElement(response.body.decodeToString()).jsonObject["requests"]
+			?.let { it as? kotlinx.serialization.json.JsonArray }.orEmpty()
+			.mapNotNull { element ->
+				val request = element as? JsonObject ?: return@mapNotNull null
+				fun text(key: String) = request[key]?.jsonPrimitive?.contentOrNull?.takeIf { it.isNotBlank() }
+				val tmdbId = request["tmdbId"]?.jsonPrimitive?.intOrNull ?: return@mapNotNull null
+				val progress = request["servarrProgress"] as? JsonObject
+				val percent = progress?.get("percent")?.jsonPrimitive?.intOrNull ?: 0
+				val inLibrary = text("jellyfinItemId") != null
+				// Plain words instead of Seerr's and the download apps' own labels
+				val status = when (progress?.get("statusKey")?.jsonPrimitive?.contentOrNull) {
+					"queued" -> if (percent in 1..99) context.getString(R.string.seerr_status_downloading, percent) else context.getString(R.string.seerr_status_waiting)
+					"unreleased" -> context.getString(R.string.seerr_status_unreleased)
+					"failed" -> context.getString(R.string.seerr_status_failed)
+					"downloaded-monitored", "downloaded-unmonitored" ->
+						context.getString(if (inLibrary) R.string.seerr_status_in_library else R.string.seerr_status_arriving)
+					else -> when (text("mediaStatusLabel")) {
+						"Available" -> context.getString(R.string.seerr_status_in_library)
+						"Partially Available" -> context.getString(R.string.seerr_status_partly_in_library)
+						"Pending Approval" -> context.getString(R.string.seerr_status_awaiting_approval)
+						"Declined" -> context.getString(R.string.seerr_status_declined)
+						"Failed" -> context.getString(R.string.seerr_status_failed)
+						"Deleted", "Blocklisted" -> null
+						else -> context.getString(R.string.seerr_status_requested_short)
+					}
+				}
+				SeerrItem(
+					name = text("title") ?: return@mapNotNull null,
+					mediaType = text("type") ?: "movie",
+					mediaId = tmdbId,
+					imageUrl = text("backdropUrl") ?: text("posterUrl"),
+					posterUrl = text("posterUrl"),
+					year = request["year"]?.jsonPrimitive?.intOrNull,
+					tmdbId = tmdbId,
+					statusLabel = status,
+					jellyfinItemId = text("jellyfinItemId")?.let { runCatching { it.toUUID() }.getOrNull() },
+				)
+			}.distinctBy { it.mediaType to it.mediaId }
+	} catch (error: CancellationException) {
+		throw error
+	} catch (error: Exception) {
+		Timber.d(error, "SeerrFin requests not available")
+		null
+	}
+
+	/**
+	 * Aired seasons of a show in the library that Seerr can still get: only when Seerr already knows the
+	 * show as partly available, so a show Seerr hasn't matched never offers seasons that are already here.
+	 */
+	suspend fun missingSeasons(api: ApiClient, tmdbId: Int): List<Int>? = try {
+		val response = get(api, "details/tv/$tmdbId")
+		if (response.status !in 200..299) null
+		else missingSeasons(json.parseToJsonElement(response.body.decodeToString()).jsonObject, java.time.LocalDate.now())
+	} catch (error: CancellationException) {
+		throw error
+	} catch (error: Exception) {
+		Timber.d(error, "No Seerr season details for %d", tmdbId)
+		null
+	}
+
+	/** Requests a title; a show is requested with all seasons unless [seasons] names some. True when Seerr accepted it. */
+	suspend fun request(api: ApiClient, item: SeerrItem, seasons: List<Int> = emptyList()): Boolean = try {
+		val body = buildJsonObject {
+			put("MediaType", item.mediaType); put("MediaId", item.mediaId)
+			if (seasons.isNotEmpty()) put("Seasons", kotlinx.serialization.json.JsonArray(seasons.map { kotlinx.serialization.json.JsonPrimitive(it) }))
+		}
 		withContext(Dispatchers.IO) {
 			api.request(HttpMethod.POST, "/SeerrFin/request", emptyMap(), emptyMap(), body)
 		}.status in 200..299
@@ -228,6 +301,21 @@ object SeerrFin {
 	} catch (error: Exception) {
 		Timber.w(error, "Seerr request failed")
 		false
+	}
+}
+
+/** The user's Seerr requests and where each stands (#100); arrived titles open in the library. */
+class SeerrRequestsRow(private val api: ApiClient) : HomeFragmentRow {
+	override suspend fun addToRowsAdapter(context: Context, cardPresenter: CardPresenter, rowsAdapter: MutableObjectAdapter<Row>) {
+		val requests = SeerrFin.myRequests(context, api).orEmpty()
+		if (requests.isEmpty()) return
+		val portrait = cardPresenter.portrait
+		val items = if (portrait) requests else coroutineScope {
+			requests.map { item -> async { SeerrFin.titledBackdrop(api, item)?.let { item.copy(imageUrl = it) } ?: item } }
+				.map { it.await() }
+		}
+		val adapter = ArrayObjectAdapter(SeerrCardPresenter(portrait, cardPresenter.homeCardHeight)).apply { addAll(0, items) }
+		rowsAdapter.add(ListRow(HeaderItem(context.getString(R.string.seerr_my_requests)), adapter))
 	}
 }
 
@@ -329,7 +417,7 @@ class SeerrCardPresenter(private val portrait: Boolean = false, private val card
 				},
 				subtitle = {
 					Text(
-						item.year?.toString() ?: " ",
+						item.statusLabel ?: item.year?.toString() ?: " ",
 						fontSize = 11.sp,
 						lineHeight = 14.sp,
 						color = Color.White.copy(alpha = 0.85f),
@@ -376,10 +464,35 @@ fun showSeerrRequest(context: Context, owner: LifecycleOwner, api: ApiClient, it
 					}
 				}
 			}
-			val cancel = button(context.getString(android.R.string.cancel)) { dismiss() }
+			// "Close" when there's nothing to request
+			val canRequest = status !in setOf(2, 3, 4, 5)
+			val cancel = button(context.getString(if (canRequest) android.R.string.cancel else R.string.seerr_close)) { dismiss() }
 			show()
 			// Opens on Cancel, so a stray OK never sends a request
 			cancel.requestFocus()
 		}
 	}
+}
+
+/**
+ * Aired seasons in Seerr's show [details] that Seerr hasn't requested, isn't getting and doesn't have.
+ * Empty unless Seerr knows the show as partly available (status 4), so a show Seerr hasn't matched never
+ * offers seasons that are already in the library.
+ */
+internal fun missingSeasons(details: JsonObject, today: java.time.LocalDate): List<Int> {
+	val mediaInfo = details["mediaInfo"] as? JsonObject
+	if (mediaInfo?.get("status")?.jsonPrimitive?.intOrNull != 4) return emptyList()
+	// Seasons Seerr has requested (2), is getting (3) or has in part or in full (4, 5)
+	val known = (mediaInfo["seasons"] as? kotlinx.serialization.json.JsonArray).orEmpty().mapNotNull { season ->
+		val obj = season as? JsonObject ?: return@mapNotNull null
+		val status = obj["status"]?.jsonPrimitive?.intOrNull ?: return@mapNotNull null
+		obj["seasonNumber"]?.jsonPrimitive?.intOrNull?.takeIf { status in 2..5 }
+	}.toSet()
+	val day = today.toString()
+	return (details["seasons"] as? kotlinx.serialization.json.JsonArray).orEmpty().mapNotNull { season ->
+		val obj = season as? JsonObject ?: return@mapNotNull null
+		val number = obj["seasonNumber"]?.jsonPrimitive?.intOrNull?.takeIf { it > 0 } ?: return@mapNotNull null
+		val aired = obj["airDate"]?.jsonPrimitive?.contentOrNull?.takeIf { it.length >= 10 }?.let { it.take(10) <= day } == true
+		number.takeIf { aired && it !in known }
+	}.sorted()
 }

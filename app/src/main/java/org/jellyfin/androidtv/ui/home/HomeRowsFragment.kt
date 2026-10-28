@@ -387,7 +387,11 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 		loadedSeerrRows = userPreferences[UserPreferences.seerrRows]
 		val seerrAvailable = SeerrFin.discover(api, SeerrFin.rows.first().second) != null
 		SeerrFin.available.value = seerrAvailable
-		if (seerrAvailable && loadedSeerrRows) SeerrFin.rows.forEach { (title, path) -> rows.add(SeerrDiscoverRow(api, title, path)) }
+		if (seerrAvailable && loadedSeerrRows) {
+			// Your own requests first, then what's trending and coming up
+			rows.add(SeerrRequestsRow(api))
+			SeerrFin.rows.forEach { (title, path) -> rows.add(SeerrDiscoverRow(api, title, path)) }
+		}
 
 		// Rows only the server's plugin offers, added in Settings > Home (#107)
 		if (!usePlugin && pluginSections != null) {
@@ -653,9 +657,11 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 				}
 			}
 
-			// A Seerr title (#100) offers to request it
+			// A Seerr title (#100) offers to request it; one of your requests that has arrived opens in the library
 			if (item is SeerrItem) {
-				showSeerrRequest(requireContext(), viewLifecycleOwner, api, item, lifecycleScope)
+				val libraryItem = item.jellyfinItemId
+				if (libraryItem != null) navigationRepository.navigate(Destinations.itemDetails(libraryItem))
+				else showSeerrRequest(requireContext(), viewLifecycleOwner, api, item, lifecycleScope)
 				return
 			}
 
