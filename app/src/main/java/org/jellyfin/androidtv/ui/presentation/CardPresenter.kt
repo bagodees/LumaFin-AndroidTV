@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.leanback.widget.Presenter
 import androidx.lifecycle.findViewTreeLifecycleOwner
@@ -387,7 +388,35 @@ private fun CardViewHolderContent(
 	val card = @Composable {
 		ItemCard(
 			image = {
-				if (image != null) {
+				// A wide card for a title that only has a tall poster: cropping it zooms into a face or cuts
+				// the title art, so show the whole poster over a dimmed, blurred copy that fills the sides
+				val posterInWideCard = image != null && aspectRatio > 1f &&
+					image.type == org.jellyfin.sdk.model.api.ImageType.PRIMARY && (image.aspectRatio ?: 1f) < 1f
+				if (image != null && posterInWideCard) {
+					val api = koinInject<ApiClient>()
+					val url = image.getUrl(
+						api,
+						maxHeight = with(localDensity) { size.height.roundToPx() },
+					)
+					AsyncImage(
+						url = url,
+						blurHash = image.blurHash,
+						aspectRatio = aspectRatio,
+						scaleType = ImageView.ScaleType.CENTER_CROP,
+						modifier = Modifier
+							.fillMaxSize()
+							.blur(24.dp)
+							.graphicsLayer(alpha = 0.45f)
+					)
+					AsyncImage(
+						url = url,
+						blurHash = image.blurHash,
+						aspectRatio = image.aspectRatio ?: (2f / 3f),
+						scaleType = ImageView.ScaleType.FIT_CENTER,
+						modifier = Modifier
+							.fillMaxSize()
+					)
+				} else if (image != null) {
 					val api = koinInject<ApiClient>()
 					AsyncImage(
 						url = image.getUrl(
