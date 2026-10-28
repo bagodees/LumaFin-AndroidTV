@@ -26,6 +26,7 @@ androidx-recyclerview = "1.4.0"
 androidx-startup = "1.2.0"
 androidx-tvprovider = "1.1.0"
 androidx-window = "1.5.1"
+androidx-mediarouter = "1.8.1"
 androidx-work = "2.11.2"
 coil = "3.6.2"
 detekt = "1.23.8"
@@ -41,6 +42,7 @@ kotlinx-serialization = "1.11.0"
 libass-android = "0.5.1"
 markwon = "4.6.2"
 mockk = "1.14.11"
+play-services-cast = "22.3.1"
 slf4j-timber = "0.0.4"
 timber = "5.0.1"
 
@@ -92,6 +94,8 @@ androidx-recyclerview = { module = "androidx.recyclerview:recyclerview", version
 androidx-startup = { module = "androidx.startup:startup-runtime", version.ref = "androidx-startup" }
 androidx-tvprovider = { module = "androidx.tvprovider:tvprovider", version.ref = "androidx-tvprovider" }
 androidx-window = { module = "androidx.window:window", version.ref = "androidx-window" }
+androidx-mediarouter = { module = "androidx.mediarouter:mediarouter", version.ref = "androidx-mediarouter" }
+play-services-cast-framework = { module = "com.google.android.gms:play-services-cast-framework", version.ref = "play-services-cast" }
 androidx-work-runtime = { module = "androidx.work:work-runtime", version.ref = "androidx-work" }
 
 # Dependency Injection

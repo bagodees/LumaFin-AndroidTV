@@ -194,7 +194,7 @@ Fire HD 10 (2021) and a friend's Galaxy Z Fold, plus phone, foldable, tablet and
 3. [x] Details pages and the player: title pages with seasons, episodes, cast and More Like This; touch controls, audio and subtitle choices, resume and progress reporting, next episode, picture-in-picture, and a converted stream when a device can't decode a file
 4. [x] Search (with Seerr titles not in the library), Seerr title pages and requests, settings (autoplay, Seerr rows)
 5. [x] Foldable and tablet polish: info beside the episode list on wide screens, tabletop video mode on a half-folded foldable
-6. [ ] Optional extras, the owner's pick: downloads for offline viewing; casting (needs Google Play services, so not on Fire tablets)
+6. [x] Downloads and casting, picked by the owner October 28: downloads in original quality or a smaller converted copy (1080p, 720p, 480p), single titles or a whole season, a Downloads tab, offline playback with resume points sent to the server once back online, and Wi-Fi only by default. "Play on" sends a title to a Chromecast (Jellyfin's Cast receiver; needs Google Play services, so not on Fire tablets) or another Jellyfin app signed in to the same account, with remote controls in a bar above the tabs. Checked on the foldable emulator: a 480p download, offline play and seeking, resume sync, and casting to a Jellyfin web client. Not yet checked on a real Chromecast
 7. [ ] Play listing and closed testing, with the owner's approval. Release build checked October 28; listing draft in [docs/mobile/play-listing-draft.md](docs/mobile/play-listing-draft.md)
 
 ---
