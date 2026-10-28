@@ -181,10 +181,27 @@ Status: Planned. Milestone: [2.0](https://github.com/bagodees/LumaFin-AndroidTV/
 
 ---
 
+## Phone, foldable and tablet app
+
+Status: In progress, started October 28, 2026 with the owner's approval (it runs alongside the TV
+versions; TV fixes stay first). The code is in `mobile/`, a separate app (`io.github.bagodees.lumafin.mobile`)
+in this repository. Every screen follows the window's width: bottom tabs on phones and folded
+foldables, a side rail on unfolded foldables, the side menu on tablets. Test devices: the owner's
+Fire HD 10 (2021) and a friend's Galaxy Z Fold, plus phone, foldable, tablet and Fire HD emulators.
+
+1. [ ] Shell: sign-in (server, users, password, Quick Connect), adaptive navigation, first Home rows. Built; sign-in up to Quick Connect checked on the foldable emulator
+2. [ ] Home and libraries: the TV app's rows, library grids, Top Rated and Seerr rows; shared logic moves into a core module
+3. [ ] Details pages and the player (touch controls, picture-in-picture); first test build
+4. [ ] Search, Seerr title pages and requests, settings
+5. [ ] Foldable and tablet polish: side-by-side list and details, tabletop video mode
+6. [ ] Optional extras: downloads, casting
+7. [ ] Play listing and closed testing, with the owner's approval
+
+---
+
 ## Not planned
 
 - An independent rebuild in a separate codebase (withdrawn October 23, 2026).
-- A phone or tablet app; planned separately after the TV redesign.
 - Playlist management; the music-focused review ([#60](https://github.com/bagodees/LumaFin-AndroidTV/issues/60)) is closed.
 
 Contributor changes require maintainer review; automatic merging is disabled.
