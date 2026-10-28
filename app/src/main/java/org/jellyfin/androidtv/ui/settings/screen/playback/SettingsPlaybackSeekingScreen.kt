@@ -1,5 +1,6 @@
 package org.jellyfin.androidtv.ui.settings.screen.playback
 
+import org.jellyfin.androidtv.ui.settings.composable.SettingsValue
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -57,7 +58,7 @@ fun SettingsPlaybackSeekingScreen() {
 
 				navigates = true,
 				headingContent = { Text(stringResource(R.string.settings_resume_rewind)) },
-				captionContent = { Text(options[resumeSubtractDuration].orEmpty()) },
+				trailingContent = { SettingsValue(options[resumeSubtractDuration].orEmpty()) },
 				onClick = { router.push(Routes.PLAYBACK_RESUME_SUBTRACT_DURATION) },
 				modifier = Modifier.focusKey(Routes.PLAYBACK_RESUME_SUBTRACT_DURATION)
 			)

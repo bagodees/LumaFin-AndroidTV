@@ -60,19 +60,20 @@ import org.jellyfin.androidtv.ui.settings.Routes
 /** True inside the full-screen settings, where pages opened from the category list leave focus on it. */
 val LocalInSettingsWorkspace = staticCompositionLocalOf { false }
 
-private data class SettingsCategory(val route: String, val title: Int, val icon: Int)
+/** [description] shows under the highlighted category (#124), so people can find a setting without opening each one. */
+private data class SettingsCategory(val route: String, val title: Int, val icon: Int, val description: Int? = null)
 
 private val backToHome = SettingsCategory("", R.string.settings_back_to_home, R.drawable.ic_arrow_back)
 
 private val categories = listOf(
-	SettingsCategory(Routes.HOME, R.string.home_prefs, R.drawable.ic_house),
-	SettingsCategory(Routes.CUSTOMIZATION, R.string.settings_category_appearance, R.drawable.ic_adjust),
-	SettingsCategory(Routes.LIBRARIES, R.string.pref_libraries, R.drawable.ic_grid),
-	SettingsCategory(Routes.PLAYBACK, R.string.pref_playback, R.drawable.ic_next),
-	SettingsCategory(Routes.CUSTOMIZATION_SUBTITLES, R.string.pref_subtitles, R.drawable.ic_subtitles),
-	SettingsCategory(Routes.AUTHENTICATION, R.string.settings_group_accounts, R.drawable.ic_users),
-	SettingsCategory(Routes.HELP, R.string.settings_group_help, R.drawable.ic_maintenance),
-	SettingsCategory(Routes.SEARCH, R.string.settings_search_title, R.drawable.ic_search),
+	SettingsCategory(Routes.HOME, R.string.home_prefs, R.drawable.ic_house, R.string.settings_category_home_description),
+	SettingsCategory(Routes.CUSTOMIZATION, R.string.settings_category_appearance, R.drawable.ic_adjust, R.string.settings_category_appearance_description),
+	SettingsCategory(Routes.LIBRARIES, R.string.pref_libraries, R.drawable.ic_grid, R.string.settings_category_libraries_description),
+	SettingsCategory(Routes.PLAYBACK, R.string.pref_playback, R.drawable.ic_next, R.string.settings_category_playback_description),
+	SettingsCategory(Routes.CUSTOMIZATION_SUBTITLES, R.string.pref_subtitles, R.drawable.ic_subtitles, R.string.settings_category_subtitles_description),
+	SettingsCategory(Routes.AUTHENTICATION, R.string.settings_group_accounts, R.drawable.ic_users, R.string.settings_category_accounts_description),
+	SettingsCategory(Routes.HELP, R.string.settings_group_help, R.drawable.ic_maintenance, R.string.settings_category_help_description),
+	SettingsCategory(Routes.SEARCH, R.string.settings_search_title, R.drawable.ic_search, R.string.settings_category_search_description),
 )
 
 /**
@@ -117,9 +118,15 @@ fun SettingsWorkspace(onDismissRequest: () -> Unit, onBackToHome: () -> Unit = o
 	}
 	LaunchedEffect(Unit) { runCatching { categoryFocus.requestFocus() } }
 	// A page opened from inside the options (a search result, a nested link) keeps focus in the options
+	// Going back a page leaves focus to the page, which returns it to the row that was opened
+	var previousDepth by remember { mutableStateOf(router.backStack.size) }
 	LaunchedEffect(currentRoute) {
-		if (!openedFromCategory) runCatching { contentFocus.requestFocus() }
+		val wentBack = router.backStack.size < previousDepth
+		previousDepth = router.backStack.size
+		val moveIntoOptions = !openedFromCategory && !wentBack
 		openedFromCategory = false
+		// Wait for the previous page to leave first; focusing it on its way out would make Back return to its first row
+		if (moveIntoOptions) { withFrameNanos { }; withFrameNanos { }; runCatching { contentFocus.requestFocus() } }
 	}
 
 	// The menu needs about 480dp of height; a 1080p TV gives 540, so the padding stays tight
@@ -217,21 +224,32 @@ private fun CategoryItem(category: SettingsCategory, active: Boolean, modifier: 
 			containerColor = if (active) LumaFinPalette.Raised else Color.Transparent,
 			contentColor = if (active) LumaFinPalette.Cyan else LumaFinPalette.SecondaryText,
 		),
-		modifier = modifier.fillMaxWidth().height(46.dp),
+		// Only the highlighted category grows for its description, so the whole menu still fits a 1080p screen
+		modifier = modifier.fillMaxWidth().height(if (active && category.description != null) 60.dp else 42.dp),
 	) {
 		Row(
 			verticalAlignment = Alignment.CenterVertically,
 			modifier = Modifier.align(Alignment.CenterStart).padding(horizontal = 14.dp),
 		) {
 			Icon(imageVector = ImageVector.vectorResource(category.icon), contentDescription = null, modifier = Modifier.size(22.dp))
-			Text(
-				stringResource(category.title),
-				fontSize = 17.sp,
-				fontWeight = FontWeight.SemiBold,
-				maxLines = 1,
-				overflow = TextOverflow.Ellipsis,
-				modifier = Modifier.padding(start = 14.dp),
-			)
+			Column(Modifier.padding(start = 14.dp)) {
+				Text(
+					stringResource(category.title),
+					fontSize = 17.sp,
+					fontWeight = FontWeight.SemiBold,
+					maxLines = 1,
+					overflow = TextOverflow.Ellipsis,
+				)
+				if (active && category.description != null) Text(
+					stringResource(category.description),
+					fontSize = 12.sp,
+					lineHeight = 15.sp,
+					// Follows the button's text color, so it stays readable on the focused (cyan) background
+					color = org.jellyfin.androidtv.ui.base.LocalTextStyle.current.color.copy(alpha = 0.75f),
+					maxLines = 1,
+					overflow = TextOverflow.Ellipsis,
+				)
+			}
 		}
 	}
 }

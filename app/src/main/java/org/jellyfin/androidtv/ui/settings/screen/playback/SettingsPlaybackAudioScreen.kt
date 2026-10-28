@@ -1,5 +1,6 @@
 package org.jellyfin.androidtv.ui.settings.screen.playback
 
+import org.jellyfin.androidtv.ui.settings.composable.SettingsValue
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -39,7 +40,7 @@ fun SettingsPlaybackAudioScreen() {
 
 				navigates = true,
 				headingContent = { Text(stringResource(R.string.lbl_audio_output)) },
-				captionContent = { Text(stringResource(audioBehaviour.nameRes)) },
+				trailingContent = { SettingsValue(stringResource(audioBehaviour.nameRes)) },
 				onClick = { router.push(Routes.PLAYBACK_AUDIO_BEHAVIOR) },
 				modifier = Modifier.focusKey(Routes.PLAYBACK_AUDIO_BEHAVIOR)
 			)

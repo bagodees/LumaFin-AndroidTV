@@ -11,6 +11,11 @@ class FocusPersistManager {
 	private var initialFocusRequester: FocusRequester? = null
 	private var initialFocusAllowed = true
 	private var restoredFocusKey: String? = null
+	// A row in a lazy list may not exist yet when its page comes back; it gets focus once placed, briefly
+	private var pendingRestoreKey: String? = null
+	/** False while the page is no longer the top one, e.g. sliding out. */
+	var recording = true
+	private var pendingRestoreUntil = 0L
 
 	fun register(key: String, requester: FocusRequester, initialFocus: Boolean) {
 		val previousRequester = requesters.put(key, requester)
@@ -24,7 +29,7 @@ class FocusPersistManager {
 	}
 
 	fun onFocusChanged(key: String, isFocused: Boolean) {
-		if (!isFocused) return
+		if (!isFocused || !recording) return
 
 		lastFocusedKey = key
 		if (initialFocusRequester == null || requesters[key] === initialFocusRequester) {
@@ -45,7 +50,19 @@ class FocusPersistManager {
 		if (key == null) return
 
 		initialFocusAllowed = false
-		requesters[key]?.requestFocus()
+		if (requesters[key]?.requestFocus() != true) {
+			pendingRestoreKey = key
+			pendingRestoreUntil = android.os.SystemClock.uptimeMillis() + PENDING_RESTORE_MS
+		}
+	}
+
+	fun onPlaced(key: String, requester: FocusRequester) {
+		if (key != pendingRestoreKey) return
+		if (android.os.SystemClock.uptimeMillis() > pendingRestoreUntil || requester.requestFocus()) pendingRestoreKey = null
+	}
+
+	private companion object {
+		const val PENDING_RESTORE_MS = 1_000L
 	}
 }
 

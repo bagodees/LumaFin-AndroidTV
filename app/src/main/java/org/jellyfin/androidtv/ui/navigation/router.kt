@@ -104,7 +104,7 @@ fun RouterContent(
 				onBack = { router.back() },
 				entryDecorators = listOf(
 					rememberSaveableStateHolderNavEntryDecorator(),
-					rememberFocusRestorationNavEntryDecorator(),
+					rememberFocusRestorationNavEntryDecorator(router.backStack),
 				),
 				transitionSpec = transitionSpec,
 				popTransitionSpec = popTransitionSpec,

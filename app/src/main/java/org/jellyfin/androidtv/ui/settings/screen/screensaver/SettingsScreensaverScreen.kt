@@ -1,5 +1,6 @@
 package org.jellyfin.androidtv.ui.settings.screen.screensaver
 
+import org.jellyfin.androidtv.ui.settings.composable.SettingsValue
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -55,7 +56,7 @@ fun SettingsScreensaverScreen() {
 
 				navigates = true,
 				headingContent = { Text(stringResource(R.string.pref_screensaver_inapp_timeout)) },
-				captionContent = { Text(caption) },
+				trailingContent = { SettingsValue(caption) },
 				onClick = { router.push(Routes.CUSTOMIZATION_SCREENSAVER_TIMEOUT) },
 				modifier = Modifier.focusKey(Routes.CUSTOMIZATION_SCREENSAVER_TIMEOUT)
 			)
@@ -85,7 +86,7 @@ fun SettingsScreensaverScreen() {
 
 				navigates = true,
 				headingContent = { Text(stringResource(R.string.pref_screensaver_ageratingmax)) },
-				captionContent = { Text(caption) },
+				trailingContent = { SettingsValue(caption) },
 				onClick = { router.push(Routes.CUSTOMIZATION_SCREENSAVER_AGE_RATING) },
 				modifier = Modifier.focusKey(Routes.CUSTOMIZATION_SCREENSAVER_AGE_RATING)
 			)

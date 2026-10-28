@@ -1,5 +1,6 @@
 package org.jellyfin.androidtv.ui.settings.screen.authentication
 
+import org.jellyfin.androidtv.ui.settings.composable.SettingsValue
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
@@ -87,7 +88,7 @@ fun SettingsAuthenticationScreen(launchedFromLogin: Boolean = false) {
 			ListButton(
 				navigates = true,
 				headingContent = { Text(stringResource(R.string.sort_accounts_by)) },
-				captionContent = { Text(stringResource(sortBy.nameRes)) },
+				trailingContent = { SettingsValue(stringResource(sortBy.nameRes)) },
 				onClick = { router.push(Routes.AUTHENTICATION_SORT_BY) },
 				modifier = Modifier.focusKey(Routes.AUTHENTICATION_SORT_BY)
 			)

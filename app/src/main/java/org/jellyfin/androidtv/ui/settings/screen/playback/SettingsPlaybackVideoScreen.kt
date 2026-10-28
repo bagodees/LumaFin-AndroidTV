@@ -1,5 +1,6 @@
 package org.jellyfin.androidtv.ui.settings.screen.playback
 
+import org.jellyfin.androidtv.ui.settings.composable.SettingsValue
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -55,7 +56,8 @@ fun SettingsPlaybackVideoScreen() {
 
 				navigates = true,
 				headingContent = { Text(stringResource(R.string.playback_buffer_length)) },
-				captionContent = { Text(stringResource(bufferLength.nameRes)) },
+				captionContent = { Text(stringResource(R.string.settings_search_buffer)) },
+				trailingContent = { SettingsValue(stringResource(bufferLength.nameRes)) },
 				onClick = { router.push(Routes.PLAYBACK_BUFFER_LENGTH) },
 				modifier = Modifier.focusKey(Routes.PLAYBACK_BUFFER_LENGTH)
 			)
@@ -80,7 +82,8 @@ fun SettingsPlaybackVideoScreen() {
 
 				navigates = true,
 				headingContent = { Text(stringResource(R.string.lbl_refresh_switching)) },
-				captionContent = { Text(stringResource(refreshRateSwitchingBehavior.nameRes)) },
+				captionContent = { Text(stringResource(R.string.settings_search_refresh)) },
+				trailingContent = { SettingsValue(stringResource(refreshRateSwitchingBehavior.nameRes)) },
 				onClick = { router.push(Routes.PLAYBACK_REFRESH_RATE_SWITCHING_BEHAVIOR) },
 				modifier = Modifier.focusKey(Routes.PLAYBACK_REFRESH_RATE_SWITCHING_BEHAVIOR)
 			)
@@ -132,7 +135,8 @@ fun SettingsPlaybackVideoScreen() {
 
 				navigates = true,
 				headingContent = { Text(stringResource(R.string.default_video_zoom)) },
-				captionContent = { Text(stringResource(playerZoomMode.nameRes)) },
+				captionContent = { Text(stringResource(R.string.settings_search_zoom)) },
+				trailingContent = { SettingsValue(stringResource(playerZoomMode.nameRes)) },
 				onClick = { router.push(Routes.PLAYBACK_ZOOM_MODE) },
 				modifier = Modifier.focusKey(Routes.PLAYBACK_ZOOM_MODE)
 			)

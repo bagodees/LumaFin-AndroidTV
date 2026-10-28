@@ -1,5 +1,6 @@
 package org.jellyfin.androidtv.ui.settings.screen.library
 
+import org.jellyfin.androidtv.ui.settings.composable.SettingsValue
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -49,7 +50,7 @@ fun SettingsLibrariesDisplayScreen(itemId: UUID, displayPreferencesId: String) {
 
 				navigates = true,
 				headingContent = { Text(stringResource(R.string.lbl_image_size)) },
-				captionContent = { Text(stringResource(posterSize.nameRes)) },
+				trailingContent = { SettingsValue(stringResource(posterSize.nameRes)) },
 				onClick = {
 					router.push(
 						Routes.LIBRARIES_DISPLAY_IMAGE_SIZE,
@@ -67,7 +68,7 @@ fun SettingsLibrariesDisplayScreen(itemId: UUID, displayPreferencesId: String) {
 
 				navigates = true,
 				headingContent = { Text(stringResource(R.string.lbl_image_type)) },
-				captionContent = { Text(stringResource(imageType.nameRes)) },
+				trailingContent = { SettingsValue(stringResource(imageType.nameRes)) },
 				onClick = {
 					router.push(
 						Routes.LIBRARIES_DISPLAY_IMAGE_TYPE,
@@ -85,7 +86,7 @@ fun SettingsLibrariesDisplayScreen(itemId: UUID, displayPreferencesId: String) {
 
 				navigates = true,
 				headingContent = { Text(stringResource(R.string.grid_direction)) },
-				captionContent = { Text(stringResource(gridDirection.nameRes)) },
+				trailingContent = { SettingsValue(stringResource(gridDirection.nameRes)) },
 				onClick = {
 					router.push(
 						Routes.LIBRARIES_DISPLAY_GRID,

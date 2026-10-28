@@ -1,5 +1,6 @@
 package org.jellyfin.androidtv.ui.settings.screen.playback
 
+import org.jellyfin.androidtv.ui.settings.composable.SettingsValue
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -41,7 +42,7 @@ fun SettingsPlaybackCodecScreen() {
 
 				navigates = true,
 				headingContent = { Text(stringResource(R.string.user_avc_level)) },
-				captionContent = { Text(stringResource(userAVCLevel.nameRes)) },
+				trailingContent = { SettingsValue(stringResource(userAVCLevel.nameRes)) },
 				onClick = { router.push(Routes.PLAYBACK_AVC_LEVEL) },
 				modifier = Modifier.focusKey(Routes.PLAYBACK_AVC_LEVEL)
 			)
@@ -54,7 +55,7 @@ fun SettingsPlaybackCodecScreen() {
 
 				navigates = true,
 				headingContent = { Text(stringResource(R.string.user_hevc_level)) },
-				captionContent = { Text(stringResource(userHEVCLevel.nameRes)) },
+				trailingContent = { SettingsValue(stringResource(userHEVCLevel.nameRes)) },
 				onClick = { router.push(Routes.PLAYBACK_HEVC_LEVEL) },
 				modifier = Modifier.focusKey(Routes.PLAYBACK_HEVC_LEVEL)
 			)
@@ -68,7 +69,7 @@ fun SettingsPlaybackCodecScreen() {
 
 				navigates = true,
 				headingContent = { Text(stringResource(format.nameRes)) },
-				captionContent = { Text(stringResource(mode.nameRes)) },
+				trailingContent = { SettingsValue(stringResource(mode.nameRes)) },
 				onClick = {
 					router.push(
 						route = Routes.PLAYBACK_BITSTREAM_AUDIO,

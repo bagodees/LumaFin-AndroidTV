@@ -18,7 +18,7 @@
     <string name="settings_buffer_description">Choose how far ahead the player loads video. Larger buffers use more memory and may help with brief network interruptions.</string>
     <string name="settings_brightness_reset_scope">Restore subtitle brightness to 100%. Other subtitle appearance settings stay as they are.</string>
     <string name="settings_appearance_display">Display &amp; cards</string>
-    <string name="settings_group_appearance">Appearance &amp; Home</string>
+    <string name="settings_group_appearance">Appearance</string>
     <string name="settings_group_accounts">Accounts &amp; Servers</string>
     <string name="settings_group_help">Help &amp; Maintenance</string>
     <string name="settings_group_playback_description">Video quality, subtitles, audio, autoplay and player options.</string>

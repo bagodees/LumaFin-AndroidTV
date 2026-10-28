@@ -10,7 +10,7 @@ import androidx.navigation3.runtime.NavEntryDecorator
 import org.jellyfin.androidtv.ui.navigation.RouteContext
 
 @Composable
-fun rememberFocusRestorationNavEntryDecorator(): NavEntryDecorator<RouteContext> {
+fun rememberFocusRestorationNavEntryDecorator(backStack: List<RouteContext> = emptyList()): NavEntryDecorator<RouteContext> {
 	val savedFocusKeys = rememberSaveable { mutableMapOf<Any, String?>() }
 
 	return remember {
@@ -19,6 +19,11 @@ fun rememberFocusRestorationNavEntryDecorator(): NavEntryDecorator<RouteContext>
 			decorate = { entry ->
 				val key = entry.contentKey
 				val focusPersistManager = remember(key) { FocusPersistManager() }
+				// A page sliding out after another opened keeps the row that opened it, whatever focus touches on its way out
+				val top = backStack.lastOrNull()
+				// The content key pairs the route (as text) with its type
+				val route = (key as? Pair<*, *>)?.first ?: key
+				focusPersistManager.recording = top == null || route == top || route.toString() == top.toString()
 
 				CompositionLocalProvider(
 					LocalFocusPersistManager provides focusPersistManager

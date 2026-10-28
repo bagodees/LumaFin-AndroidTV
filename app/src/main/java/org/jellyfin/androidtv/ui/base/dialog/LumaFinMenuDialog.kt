@@ -200,7 +200,15 @@ internal class LumaFinMenuDialog(
 			isFocusable = true
 			isClickable = true
 			setOnClickListener { action() }
+			id = View.generateViewId()
 		}
+		// Left and Right stay on the button row; otherwise Left from the last button can land on a list row above
+		(footer.getChildAt(footer.childCount - 1) as? TextView)?.let { previous ->
+			button.nextFocusLeftId = previous.id
+			previous.nextFocusRightId = button.id
+		}
+		if (footer.childCount == 0) button.nextFocusLeftId = button.id
+		button.nextFocusRightId = button.id
 		footer.addView(button, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
 			marginStart = 8.dp(context); topMargin = 8.dp(context)
 		})

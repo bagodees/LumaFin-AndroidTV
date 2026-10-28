@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- One line under the highlighted category in the full-screen settings (#124) -->
+    <string name="settings_category_home_description">Rows, top bar and card style</string>
+    <string name="settings_category_appearance_description">Theme, cards, spoilers and text size</string>
+    <string name="settings_category_libraries_description">Poster size and grid for each library</string>
+    <string name="settings_category_playback_description">Player, quality, audio and Next Up</string>
+    <string name="settings_category_subtitles_description">Size, color and position</string>
+    <string name="settings_category_accounts_description">Servers, users and sign-in</string>
+    <string name="settings_category_help_description">Setup guide, backup and About</string>
+    <string name="settings_category_search_description">Find any setting by name</string>
+
+    <!-- Appearance groups (#125) -->
+    <string name="appearance_style">Style</string>
+    <string name="appearance_style_description">Theme, clock, backgrounds, watched marks and motion.</string>
+    <string name="appearance_cards">Cards</string>
+    <string name="appearance_cards_description">Card style and size, series artwork and rating badges.</string>
+    <string name="appearance_spoilers">Spoilers</string>
+    <string name="appearance_spoilers_description">Hide artwork and descriptions of episodes you haven\'t watched.</string>
+    <string name="appearance_accessibility_description">Text size, high contrast and a stronger focus outline.</string>
+    <string name="appearance_more">More</string>
+
+    <!-- Descriptions for rows that now show their value on the right (#126) -->
+    <string name="pref_app_theme_description">Colors used across the app.</string>
+    <string name="pref_clock_display_description">When the clock shows in the corner.</string>
+    <string name="pref_watched_indicator_description">Which cards show a watched mark.</string>
+    <string name="lbl_show_backdrop_description">Show artwork behind pages as you browse.</string>
+    <string name="media_card_size_description">How big cards are on Home and in libraries.</string>
+    <string name="remote_shortcuts_description">What holding OK on a card does.</string>
+
+    <!-- About (#127) -->
+    <string name="about_version">Version</string>
+    <string name="about_updates">Updates</string>
+    <string name="about_updates_store">Installed from %1$s. Updates come through the store.</string>
+    <string name="about_updates_checking">Checking for updates…</string>
+    <string name="about_updates_current">You have the latest version.</string>
+    <string name="about_updates_available">LumaFin %1$s is available. Select to open the download page.</string>
+    <string name="about_updates_failed">Couldn\'t check for updates. Select to open the releases page.</string>
+    <string name="about_updates_test">This is a test build. Updates are installed by hand.</string>
+</resources>

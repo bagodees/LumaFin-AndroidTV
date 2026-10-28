@@ -1,5 +1,6 @@
 package org.jellyfin.androidtv.ui.settings.screen.playback
 
+import org.jellyfin.androidtv.ui.settings.composable.SettingsValue
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -39,7 +40,7 @@ fun SettingsPlaybackHdrOverridesScreen() {
 
 				navigates = true,
 				headingContent = { Text(stringResource(format.nameRes)) },
-				captionContent = { Text(stringResource(mode.nameRes)) },
+				trailingContent = { SettingsValue(stringResource(mode.nameRes)) },
 				onClick = {
 					router.push(
 						route = Routes.PLAYBACK_HDR_OVERRIDE,

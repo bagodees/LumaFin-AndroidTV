@@ -1,5 +1,6 @@
 package org.jellyfin.androidtv.ui.settings.screen.playback.nextup
 
+import org.jellyfin.androidtv.ui.settings.composable.SettingsValue
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -55,7 +56,8 @@ fun SettingsPlaybackNextUpScreen() {
 
 				navigates = true,
 				headingContent = { Text(stringResource(R.string.pref_next_up_behavior_title)) },
-				captionContent = { Text(stringResource(nextUpBehavior.nameRes)) },
+				captionContent = { Text(stringResource(R.string.settings_search_nextup)) },
+				trailingContent = { SettingsValue(stringResource(nextUpBehavior.nameRes)) },
 				onClick = { router.push(Routes.PLAYBACK_NEXT_UP_BEHAVIOR) },
 				modifier = Modifier.focusKey(Routes.PLAYBACK_NEXT_UP_BEHAVIOR)
 			)

@@ -1,5 +1,6 @@
 package org.jellyfin.androidtv.ui.settings.screen.playback.mediasegment
 
+import org.jellyfin.androidtv.ui.settings.composable.SettingsValue
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -36,7 +37,7 @@ fun SettingsPlaybackMediaSegmentsScreen() {
 
 				navigates = true,
 				headingContent = { Text(stringResource(segmentType.nameRes)) },
-				captionContent = { Text(stringResource(action.nameRes)) },
+				trailingContent = { SettingsValue(stringResource(action.nameRes)) },
 				onClick = {
 					router.push(
 						route = Routes.PLAYBACK_MEDIA_SEGMENT,

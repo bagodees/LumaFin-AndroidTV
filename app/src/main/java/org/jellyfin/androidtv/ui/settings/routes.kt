@@ -18,6 +18,10 @@ import org.jellyfin.androidtv.ui.settings.screen.authentication.SettingsAuthenti
 import org.jellyfin.androidtv.ui.settings.screen.customization.SettingsCustomizationBackdropScreen
 import org.jellyfin.androidtv.ui.settings.screen.customization.SettingsCustomizationClockScreen
 import org.jellyfin.androidtv.ui.settings.screen.customization.SettingsCustomizationScreen
+import org.jellyfin.androidtv.ui.settings.screen.customization.SettingsAppearanceAccessibilityScreen
+import org.jellyfin.androidtv.ui.settings.screen.customization.SettingsAppearanceCardsScreen
+import org.jellyfin.androidtv.ui.settings.screen.customization.SettingsAppearanceSpoilersScreen
+import org.jellyfin.androidtv.ui.settings.screen.customization.SettingsAppearanceStyleScreen
 import org.jellyfin.androidtv.ui.settings.screen.customization.SettingsCustomizationThemeScreen
 import org.jellyfin.androidtv.ui.settings.screen.customization.SettingsCustomizationWatchedIndicatorScreen
 import org.jellyfin.androidtv.ui.settings.screen.customization.subtitle.SettingsSubtitleTextStrokeColorScreen
@@ -94,6 +98,10 @@ object Routes {
 	const val AUTHENTICATION_SORT_BY = "/authentication/sort-by"
 	const val AUTHENTICATION_AUTO_SIGN_IN = "/authentication/auto-sign-in"
 	const val CUSTOMIZATION = "/customization"
+	const val CUSTOMIZATION_STYLE = "/customization/style"
+	const val CUSTOMIZATION_CARDS = "/customization/cards"
+	const val CUSTOMIZATION_SPOILERS = "/customization/spoilers"
+	const val CUSTOMIZATION_ACCESSIBILITY = "/customization/accessibility"
 	const val REMOTE_SHORTCUTS = "/customization/remote-shortcuts"
 	const val CUSTOMIZATION_THEME = "/customization/theme"
 	const val CUSTOMIZATION_CLOCK = "/customization/clock"
@@ -195,6 +203,18 @@ val routes = mapOf<String, RouteComposable>(
 	},
 	Routes.CUSTOMIZATION to {
 		SettingsCustomizationScreen()
+	},
+	Routes.CUSTOMIZATION_STYLE to {
+		SettingsAppearanceStyleScreen()
+	},
+	Routes.CUSTOMIZATION_CARDS to {
+		SettingsAppearanceCardsScreen()
+	},
+	Routes.CUSTOMIZATION_SPOILERS to {
+		SettingsAppearanceSpoilersScreen()
+	},
+	Routes.CUSTOMIZATION_ACCESSIBILITY to {
+		SettingsAppearanceAccessibilityScreen()
 	},
 	Routes.CUSTOMIZATION_THEME to {
 		SettingsCustomizationThemeScreen()

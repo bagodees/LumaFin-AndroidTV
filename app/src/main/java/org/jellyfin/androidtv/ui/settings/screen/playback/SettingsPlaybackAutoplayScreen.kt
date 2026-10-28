@@ -1,5 +1,6 @@
 package org.jellyfin.androidtv.ui.settings.screen.playback
 
+import org.jellyfin.androidtv.ui.settings.composable.SettingsValue
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -63,11 +64,11 @@ fun SettingsPlaybackAutoplayScreen() {
 				navigates = true,
 				leadingContent = { Icon(painterResource(R.drawable.ic_zzz), contentDescription = null) },
 				headingContent = { Text(stringResource(R.string.pref_playback_inactivity_prompt)) },
-				captionContent = {
-					Text(if (mediaQueuingEnabled || stillWatchingBehavior == StillWatchingBehavior.DISABLED)
-						stringResource(stillWatchingBehavior.nameRes)
-					else stringResource(R.string.still_watching_autoplay_off, stringResource(stillWatchingBehavior.nameRes)))
-				},
+				// The value stays on the right; the note about Autoplay being off goes underneath
+				captionContent = if (mediaQueuingEnabled || stillWatchingBehavior == StillWatchingBehavior.DISABLED) null else ({
+					Text(stringResource(R.string.still_watching_autoplay_off, stringResource(stillWatchingBehavior.nameRes)))
+				}),
+				trailingContent = { SettingsValue(stringResource(stillWatchingBehavior.nameRes)) },
 				onClick = { router.push(Routes.PLAYBACK_INACTIVITY_PROMPT) },
 				modifier = Modifier.focusKey(Routes.PLAYBACK_INACTIVITY_PROMPT)
 			)

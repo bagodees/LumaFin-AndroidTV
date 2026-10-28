@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -113,6 +114,19 @@ fun SettingsButton(
 			}
 		}) else trailingContent,
 		footerContent = footerContent,
+	)
+}
+
+/** A choice row's current value on the right (#126), so settings can be scanned without opening each one. */
+@Composable
+fun SettingsValue(value: String, modifier: Modifier = Modifier) {
+	org.jellyfin.androidtv.ui.base.Text(
+		value,
+		color = org.jellyfin.androidtv.ui.base.LumaFinPalette.Cyan,
+		fontSize = 14.sp,
+		maxLines = 1,
+		overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+		modifier = modifier.widthIn(max = 260.dp),
 	)
 }
 

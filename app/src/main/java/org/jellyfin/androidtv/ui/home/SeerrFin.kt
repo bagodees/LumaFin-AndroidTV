@@ -446,13 +446,20 @@ class SeerrCardPresenter(private val portrait: Boolean = false, private val card
  */
 internal fun missingSeasons(details: JsonObject, today: java.time.LocalDate): List<Int> {
 	val mediaInfo = details["mediaInfo"] as? JsonObject
-	if (mediaInfo?.get("status")?.jsonPrimitive?.intOrNull != 4) return emptyList()
+	// Requested (2), being downloaded (3) or partly here (4): a show requested for only some seasons can get the rest
+	if (mediaInfo?.get("status")?.jsonPrimitive?.intOrNull !in 2..4) return emptyList()
+	fun seasonNumbers(seasons: kotlinx.serialization.json.JsonElement?, keep: (Int?) -> Boolean) =
+		(seasons as? kotlinx.serialization.json.JsonArray).orEmpty().mapNotNull { season ->
+			val obj = season as? JsonObject ?: return@mapNotNull null
+			obj["seasonNumber"]?.jsonPrimitive?.intOrNull?.takeIf { keep(obj["status"]?.jsonPrimitive?.intOrNull) }
+		}
 	// Seasons Seerr has requested (2), is getting (3) or has in part or in full (4, 5)
-	val known = (mediaInfo["seasons"] as? kotlinx.serialization.json.JsonArray).orEmpty().mapNotNull { season ->
-		val obj = season as? JsonObject ?: return@mapNotNull null
-		val status = obj["status"]?.jsonPrimitive?.intOrNull ?: return@mapNotNull null
-		obj["seasonNumber"]?.jsonPrimitive?.intOrNull?.takeIf { status in 2..5 }
-	}.toSet()
+	val known = seasonNumbers(mediaInfo!!["seasons"]) { it in 2..5 }.toSet() +
+		// and seasons in requests that weren't declined (3) or failed (4)
+		(mediaInfo["requests"] as? kotlinx.serialization.json.JsonArray).orEmpty().flatMap { request ->
+			val obj = request as? JsonObject ?: return@flatMap emptyList()
+			if (obj["status"]?.jsonPrimitive?.intOrNull in setOf(3, 4)) emptyList() else seasonNumbers(obj["seasons"]) { true }
+		}
 	val day = today.toString()
 	return (details["seasons"] as? kotlinx.serialization.json.JsonArray).orEmpty().mapNotNull { season ->
 		val obj = season as? JsonObject ?: return@mapNotNull null

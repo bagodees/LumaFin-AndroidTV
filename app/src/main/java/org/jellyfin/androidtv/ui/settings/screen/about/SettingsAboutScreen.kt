@@ -6,6 +6,11 @@ import android.net.Uri
 import android.os.Build
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -13,6 +18,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import org.jellyfin.androidtv.BuildConfig
 import org.jellyfin.androidtv.R
+import org.jellyfin.androidtv.data.repository.AppUpdateChecker
 import org.jellyfin.androidtv.ui.base.Icon
 import org.jellyfin.androidtv.ui.base.Text
 import org.jellyfin.androidtv.ui.settings.composable.SettingsButton as ListButton
@@ -23,6 +29,7 @@ import org.jellyfin.androidtv.ui.settings.Routes
 import org.jellyfin.androidtv.ui.settings.composable.SettingsColumn
 import org.jellyfin.androidtv.ui.settings.util.copyAction
 import org.jellyfin.androidtv.util.AppVersionLabel
+import org.koin.compose.koinInject
 
 @Composable
 fun SettingsAboutScreen(launchedFromLogin: Boolean = false) {
@@ -42,7 +49,7 @@ fun SettingsAboutScreen(launchedFromLogin: Boolean = false) {
 		}
 
 		item {
-			val heading = "LumaFin app version"
+			val heading = stringResource(R.string.about_version)
 			val caption = AppVersionLabel.format(BuildConfig.VERSION_NAME, BuildConfig.BUILD_TYPE, BuildConfig.NEXT_VERSION)
 			ListButton(
 				leadingContent = { Icon(painterResource(R.drawable.ic_jellyfin), contentDescription = null, modifier = Modifier.size(24.dp)) },
@@ -52,6 +59,8 @@ fun SettingsAboutScreen(launchedFromLogin: Boolean = false) {
 				modifier = Modifier.focusKey("version")
 			)
 		}
+
+		item { UpdateStatusRow() }
 
 		item {
 			val heading = stringResource(R.string.pref_device_model)
@@ -103,4 +112,47 @@ fun SettingsAboutScreen(launchedFromLogin: Boolean = false) {
 			)
 		}
 	}
+}
+
+private val STORES = mapOf("com.android.vending" to "Google Play", "com.amazon.venezia" to "Amazon Appstore")
+private const val RELEASES_URL = "https://github.com/bagodees/LumaFin-AndroidTV/releases/latest"
+
+/** Whether this install is up to date (#127): stores update the app themselves, other installs check the website feed. */
+@Composable
+private fun UpdateStatusRow() {
+	val context = LocalContext.current
+	val checker = koinInject<AppUpdateChecker>()
+	val store = remember {
+		runCatching {
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) context.packageManager.getInstallSourceInfo(context.packageName).installingPackageName
+			else @Suppress("DEPRECATION") context.packageManager.getInstallerPackageName(context.packageName)
+		}.getOrNull()?.let { STORES[it] }
+	}
+	val testBuild = BuildConfig.DEVELOPMENT || BuildConfig.BUILD_TYPE != "release" || "-test" in BuildConfig.VERSION_NAME
+	// null while checking; "" when the feed couldn't be read
+	var latest by remember { mutableStateOf<String?>(null) }
+	if (store == null && !testBuild) LaunchedEffect(Unit) { latest = checker.getLatestVersion().orEmpty() }
+	val newer = latest?.takeIf { it.isNotEmpty() && AppUpdateChecker.isNewer(it, BuildConfig.VERSION_NAME) }
+	val caption = when {
+		store != null -> stringResource(R.string.about_updates_store, store)
+		testBuild -> stringResource(R.string.about_updates_test)
+		latest == null -> stringResource(R.string.about_updates_checking)
+		newer != null -> stringResource(R.string.about_updates_available, newer)
+		latest == "" -> stringResource(R.string.about_updates_failed)
+		else -> stringResource(R.string.about_updates_current)
+	}
+	val heading = stringResource(R.string.about_updates)
+	val copy = copyAction(ClipData.newPlainText(heading, RELEASES_URL))
+	ListButton(
+		leadingContent = { Icon(painterResource(R.drawable.ic_loop), contentDescription = null) },
+		headingContent = { Text(heading) },
+		captionContent = { Text(caption) },
+		// Only a website install has somewhere to go; many TVs have no browser, so the address is copied then
+		onClick = {
+			if (store == null && !testBuild && (newer != null || latest == "")) {
+				if (runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(RELEASES_URL))) }.isFailure) copy()
+			}
+		},
+		modifier = Modifier.focusKey("updates"),
+	)
 }

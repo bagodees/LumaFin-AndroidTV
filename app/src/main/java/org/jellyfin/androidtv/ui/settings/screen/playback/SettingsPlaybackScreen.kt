@@ -1,5 +1,6 @@
 package org.jellyfin.androidtv.ui.settings.screen.playback
 
+import org.jellyfin.androidtv.ui.settings.composable.SettingsValue
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
@@ -90,6 +91,10 @@ fun SettingsPlaybackScreen() {
 				leadingContent = { Icon(painterResource(R.drawable.ic_next_up), contentDescription = null) },
 				headingContent = { Text(stringResource(R.string.pref_playback_autoplay)) },
 				captionContent = { Text(stringResource(R.string.settings_search_autoplay)) },
+				trailingContent = {
+					val autoplay by rememberPreference(userPreferences, UserPreferences.mediaQueuingEnabled)
+					SettingsValue(stringResource(if (autoplay) R.string.settings_search_on else R.string.settings_search_off))
+				},
 				onClick = { router.push(Routes.PLAYBACK_AUTOPLAY) },
 				modifier = Modifier.focusKey(Routes.PLAYBACK_AUTOPLAY)
 			)
@@ -101,6 +106,10 @@ fun SettingsPlaybackScreen() {
 				leadingContent = { Icon(painterResource(R.drawable.ic_trailer), contentDescription = null) },
 				headingContent = { Text(stringResource(R.string.pref_playback_prerolls)) },
 				captionContent = { Text(stringResource(R.string.settings_search_prerolls)) },
+				trailingContent = {
+					val prerolls by rememberPreference(userPreferences, UserPreferences.cinemaModeEnabled)
+					SettingsValue(stringResource(if (prerolls) R.string.settings_search_on else R.string.settings_search_off))
+				},
 				onClick = { router.push(Routes.PLAYBACK_PREROLLS) },
 				modifier = Modifier.focusKey(Routes.PLAYBACK_PREROLLS)
 			)
@@ -112,7 +121,8 @@ fun SettingsPlaybackScreen() {
 				navigates = true,
 				leadingContent = { Icon(painterResource(R.drawable.ic_select_quality), contentDescription = null) },
 				headingContent = { Text(stringResource(R.string.pref_streaming_quality)) },
-				captionContent = { Text(stringResource(quality.nameRes)) },
+				captionContent = { Text(stringResource(R.string.settings_search_quality)) },
+				trailingContent = { SettingsValue(stringResource(quality.nameRes)) },
 				onClick = { router.push(Routes.PLAYBACK_QUALITY) },
 				modifier = Modifier.focusKey(Routes.PLAYBACK_QUALITY),
 			)
@@ -134,7 +144,7 @@ fun SettingsPlaybackScreen() {
 			ListButton(
 				navigates = true,
 				headingContent = { Text(stringResource(R.string.intro_skipping)) },
-				captionContent = { Text(stringResource(introAction.introNameRes)) },
+				trailingContent = { SettingsValue(stringResource(introAction.introNameRes)) },
 				onClick = { router.push(Routes.PLAYBACK_MEDIA_SEGMENT, parameters = mapOf("segmentType" to MediaSegmentType.INTRO.toString())) },
 				modifier = Modifier.focusKey("intro_skipping"),
 			)

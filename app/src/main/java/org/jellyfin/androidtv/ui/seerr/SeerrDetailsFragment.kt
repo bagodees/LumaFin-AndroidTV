@@ -318,13 +318,14 @@ class SeerrDetailsFragment : Fragment() {
 					current.jellyfinItemId?.let { id ->
 						buttons += { m -> SeerrPill(R.drawable.ic_play, stringResource(R.string.seerr_open_in_library), m) { navigationRepository.navigate(Destinations.itemDetails(id)) } }
 					}
+					if (current.requested) buttons += { m -> SeerrPill(R.drawable.ic_check, stringResource(R.string.seerr_status_requested_short), m) {
+						Toast.makeText(requireContext(), R.string.seerr_status_requested, Toast.LENGTH_LONG).show()
+					} }
 					when {
-						current.requested -> buttons += { m -> SeerrPill(R.drawable.ic_check, stringResource(R.string.seerr_status_requested_short), m) {
-							Toast.makeText(requireContext(), R.string.seerr_status_requested, Toast.LENGTH_LONG).show()
-						} }
-						current.status == 4 && current.requestableSeasons.isNotEmpty() ->
+						// A show requested or downloaded for only some seasons can get the rest
+						(current.requested || current.status == 4) && current.requestableSeasons.isNotEmpty() ->
 							buttons += { m -> SeerrPill(R.drawable.ic_add, stringResource(R.string.seerr_request_missing_seasons), m) { request(current, seasonsOnly = true) } }
-						!current.inLibrary && current.status != 4 && (current.item.mediaType != "tv" || current.requestableSeasons.isNotEmpty()) ->
+						!current.requested && !current.inLibrary && current.status != 4 && (current.item.mediaType != "tv" || current.requestableSeasons.isNotEmpty()) ->
 							buttons += { m -> SeerrPill(R.drawable.ic_add, stringResource(R.string.seerr_request), m) { request(current, seasonsOnly = false) } }
 					}
 					current.trailerUrl?.let { url ->
