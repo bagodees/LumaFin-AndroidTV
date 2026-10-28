@@ -27,6 +27,10 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -106,7 +110,10 @@ import org.koin.compose.viewmodel.koinActivityViewModel
 
 /** Width of the side menu while the rows have focus; the rows are laid out beside this. */
 internal val RailCollapsedWidth = 64.dp
-private val RailExpandedWidth = 200.dp
+// Past the right edge of any TV screen; the scrim is drawn beside the menu up to there
+private const val SCRIM_WIDTH_PX = 8000f
+// Wide enough for longer library names such as "Home Videos and Photos"
+private val RailExpandedWidth = 248.dp
 
 /** The library a screen belongs to: matched by [id] first, then by [collectionType] (a movie's details highlight Movies). */
 data class SideMenuLibrary(val id: UUID?, val collectionType: CollectionType?)
@@ -245,10 +252,19 @@ fun MainSideRail(
 	val reducedMotion = rememberReducedMotion()
 	val targetWidth = if (expanded) RailExpandedWidth else RailCollapsedWidth
 	val width by animateDpAsState(targetWidth, animationSpec = if (reducedMotion) snap() else tween(180), label = "rail width")
+	// The open menu dims the page beside it, so it reads as on top instead of cutting the page off
+	val scrimAlpha by animateFloatAsState(if (expanded) 0.6f else 0f, animationSpec = if (reducedMotion) snap() else tween(180), label = "rail scrim")
 
 	Column(
 		verticalArrangement = Arrangement.spacedBy(6.dp),
 		modifier = modifier
+			.drawBehind {
+				if (scrimAlpha > 0f) drawRect(
+					color = Color.Black.copy(alpha = scrimAlpha),
+					topLeft = Offset(size.width, 0f),
+					size = Size(SCRIM_WIDTH_PX, size.height),
+				)
+			}
 			.width(width)
 			.fillMaxHeight()
 			.background(LumaFinPalette.Surface)
@@ -407,6 +423,8 @@ fun PreviewLogo(item: BaseItemDto, modifier: Modifier = Modifier) {
 	}
 }
 
+private val previewWithoutInfoRow = setOf(BaseItemKind.USER_VIEW, BaseItemKind.COLLECTION_FOLDER, BaseItemKind.GENRE)
+
 /** Episode line, title, info row and description of [item], shared by the Home and library previews. */
 @Composable
 fun FocusedTitleInfo(item: BaseItemDto) {
@@ -423,10 +441,16 @@ fun FocusedTitleInfo(item: BaseItemDto) {
 		Text(item.name!!, fontSize = 19.sp, fontWeight = FontWeight.SemiBold, color = LumaFinPalette.Cyan, maxLines = 1, overflow = TextOverflow.Ellipsis)
 	}
 	// The info row's badges fill the available height, so give it the intrinsic height of its text.
-	Box(modifier = Modifier.height(IntrinsicSize.Min)) {
+	// Libraries and genres have nothing for it, and an empty row would leave a gap under the name.
+	if (item.type !in previewWithoutInfoRow) Box(modifier = Modifier.height(IntrinsicSize.Min)) {
 		BaseItemInfoRow(item = item, mediaSource = null, includeRuntime = true)
 	}
-	descriptionForDisplay(context, item)?.takeIf { it.isNotBlank() }?.let { description ->
+	// Libraries have no description of their own; a short line keeps the preview from looking empty
+	val description = descriptionForDisplay(context, item)?.takeIf { it.isNotBlank() }
+		?: if (item.type == BaseItemKind.USER_VIEW || item.type == BaseItemKind.COLLECTION_FOLDER) {
+			item.name?.let { context.getString(R.string.preview_library_hint, it) }
+		} else null
+	description?.let { description ->
 		Text(description, fontSize = 15.sp, color = LumaFinPalette.SecondaryText, maxLines = 2, overflow = TextOverflow.Ellipsis)
 	}
 }

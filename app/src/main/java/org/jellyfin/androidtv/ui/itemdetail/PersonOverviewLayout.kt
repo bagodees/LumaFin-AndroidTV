@@ -46,6 +46,8 @@ internal fun DetailRowView.showPersonOverviewLayout() {
 		// The embedded Compose info row needs a bounded height inside a wrapping header.
 		constrainHeight(b.fdMainInfoRow.id, TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 24f, resources.displayMetrics).toInt())
 		textColumn(b.fdSummaryText.id, b.fdMainInfoRow.id, 10)
+		// The summary's focus padding would indent its text past the name; pull it back in line
+		setMargin(b.fdSummaryText.id, ConstraintSet.START, (220 - 8).dp(context))
 		textColumn(b.fdButtonRow.id, b.fdSummaryText.id, 16)
 		connect(b.fdButtonRow.id, ConstraintSet.BOTTOM, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM, 24.dp(context))
 		setVerticalBias(b.fdButtonRow.id, 0f)

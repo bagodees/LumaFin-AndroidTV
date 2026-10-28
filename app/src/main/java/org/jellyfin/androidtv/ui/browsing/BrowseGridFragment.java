@@ -285,9 +285,9 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
                 // Let the focused card's zoom and outline draw past the grid's edges instead of being cut off
                 mGridView.setClipToPadding(false);
                 mGridView.setClipChildren(false);
-                binding.rowsFragment.setClipChildren(false);
-                binding.rowsFragment.setClipToPadding(false);
-                ((ViewGroup) binding.getRoot()).setClipChildren(false);
+                // The grid's padding leaves room for the zoom, so cards stay inside it and never
+                // scroll under the status line below
+                binding.rowsFragment.setClipChildren(true);
             }
         }
         mGridView.setHorizontalSpacing(mGridItemSpacingHorizontal);
@@ -644,6 +644,21 @@ public class BrowseGridFragment extends Fragment implements View.OnKeyListener {
             int cardsRow = (int) Math.round(((double) mGridHeight / (cardHeightInt + spacingVerticalInt)) + 0.5);
             mCardsScreenEst = numCols * cardsRow;
             mCardsScreenStride = numCols;
+        }
+
+        if (numCols > 0 && BrowseGridLayout.Companion.isEnabled()) {
+            // LumaFin layout: the same gap between cards as Home rows, and the first column lined up with
+            // the row titles and preview text instead of the grid's edge. Padding and spacing are pixels.
+            double inset = BrowseGridLayout.GRID_CONTENT_INSET_DP;
+            double gap = BrowseGridLayout.GRID_CARD_GAP_DP;
+            double cardWidth = (mGridWidth - 2 * inset - gap * (numCols - 1)) / numCols;
+            cardHeightInt = (int) Math.round(getCardHeightBy(cardWidth, mImageType, mFolder));
+            spacingHorizontalInt = Utils.convertDpToPixel(mActivity, (int) gap);
+            spacingVerticalInt = spacingHorizontalInt;
+            paddingLeftInt = Utils.convertDpToPixel(mActivity, (int) inset);
+            paddingTopInt = Utils.convertDpToPixel(mActivity, (int) Math.round((cardHeightInt * cardScaling) / 2.0) + 4);
+            int cardsRow = (int) Math.round(((double) mGridHeight / (cardHeightInt + gap)) + 0.5);
+            mCardsScreenEst = numCols * cardsRow;
         }
 
         Timber.d("numCardsScreen <%s>", numCardsScreen);

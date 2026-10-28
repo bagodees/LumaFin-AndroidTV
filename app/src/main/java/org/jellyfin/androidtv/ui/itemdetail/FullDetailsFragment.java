@@ -218,9 +218,14 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
 
         if (SideMenuFrame.isEnabled()) {
             // The side menu already leads Home
-            binding.fdClock.getHomeButton().setVisibility(View.GONE);
+            binding.fdClock.matchHomeClock();
         }
         return SideMenuFrame.wrap(requireContext(), binding.getRoot(), MainToolbarActiveButton.Libraries);
+    }
+
+    /** Title rows (More Like This, Seasons, Upcoming...) use Home's cards in the LumaFin layout, so every row looks the same. */
+    private CardPresenter titleCards() {
+        return SideMenuFrame.isEnabled() ? CardPresenter.Companion.homeRows() : new CardPresenter();
     }
 
     @Override public void onSaveInstanceState(@NonNull Bundle state) { super.onSaveInstanceState(state); seriesFocus.save(state); }
@@ -562,7 +567,7 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
 
                 //Additional Parts
                 if (mBaseItem.getPartCount() != null && mBaseItem.getPartCount() > 0) {
-                    ItemRowAdapter additionalPartsAdapter = new ItemRowAdapter(requireContext(), new GetAdditionalPartsRequest(mBaseItem.getId()), new CardPresenter(), adapter);
+                    ItemRowAdapter additionalPartsAdapter = new ItemRowAdapter(requireContext(), new GetAdditionalPartsRequest(mBaseItem.getId()), titleCards(), adapter);
                     addItemRow(adapter, additionalPartsAdapter, 0, getString(R.string.lbl_additional_parts));
                 }
 
@@ -574,12 +579,12 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
 
                 //Specials
                 if (mBaseItem.getSpecialFeatureCount() != null && mBaseItem.getSpecialFeatureCount() > 0) {
-                    addItemRow(adapter, new ItemRowAdapter(requireContext(), new GetSpecialsRequest(mBaseItem.getId()), new CardPresenter(), adapter), 3, getString(R.string.extras_bonus_material));
+                    addItemRow(adapter, new ItemRowAdapter(requireContext(), new GetSpecialsRequest(mBaseItem.getId()), titleCards(), adapter), 3, getString(R.string.extras_bonus_material));
                 }
 
                 //Trailers
                 if (mBaseItem.getLocalTrailerCount() != null && mBaseItem.getLocalTrailerCount() > 0) {
-                    addItemRow(adapter, new ItemRowAdapter(requireContext(), new GetTrailersRequest(mBaseItem.getId()), new CardPresenter(), adapter), 4, getString(R.string.lbl_trailers));
+                    addItemRow(adapter, new ItemRowAdapter(requireContext(), new GetTrailersRequest(mBaseItem.getId()), titleCards(), adapter), 4, getString(R.string.lbl_trailers));
                 }
 
                 //Chapters
@@ -590,7 +595,7 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
                 }
 
                 //Similar
-                ItemRowAdapter similarMoviesAdapter = new ItemRowAdapter(requireContext(), BrowsingUtils.createSimilarItemsRequest(mBaseItem.getId()), QueryType.SimilarMovies, new CardPresenter(), adapter);
+                ItemRowAdapter similarMoviesAdapter = new ItemRowAdapter(requireContext(), BrowsingUtils.createSimilarItemsRequest(mBaseItem.getId()), QueryType.SimilarMovies, titleCards(), adapter);
                 addItemRow(adapter, similarMoviesAdapter, 5, getString(R.string.lbl_more_like_this));
 
                 addInfoRows(adapter);
@@ -604,18 +609,18 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
                 }
 
                 //Similar
-                ItemRowAdapter similarTrailerAdapter = new ItemRowAdapter(requireContext(), BrowsingUtils.createSimilarItemsRequest(mBaseItem.getId()), QueryType.SimilarMovies, new CardPresenter(), adapter);
+                ItemRowAdapter similarTrailerAdapter = new ItemRowAdapter(requireContext(), BrowsingUtils.createSimilarItemsRequest(mBaseItem.getId()), QueryType.SimilarMovies, titleCards(), adapter);
                 addItemRow(adapter, similarTrailerAdapter, 4, getString(R.string.lbl_more_like_this));
                 addInfoRows(adapter);
                 break;
             case PERSON:
-                ItemRowAdapter personMoviesAdapter = new ItemRowAdapter(requireContext(), BrowsingUtils.createPersonItemsRequest(mBaseItem.getId(), BaseItemKind.MOVIE), 100, false, new CardPresenter(), adapter);
+                ItemRowAdapter personMoviesAdapter = new ItemRowAdapter(requireContext(), BrowsingUtils.createPersonItemsRequest(mBaseItem.getId(), BaseItemKind.MOVIE), 100, false, titleCards(), adapter);
                 addItemRow(adapter, personMoviesAdapter, 0, getString(R.string.lbl_movies));
 
-                ItemRowAdapter personSeriesAdapter = new ItemRowAdapter(requireContext(), BrowsingUtils.createPersonItemsRequest(mBaseItem.getId(), BaseItemKind.SERIES), 100, false, new CardPresenter(), adapter);
+                ItemRowAdapter personSeriesAdapter = new ItemRowAdapter(requireContext(), BrowsingUtils.createPersonItemsRequest(mBaseItem.getId(), BaseItemKind.SERIES), 100, false, titleCards(), adapter);
                 addItemRow(adapter, personSeriesAdapter, 1, getString(R.string.lbl_tv_series));
 
-                ItemRowAdapter personEpisodesAdapter = new ItemRowAdapter(requireContext(), BrowsingUtils.createPersonItemsRequest(mBaseItem.getId(), BaseItemKind.EPISODE), 100, false, new CardPresenter(), adapter);
+                ItemRowAdapter personEpisodesAdapter = new ItemRowAdapter(requireContext(), BrowsingUtils.createPersonItemsRequest(mBaseItem.getId(), BaseItemKind.EPISODE), 100, false, titleCards(), adapter);
                 addItemRow(adapter, personEpisodesAdapter, 2, getString(R.string.lbl_episodes));
 
                 break;
@@ -629,19 +634,19 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
                     // Season tabs and episode cards; added once the seasons load
                     SeasonTabsKt.addSeasonEpisodeRows(this, adapter);
                 } else {
-                    ItemRowAdapter nextUpAdapter = new ItemRowAdapter(requireContext(), BrowsingUtils.createSeriesGetNextUpRequest(mBaseItem.getId()), false, new CardPresenter(true, 130), adapter);
-                    addItemRow(adapter, nextUpAdapter, 0, getString(R.string.lbl_next_up));
+                    ItemRowAdapter nextUpAdapter = new ItemRowAdapter(requireContext(), BrowsingUtils.createSeriesGetNextUpRequest(mBaseItem.getId()), false, titleCards(), adapter);
+                    addItemRow(adapter, nextUpAdapter, 0, getString(R.string.home_section_next_up));
 
-                    ItemRowAdapter seasonsAdapter = new ItemRowAdapter(requireContext(), BrowsingUtils.createSeasonsRequest(mBaseItem.getId()), new CardPresenter(), adapter);
+                    ItemRowAdapter seasonsAdapter = new ItemRowAdapter(requireContext(), BrowsingUtils.createSeasonsRequest(mBaseItem.getId()), titleCards(), adapter);
                     addItemRow(adapter, seasonsAdapter, 1, getString(R.string.lbl_seasons));
                 }
 
                 //Specials
                 if (mBaseItem.getSpecialFeatureCount() != null && mBaseItem.getSpecialFeatureCount() > 0) {
-                    addItemRow(adapter, new ItemRowAdapter(requireContext(), new GetSpecialsRequest(mBaseItem.getId()), new CardPresenter(), adapter), 3, getString(R.string.extras_bonus_material));
+                    addItemRow(adapter, new ItemRowAdapter(requireContext(), new GetSpecialsRequest(mBaseItem.getId()), titleCards(), adapter), 3, getString(R.string.extras_bonus_material));
                 }
 
-                ItemRowAdapter upcomingAdapter = new ItemRowAdapter(requireContext(), BrowsingUtils.createUpcomingEpisodesRequest(mBaseItem.getId()), new CardPresenter(), adapter);
+                ItemRowAdapter upcomingAdapter = new ItemRowAdapter(requireContext(), BrowsingUtils.createUpcomingEpisodesRequest(mBaseItem.getId()), titleCards(), adapter);
                 addItemRow(adapter, upcomingAdapter, 2, getString(R.string.lbl_upcoming));
 
                 if (mBaseItem.getPeople() != null && !mBaseItem.getPeople().isEmpty()) {
@@ -649,20 +654,20 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
                     addItemRow(adapter, seriesCastAdapter, 3, getString(R.string.lbl_cast_crew));
                 }
 
-                ItemRowAdapter similarAdapter = new ItemRowAdapter(requireContext(), BrowsingUtils.createSimilarItemsRequest(mBaseItem.getId()), QueryType.SimilarSeries, new CardPresenter(), adapter);
+                ItemRowAdapter similarAdapter = new ItemRowAdapter(requireContext(), BrowsingUtils.createSimilarItemsRequest(mBaseItem.getId()), QueryType.SimilarSeries, titleCards(), adapter);
                 addItemRow(adapter, similarAdapter, 4, getString(R.string.lbl_more_like_this));
                 break;
 
             case EPISODE:
                 //Additional Parts
                 if (mBaseItem.getPartCount() != null && mBaseItem.getPartCount() > 0) {
-                    ItemRowAdapter additionalPartsAdapter = new ItemRowAdapter(requireContext(), new GetAdditionalPartsRequest(mBaseItem.getId()), new CardPresenter(), adapter);
+                    ItemRowAdapter additionalPartsAdapter = new ItemRowAdapter(requireContext(), new GetAdditionalPartsRequest(mBaseItem.getId()), titleCards(), adapter);
                     addItemRow(adapter, additionalPartsAdapter, 0, getString(R.string.lbl_additional_parts));
                 }
 
                 if (mBaseItem.getSeasonId() != null && mBaseItem.getIndexNumber() != null) {
                     // query index is zero-based but episode no is not
-                    ItemRowAdapter nextAdapter = new ItemRowAdapter(requireContext(), BrowsingUtils.createNextEpisodesRequest(mBaseItem.getSeasonId(), mBaseItem.getIndexNumber()), 0, false, true, new CardPresenter(true, 120), adapter);
+                    ItemRowAdapter nextAdapter = new ItemRowAdapter(requireContext(), BrowsingUtils.createNextEpisodesRequest(mBaseItem.getSeasonId(), mBaseItem.getIndexNumber()), 0, false, true, titleCards(), adapter);
                     addItemRow(adapter, nextAdapter, 5, getString(R.string.lbl_next_episode));
                 }
 

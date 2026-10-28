@@ -75,6 +75,8 @@ import org.jellyfin.androidtv.util.KeyProcessor
 import org.jellyfin.playback.core.PlaybackManager
 import org.jellyfin.sdk.api.client.ApiClient
 import org.jellyfin.sdk.model.api.BaseItemDto
+import org.jellyfin.sdk.model.api.BaseItemKind
+import java.util.UUID
 import org.jellyfin.sdk.api.sockets.subscribe
 import org.jellyfin.sdk.model.api.LibraryChangedMessage
 import org.jellyfin.sdk.model.api.UserDataChangedMessage
@@ -699,6 +701,19 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 					val overview = SeerrFin.enrich(api, item)
 					if (focusedItem.value?.id == item.previewItem().id) focusedItem.value = item.previewItem(overview)
 				}
+				return
+			}
+			// A genre tile: its name, a short line and its artwork, like the other cards
+			if (item is GenreTile) {
+				currentItem = null
+				focusedItem.value = BaseItemDto(
+					id = UUID.nameUUIDFromBytes("genre|${item.name}".toByteArray()),
+					name = item.name,
+					type = BaseItemKind.GENRE,
+					overview = getString(R.string.preview_genre_hint, item.name),
+				)
+				focusedItemIndex = (row as? ListRow)?.adapter?.positionOf(item) ?: -1
+				backgroundService.setBackgroundUrl(item.imageUrl)
 				return
 			}
 			if (item !is BaseRowItem) {

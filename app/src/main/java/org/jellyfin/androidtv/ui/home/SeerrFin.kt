@@ -3,6 +3,22 @@ package org.jellyfin.androidtv.ui.home
 import android.content.Context
 import android.view.ViewGroup
 import androidx.compose.foundation.border
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.DpSize
+import org.jellyfin.androidtv.ui.base.JellyfinTheme
+import org.jellyfin.androidtv.ui.base.focusOutline
+import org.jellyfin.androidtv.ui.base.rememberAccessibilityOptions
+import org.jellyfin.androidtv.ui.composable.item.ItemCard
+import org.jellyfin.androidtv.ui.composable.item.ItemPreview
+import org.jellyfin.androidtv.ui.composable.rememberReducedMotion
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -220,20 +236,24 @@ class SeerrDiscoverRow(private val api: ApiClient, private val title: Int, priva
 	override suspend fun addToRowsAdapter(context: Context, cardPresenter: CardPresenter, rowsAdapter: MutableObjectAdapter<Row>) {
 		val discovered = SeerrFin.discover(api, path).orEmpty()
 		if (discovered.isEmpty()) return
-		val preferences = org.koin.core.context.GlobalContext.get().get<org.jellyfin.androidtv.preference.UserPreferences>()
-		val portrait = preferences[org.jellyfin.androidtv.preference.UserPreferences.homeRowsCardShape] == org.jellyfin.androidtv.preference.constant.CardShape.PORTRAIT
+		val portrait = cardPresenter.portrait
 		// Landscape cards use the titled backdrop like other cards; portrait cards use the poster
 		val items = if (portrait) discovered else coroutineScope {
 			discovered.map { item -> async { SeerrFin.titledBackdrop(api, item)?.let { item.copy(imageUrl = it) } ?: item } }
 				.map { it.await() }
 		}
-		val adapter = ArrayObjectAdapter(SeerrCardPresenter(portrait)).apply { addAll(0, items) }
+		val adapter = ArrayObjectAdapter(SeerrCardPresenter(portrait, cardPresenter.homeCardHeight)).apply { addAll(0, items) }
 		rowsAdapter.add(ListRow(HeaderItem(context.getString(title)), adapter))
 	}
 }
 
-/** Landscape cards for Seerr titles, sized like Home's own cards. */
-class SeerrCardPresenter(private val portrait: Boolean = false) : Presenter() {
+/** Cards for Seerr titles, drawn like Home's own cards: same size, focus, dimming and caption. */
+class SeerrCardPresenter(private val portrait: Boolean = false, private val cardHeight: Int = 150) : Presenter() {
+	private class SeerrViewHolder(view: ComposeView) : ViewHolder(view) {
+		val item = MutableStateFlow<SeerrItem?>(null)
+		val focused = MutableStateFlow(false)
+	}
+
 	override fun onCreateViewHolder(parent: ViewGroup): ViewHolder {
 		// Rows measure cards before they're attached, so borrow the row's composition and lifecycle like CardPresenter
 		val view = ComposeView(parent.context).apply {
@@ -253,54 +273,83 @@ class SeerrCardPresenter(private val portrait: Boolean = false) : Presenter() {
 			isFocusable = true
 			isFocusableInTouchMode = true
 		}
-		return ViewHolder(view)
-	}
-
-	override fun onBindViewHolder(viewHolder: ViewHolder, item: Any?) {
-		val seerr = item as? SeerrItem ?: return
-		val view = viewHolder.view as ComposeView
-		val focused = MutableStateFlow(view.isFocused)
-		view.onFocusChangeListener = android.view.View.OnFocusChangeListener { _, hasFocus -> focused.value = hasFocus }
+		val holder = SeerrViewHolder(view)
+		// Set once here, before the row wraps it for the focus zoom; replacing it on bind turned the zoom off
+		view.onFocusChangeListener = android.view.View.OnFocusChangeListener { _, hasFocus -> holder.focused.value = hasFocus }
 		val preferences = org.koin.core.context.GlobalContext.get().get<org.jellyfin.androidtv.preference.UserPreferences>()
 		view.setContent {
-			val isFocused by focused.collectAsState()
-			// Same sizes and title style as LumaFin's own Home cards; titles follow "Show titles under cards"
+			val seerr by holder.item.collectAsState()
+			val isFocused by holder.focused.collectAsState()
+			val item = seerr ?: return@setContent
 			val titlesHidden by preferences.homeCardTitlesHiddenChanges.collectAsState(
 				initial = preferences[org.jellyfin.androidtv.preference.UserPreferences.newHomeEnabled] && !preferences[org.jellyfin.androidtv.preference.UserPreferences.newHomeCardTitles]
 			)
-			val height = if (portrait) 168.dp else 150.dp
-			val width = if (portrait) height * 2f / 3f else height * 16f / 9f
-			val shape = RoundedCornerShape(12.dp)
-			Column(modifier = Modifier.width(width)) {
-				Box(
+			val cardSize by preferences.mediaCardSizeChanges.collectAsState(initial = preferences[org.jellyfin.androidtv.preference.UserPreferences.mediaCardSize])
+			val height = cardHeight.dp * cardSize.scale
+			val aspect = if (portrait) 2f / 3f else 16f / 9f
+			val accessibility = rememberAccessibilityOptions()
+			val reducedMotion = rememberReducedMotion()
+			val cardAlpha by animateFloatAsState(
+				targetValue = if (isFocused) 1f else 0.7f,
+				animationSpec = if (reducedMotion) snap() else spring(),
+				label = "SeerrCardFocusAlpha",
+			)
+			val card = @Composable {
+				ItemCard(
+					image = {
+						AsyncImage(
+							url = if (portrait) item.posterUrl ?: item.imageUrl else item.imageUrl,
+							aspectRatio = aspect,
+							scaleType = android.widget.ImageView.ScaleType.CENTER_CROP,
+							modifier = Modifier.fillMaxSize(),
+						)
+					},
 					modifier = Modifier
-						.width(width)
-						.height(height)
-						.clip(shape)
-						.then(if (isFocused) Modifier.border(3.dp, LumaFinPalette.Cyan, shape) else Modifier),
-				) {
-					AsyncImage(
-						url = if (portrait) seerr.posterUrl ?: seerr.imageUrl else seerr.imageUrl,
-						aspectRatio = if (portrait) 2f / 3f else 16f / 9f,
-						scaleType = android.widget.ImageView.ScaleType.CENTER_CROP,
-						modifier = Modifier.fillMaxSize(),
-					)
-				}
-				if (!titlesHidden) Text(
-					seerr.name,
-					fontSize = 15.sp,
-					lineHeight = 18.sp,
-					fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
-					color = Color.White,
-					maxLines = 2,
-					overflow = TextOverflow.Ellipsis,
-					modifier = Modifier.padding(top = 6.dp),
+						.size(DpSize(height * aspect, height))
+						.then(if (isFocused && !accessibility.strongFocus) Modifier.border(2.dp, JellyfinTheme.colorScheme.inputFocused, JellyfinTheme.shapes.medium) else Modifier)
+						.focusOutline(isFocused, JellyfinTheme.shapes.medium, accessibility.strongFocus)
+						.graphicsLayer(alpha = cardAlpha),
 				)
 			}
+			if (titlesHidden) card()
+			else ItemPreview(
+				card = card,
+				metadataMinHeight = with(LocalDensity.current) { 50.sp.toDp() } + 2.dp,
+				title = {
+					Text(
+						item.name,
+						fontSize = 15.sp,
+						lineHeight = 18.sp,
+						fontWeight = FontWeight.SemiBold,
+						color = Color.White,
+						maxLines = 2,
+						overflow = TextOverflow.Ellipsis,
+						modifier = Modifier.fillMaxWidth(),
+					)
+				},
+				subtitle = {
+					Text(
+						item.year?.toString() ?: " ",
+						fontSize = 11.sp,
+						lineHeight = 14.sp,
+						color = Color.White.copy(alpha = 0.85f),
+						maxLines = 1,
+					)
+				},
+			)
 		}
+		return holder
 	}
 
-	override fun onUnbindViewHolder(viewHolder: ViewHolder) = Unit
+	override fun onBindViewHolder(viewHolder: ViewHolder, item: Any?) {
+		val holder = viewHolder as? SeerrViewHolder ?: return
+		holder.item.value = item as? SeerrItem
+		holder.focused.value = holder.view.isFocused
+	}
+
+	override fun onUnbindViewHolder(viewHolder: ViewHolder) {
+		(viewHolder as? SeerrViewHolder)?.item?.value = null
+	}
 }
 
 /** Shows a Seerr title's status and offers Request (#100). Nothing is requested without choosing Request. */
@@ -327,8 +376,10 @@ fun showSeerrRequest(context: Context, owner: LifecycleOwner, api: ApiClient, it
 					}
 				}
 			}
-			button(context.getString(android.R.string.cancel)) { dismiss() }
+			val cancel = button(context.getString(android.R.string.cancel)) { dismiss() }
 			show()
+			// Opens on Cancel, so a stray OK never sends a request
+			cancel.requestFocus()
 		}
 	}
 }

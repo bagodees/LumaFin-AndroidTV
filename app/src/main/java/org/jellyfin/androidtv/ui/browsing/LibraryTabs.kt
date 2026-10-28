@@ -270,7 +270,8 @@ private fun LibraryTabRow(
 			}
 		}
 		Spacer(Modifier.weight(1f))
-		ToolbarClock()
+		// Same spot as Home's clock: 20dp from the top, counting the row's own top padding
+		ToolbarClock(modifier = Modifier.align(Alignment.Top).padding(top = 12.dp))
 	}
 }
 
@@ -385,16 +386,16 @@ class LibraryRowsFragment : RowsSupportFragment() {
 			limit = 30,
 		)
 		if (folder.collectionType == CollectionType.TVSHOWS) {
-			add(R.string.lbl_continue_watching, ItemRowAdapter(context, BrowsingUtils.createResumeItemsRequest(id, BaseItemKind.EPISODE), 50, false, presenter, rows))
-			add(R.string.lbl_next_up, ItemRowAdapter(context, BrowsingUtils.createGetNextUpRequest(id), false, presenter, rows))
+			add(R.string.home_section_resume, ItemRowAdapter(context, BrowsingUtils.createResumeItemsRequest(id, BaseItemKind.EPISODE), 50, false, presenter, rows))
+			add(R.string.home_section_next_up, ItemRowAdapter(context, BrowsingUtils.createGetNextUpRequest(id), false, presenter, rows))
 			add(R.string.library_row_recently_aired, ItemRowAdapter(context, newest(BaseItemKind.EPISODE), 50, false, presenter, rows))
-			add(R.string.lbl_latest, ItemRowAdapter(context, BrowsingUtils.createLatestMediaRequest(id, BaseItemKind.EPISODE, true), false, presenter, rows))
+			add(R.string.library_row_recently_added, ItemRowAdapter(context, BrowsingUtils.createLatestMediaRequest(id, BaseItemKind.EPISODE, true), false, presenter, rows))
 			add(R.string.library_row_top_rated, ItemRowAdapter(context, topRated(BaseItemKind.SERIES), 30, false, presenter, rows))
 			add(R.string.lbl_favorites, ItemRowAdapter(context, BrowsingUtils.createFavoriteItemsRequest(id, BaseItemKind.SERIES), 60, false, presenter, rows))
 		} else {
-			add(R.string.lbl_continue_watching, ItemRowAdapter(context, BrowsingUtils.createResumeItemsRequest(id, BaseItemKind.MOVIE), 50, false, presenter, rows))
+			add(R.string.home_section_resume, ItemRowAdapter(context, BrowsingUtils.createResumeItemsRequest(id, BaseItemKind.MOVIE), 50, false, presenter, rows))
 			add(R.string.library_row_recently_released, ItemRowAdapter(context, newest(BaseItemKind.MOVIE), 50, false, presenter, rows))
-			add(R.string.lbl_latest, ItemRowAdapter(context, BrowsingUtils.createLatestMediaRequest(id), false, presenter, rows))
+			add(R.string.library_row_recently_added, ItemRowAdapter(context, BrowsingUtils.createLatestMediaRequest(id), false, presenter, rows))
 			add(R.string.library_row_top_rated, ItemRowAdapter(context, topRated(BaseItemKind.MOVIE), 50, false, presenter, rows))
 			add(R.string.lbl_favorites, ItemRowAdapter(context, BrowsingUtils.createFavoriteItemsRequest(id, BaseItemKind.MOVIE), 60, false, presenter, rows))
 		}

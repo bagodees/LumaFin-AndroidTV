@@ -141,6 +141,9 @@ fun BaseItemDto.getSubName(context: Context): String? = when (type) {
 	}
 
 	BaseItemKind.AUDIO -> name
+	// Year and rating, so the line under movie and show cards says more than "R"
+	BaseItemKind.MOVIE, BaseItemKind.SERIES -> listOfNotNull(productionYear?.toString(), officialRating)
+		.joinToString(" · ").ifEmpty { null }
 	else -> officialRating
 }
 

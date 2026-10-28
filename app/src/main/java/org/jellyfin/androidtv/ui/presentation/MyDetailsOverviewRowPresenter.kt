@@ -8,6 +8,7 @@ import org.jellyfin.androidtv.util.hideEpisodeArtwork
 import org.jellyfin.sdk.model.api.BaseItemDto
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.children
 import androidx.core.view.isVisible
 import androidx.core.view.doOnLayout
 import androidx.leanback.widget.RowPresenter
@@ -59,6 +60,7 @@ class MyDetailsOverviewRowPresenter(
 		private val binding get() = detailRowView.binding
 		private var currentRow: MyDetailsOverviewRow? = null
 		private var rowStyle = false
+		private fun personPills(row: MyDetailsOverviewRow) = SideMenuFrame.isEnabled() && row.item.type == BaseItemKind.PERSON
 		private var lookupDialog: SubtitleLookupDialog? = null
 		private var choicesDialog: DialogInterface? = null
 		private var trackMenu: LumaFinMenuDialog? = null
@@ -168,7 +170,8 @@ class MyDetailsOverviewRowPresenter(
 				val parent = button.parent
 				if (parent is ViewGroup) parent.removeView(button)
 
-				if (rowStyle) button.applyDetailsRowStyle() else button.applyDetailsStyle()
+				// Person pages use the same pill buttons as the other details pages
+				if (rowStyle || personPills(row)) button.applyDetailsRowStyle() else button.applyDetailsStyle()
 				binding.fdButtonRow.addView(button)
 			}
 			if (rowStyle) {
@@ -204,7 +207,11 @@ class MyDetailsOverviewRowPresenter(
 					binding.fdSummaryText.setOnClickListener { anchor -> showBiography(row, anchor) }
 					binding.fdButtonRow.addView(TextUnderButton.create(view.context, R.drawable.ic_info,
 						label = view.context.getString(R.string.person_biography),
-						onClickListener = { anchor -> showBiography(row, anchor) }).apply { applyDetailsStyle() })
+						onClickListener = { anchor -> showBiography(row, anchor) }).apply { if (personPills(row)) applyDetailsRowStyle() else applyDetailsStyle() })
+				}
+				// Same gap between the pills as on the other details pages
+				if (personPills(row)) for (child in binding.fdButtonRow.children) {
+					(child.layoutParams as? ViewGroup.MarginLayoutParams)?.let { it.marginEnd = 10.dp(view.context); child.layoutParams = it }
 				}
 			}
             binding.fdButtonRow.doOnLayout { container ->

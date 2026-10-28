@@ -149,7 +149,8 @@ fun SettingsWorkspace(onDismissRequest: () -> Unit) {
 				fontSize = 28.sp,
 				fontWeight = FontWeight.Bold,
 				color = LumaFinPalette.Text,
-				modifier = Modifier.padding(start = 12.dp, bottom = 12.dp),
+				// Kept tight so every category, the divider and Back to Home fit on a 1080p screen
+				modifier = Modifier.padding(start = 12.dp, bottom = 4.dp),
 			)
 			for (category in categories) {
 				val active = selected == category.route
@@ -173,6 +174,8 @@ fun SettingsWorkspace(onDismissRequest: () -> Unit) {
 			}
 			// Closes settings from the menu, for remotes where Back isn't obvious
 			Spacer(Modifier.weight(1f))
+			// A divider sets it apart from the categories, since it leaves settings instead of opening a page
+			Box(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp).height(1.dp).background(LumaFinPalette.Raised))
 			CategoryItem(
 				category = backToHome,
 				active = false,

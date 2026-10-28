@@ -102,6 +102,9 @@ fun SettingsHomeScreen() {
 		userSettingPreferences.activeHomesections = newOrder
 	}
 
+	// List items before the first section row: the header, the switches above it and the sections heading
+	val sectionsStart = 1 + (if (seerrAvailable) 1 else 0) + (if (pluginAvailable) 1 else 0) + 1 + (if (newHomeEnabled) 1 else 0) + 1
+
 	// Scroll the list one row ahead of the move first so the picked-up row stays composed
 	// (and focused) instead of leaving the viewport and losing focus.
 	fun move(type: HomeSectionType, delta: Int) {
@@ -110,14 +113,13 @@ fun SettingsHomeScreen() {
 			val target = index + delta
 			if (index < 0 || target !in visibleSections.indices) return@launch
 
-			// +1 accounts for the header item preceding the visible sections
-			val targetItem = listState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == target + 1 }
+			val targetItem = listState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == target + sectionsStart }
 			val viewportEnd = listState.layoutInfo.viewportEndOffset
 			val fullyVisible = targetItem != null &&
 				targetItem.offset >= listState.layoutInfo.viewportStartOffset &&
 				targetItem.offset + targetItem.size <= viewportEnd
 			if (!fullyVisible) {
-				if (delta < 0) listState.animateScrollToItem(target + 1)
+				if (delta < 0) listState.animateScrollToItem(target + sectionsStart)
 				else listState.animateScrollToItem(listState.firstVisibleItemIndex + 1)
 			}
 			persist(visibleSections.toMutableList().apply { add(target, removeAt(index)) })
@@ -129,11 +131,10 @@ fun SettingsHomeScreen() {
 	// Keep the picked-up row on screen after each move, including reaching the very top/bottom.
 	LaunchedEffect(visibleSections, grabbed) {
 		val type = grabbed ?: return@LaunchedEffect
-		// +1 accounts for the header item preceding the visible sections
-		val lazyIndex = visibleSections.indexOf(type) + 1
-		if (lazyIndex <= 0) return@LaunchedEffect
+		if (type !in visibleSections) return@LaunchedEffect
+		val lazyIndex = visibleSections.indexOf(type) + sectionsStart
 
-		if (lazyIndex == 1) {
+		if (visibleSections.first() == type) {
 			listState.animateScrollToItem(0)
 			return@LaunchedEffect
 		}
@@ -158,7 +159,7 @@ fun SettingsHomeScreen() {
 			ListSection(
 				overlineContent = { Text(stringResource(R.string.pref_customization).uppercase()) },
 				headingContent = { Text(stringResource(R.string.home_prefs)) },
-				captionContent = { Text(stringResource(R.string.home_sections_hint)) },
+				captionContent = { Text(stringResource(R.string.home_prefs_description)) },
 			)
 		}
 
@@ -222,6 +223,14 @@ fun SettingsHomeScreen() {
 				modifier = Modifier.focusKey("new_home_card_titles")
 			)
 		} }
+
+		// The how-to sits with the rows it describes, not at the top of the page
+		item(key = "sections_heading") {
+			ListSection(
+				headingContent = { Text(stringResource(R.string.home_sections_heading)) },
+				captionContent = { Text(stringResource(R.string.home_sections_hint)) },
+			)
+		}
 
 		items(visibleSections, key = { "visible_${it.name}" }) { type ->
 			val isGrabbed = grabbed == type

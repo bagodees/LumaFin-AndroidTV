@@ -42,6 +42,8 @@ object SideMenuFrame {
 			}
 		}
 		frame.rail = railView
+		// Lets the open menu dim the page beside it
+		frame.clipChildren = false
 		val density = context.resources.displayMetrics.density
 		frame.addView(content, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT).apply {
 			marginStart = (RailCollapsedWidth.value * density).toInt()

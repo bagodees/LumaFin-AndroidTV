@@ -61,7 +61,7 @@
     <string name="lbl_other_channels">Other channels</string>
     <string name="lbl_collections">Collections</string>
     <string name="lbl_movies">Movies</string>
-    <string name="lbl_tv_series">TV series</string>
+    <string name="lbl_tv_series">TV Series</string>
     <string name="lbl_other">Other</string>
     <string name="because_you_watched">Because You Watched %1$s</string>
     <string name="lbl_play_all">Play all</string>
@@ -78,8 +78,8 @@
     <string name="msg_unable_to_create_recording">Unable to create recording</string>
     <string name="msg_recording_cancelled">Recording cancelled</string>
     <string name="msg_unable_to_cancel">Unable to cancel recording</string>
-    <string name="lbl_cast_crew">Cast &amp; crew</string>
-    <string name="lbl_additional_parts">Additional parts</string>
+    <string name="lbl_cast_crew">Cast &amp; Crew</string>
+    <string name="lbl_additional_parts">Additional Parts</string>
     <string name="lbl_chapters">Chapters</string>
     <string name="lbl_specials">Specials</string>
     <string name="lbl_trailers">Trailers</string>
@@ -274,7 +274,7 @@
     <string name="lbl_series_recordings">Series recordings</string>
     <string name="lbl_at_any_time">At any time</string>
     <string name="lbl_on_schedule">On schedule</string>
-    <string name="lbl_guest_stars">Guest stars</string>
+    <string name="lbl_guest_stars">Guest Stars</string>
     <string name="lbl_premiere">Premiere</string>
     <string name="lbl_sort_by">Sort by</string>
     <string name="lbl_show_indicators">Show indicators for</string>
@@ -286,9 +286,9 @@
     <string name="lbl_subtitle_text_stroke_color">Edge color</string>
     <string name="lbl_resume_from">Resume from %1$s</string>
     <string name="lbl_from_beginning">Play from beginning</string>
-    <string name="lbl_more_like_this">More like this</string>
+    <string name="lbl_more_like_this">More Like This</string>
     <string name="lbl_previous_episode">Previous episode</string>
-    <string name="lbl_next_episode">Next episode</string>
+    <string name="lbl_next_episode">Next Episode</string>
     <string name="lbl_album_name">Album name</string>
     <string name="lbl_song_title">Song title</string>
     <string name="lbl_tv_channel_status">%1$d of %2$d channels</string>
@@ -480,6 +480,10 @@
     <string name="license_license">License</string>
     <string name="home_prefs">Home</string>
     <string name="settings_back_to_home">Back to Home</string>
+    <string name="home_prefs_description">Choose what Home shows and how it looks.</string>
+    <string name="home_sections_heading">Sections</string>
+    <string name="preview_library_hint">Open %1$s to browse everything in it.</string>
+    <string name="preview_genre_hint">Browse %1$s movies in your library.</string>
     <string name="home_sections_hidden">Hidden</string>
     <string name="lbl_track_audio">Audio: %1$s</string>
     <string name="lbl_track_subtitles">Subtitles: %1$s</string>
@@ -502,10 +506,10 @@
     <string name="server_home_layout">Server Home layout</string>
     <string name="seerr_rows">Seerr discover rows</string>
     <string name="seerr_rows_description">Requires the SeerrFin plugin on your Jellyfin server. Shows trending and upcoming titles from Seerr at the end of Home, so you can request ones you don\'t have.</string>
-    <string name="seerr_trending_movies">Trending movies</string>
-    <string name="seerr_trending_shows">Trending shows</string>
-    <string name="seerr_upcoming_movies">Upcoming movies</string>
-    <string name="seerr_upcoming_shows">Upcoming shows</string>
+    <string name="seerr_trending_movies">Trending Movies</string>
+    <string name="seerr_trending_shows">Trending Shows</string>
+    <string name="seerr_upcoming_movies">Upcoming Movies</string>
+    <string name="seerr_upcoming_shows">Upcoming Shows</string>
     <string name="seerr_kind_movie">Movie</string>
     <string name="seerr_kind_show">TV show</string>
     <string name="seerr_status_available">Already in your library.</string>
@@ -563,7 +567,7 @@
     <string name="home_style_top_bar_description">Menu across the top and the selected title\'s artwork filling the screen behind its details.</string>
     <string name="home_time_left">%1$s left</string>
     <string name="new_home_card_titles">Show titles under cards</string>
-    <string name="new_home_card_titles_description">Most artwork already shows the title, and the preview above the rows names the selected card. Turn on to also show titles under every card.</string>
+    <string name="new_home_card_titles_description">Shows each title and its year under the card. Most artwork already shows the title and the preview above the rows names the selected card, so you can turn this off for a cleaner look.</string>
     <string name="new_home_description">Use the top toolbar and the original Home instead of the side menu and the preview of the selected title. Your Home rows stay the same.</string>
     <string name="home_item_limits">Home row options</string>
     <string name="home_item_limits_description">Show or hide item limits and the watched-movie filter. Changes apply when you close settings.</string>

@@ -122,6 +122,7 @@ The owner decided on October 27 to skip a 1.1.3 release unless something urgent 
 8. [x] Choose which libraries appear in the side menu ([#113](https://github.com/bagodees/LumaFin-AndroidTV/issues/113))
 9. [ ] Request movies and shows through Seerr ([#100](https://github.com/bagodees/LumaFin-AndroidTV/issues/100)); moved from 1.x later on October 27 with the owner's approval
 10. [x] Card style settings: Landscape or Portrait for Continue Watching, other Home rows and library grids ([#123](https://github.com/bagodees/LumaFin-AndroidTV/issues/123)); added October 27 with the owner's approval
+11. [x] One look across screens: Seerr, genre, details, actor and library grid cards match Home's cards and spacing; row titles in title case; card lines show year and rating; the clock in one spot; the side menu dims the page; fixes for watched checks on titles being rewatched, the Seerr request popup opening on Request, Search keeping the last backdrop and "0:00" on shows without episodes. Added October 27 with the owner's approval
 
 ---
 

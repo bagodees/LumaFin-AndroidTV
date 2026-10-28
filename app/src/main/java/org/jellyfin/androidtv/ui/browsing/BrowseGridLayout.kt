@@ -70,6 +70,10 @@ class BrowseGridLayout(private val binding: HorizontalGridBrowseBinding, private
 		const val GRID_START_MARGIN_DP = 20
 		/** The letter strip and tool column on the right edge. */
 		const val RIGHT_COLUMNS_WIDTH_DP = 96
+		/** Grid inset that lines the first column up with Home's row titles. */
+		const val GRID_CONTENT_INSET_DP = 36
+		/** Gap between grid cards, the same as between cards in Home rows. */
+		const val GRID_CARD_GAP_DP = 14
 		private const val LETTERS = "#ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 		/** How much taller the preview is than the classic title and info row. */
 		const val EXTRA_PREVIEW_HEIGHT_DP = 32
@@ -127,6 +131,8 @@ class BrowseGridLayout(private val binding: HorizontalGridBrowseBinding, private
 				marginStart = (RailCollapsedWidth.value * density).toInt()
 			})
 			addView(railView, FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.MATCH_PARENT))
+			// Lets the open menu dim the page beside it
+			clipChildren = false
 		}
 	}
 
@@ -160,7 +166,7 @@ class BrowseGridLayout(private val binding: HorizontalGridBrowseBinding, private
 		binding.clock.homeButton.visibility = View.GONE
 		// The footer lined up with the hidden title; line it up with the grid instead
 		(binding.libraryFooter.layoutParams as RelativeLayout.LayoutParams).marginStart =
-			((GRID_START_MARGIN_DP + 12) * context.resources.displayMetrics.density).toInt()
+			((GRID_START_MARGIN_DP + GRID_CONTENT_INSET_DP) * context.resources.displayMetrics.density).toInt()
 		// Cards may draw past the grid so the focused one can zoom; fade them out under the footer text
 		val background = context.getColor(R.color.lumafin_background)
 		val footerFade = View(context).apply {

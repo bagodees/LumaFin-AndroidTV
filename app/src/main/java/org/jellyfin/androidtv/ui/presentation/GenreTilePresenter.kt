@@ -1,5 +1,10 @@
 package org.jellyfin.androidtv.ui.presentation
 
+import androidx.compose.foundation.border
+import org.jellyfin.androidtv.ui.base.JellyfinTheme
+import org.jellyfin.androidtv.ui.base.focusOutline
+import org.jellyfin.androidtv.ui.base.rememberAccessibilityOptions
+
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageView
@@ -67,15 +72,20 @@ class GenreTilePresenter : Presenter() {
 			val cardSize by preferences.mediaCardSizeChanges.collectAsState(initial = preferences[UserPreferences.mediaCardSize])
 			val cardWidth = 150.dp * (16f / 9f) * cardSize.scale
 			val isFocused by focused.collectAsState()
-			val captionHeight = with(LocalDensity.current) { 50.sp.toDp() } + 12.dp
+			// Same corners, focus outline and caption height as the other Home cards
+			val captionHeight = with(LocalDensity.current) { 50.sp.toDp() } + 2.dp
+			val accessibility = rememberAccessibilityOptions()
+			val shape = JellyfinTheme.shapes.medium
 
 			ItemPreview(card = {
 				Box(
 					modifier = Modifier
 						.width(cardWidth)
 						.aspectRatio(16f / 9f)
-						.clip(RoundedCornerShape(8.dp))
+						.clip(shape)
 						.background(Tokens.Color.colorGrey800)
+						.then(if (isFocused && !accessibility.strongFocus) Modifier.border(2.dp, JellyfinTheme.colorScheme.inputFocused, shape) else Modifier)
+						.focusOutline(isFocused, shape, accessibility.strongFocus)
 						.graphicsLayer(alpha = if (isFocused) 1f else 0.7f)
 				) {
 					AsyncImage(url = value.imageUrl, scaleType = ImageView.ScaleType.CENTER_CROP,

@@ -4,8 +4,9 @@
     <string name="library_tab_recommended">Recommended</string>
     <string name="library_tab_library">Library</string>
     <string name="library_tab_studios">Studios</string>
-    <string name="library_row_recently_released">Recently released</string>
-    <string name="library_row_recently_aired">Recently aired</string>
-    <string name="library_row_top_rated">Top rated</string>
+    <string name="library_row_recently_released">Recently Released</string>
+    <string name="library_row_recently_aired">Recently Aired</string>
+    <string name="library_row_top_rated">Top Rated</string>
+    <string name="library_row_recently_added">Recently Added</string>
     <string name="library_tiles_empty">Nothing here yet</string>
 </resources>
