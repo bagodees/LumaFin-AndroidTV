@@ -190,12 +190,12 @@ foldables, a side rail on unfolded foldables, the side menu on tablets. Test dev
 Fire HD 10 (2021) and a friend's Galaxy Z Fold, plus phone, foldable, tablet and Fire HD emulators.
 
 1. [x] Shell: sign-in (server, users, password, Quick Connect), adaptive navigation, first Home rows. Checked October 28 on the foldable emulator (folded, unfolded, folding mid-use keeps the open tab) and a Fire HD 10 stand-in (Android 9, no Google services, portrait and landscape)
-2. [ ] Home and libraries: the TV app's rows, library grids, Top Rated and Seerr rows; shared logic moves into a core module
-3. [ ] Details pages and the player (touch controls, picture-in-picture); first test build
-4. [ ] Search, Seerr title pages and requests, settings
-5. [ ] Foldable and tablet polish: side-by-side list and details, tabletop video mode
-6. [ ] Optional extras: downloads, casting
-7. [ ] Play listing and closed testing, with the owner's approval
+2. [x] Home and libraries: the TV app's rows, library grids (A-Z, Recently Added, Newest, Top Rated), My Requests, Trending and Upcoming; Seerr and Top Rated logic moved into the shared `core` module, used by both apps
+3. [x] Details pages and the player: title pages with seasons, episodes, cast and More Like This; touch controls, audio and subtitle choices, resume and progress reporting, next episode, picture-in-picture, and a converted stream when a device can't decode a file
+4. [x] Search (with Seerr titles not in the library), Seerr title pages and requests, settings (autoplay, Seerr rows)
+5. [x] Foldable and tablet polish: info beside the episode list on wide screens, tabletop video mode on a half-folded foldable
+6. [ ] Optional extras, the owner's pick: downloads for offline viewing; casting (needs Google Play services, so not on Fire tablets)
+7. [ ] Play listing and closed testing, with the owner's approval. Release build checked October 28; listing draft in [docs/mobile/play-listing-draft.md](docs/mobile/play-listing-draft.md)
 
 ---
 
