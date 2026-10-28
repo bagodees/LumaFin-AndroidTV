@@ -88,6 +88,8 @@ class SearchFragment : Fragment() {
 				viewModel.searchImmediately(query.text)
 				submitted = true
 			} else if (!state.hasResults) {
+				// Nothing to show yet: don't keep the backdrop of the page Search was opened from
+				searchFragmentDelegate.clearBackground()
 				textInputFocusRequester.requestFocus()
 			}
 		}

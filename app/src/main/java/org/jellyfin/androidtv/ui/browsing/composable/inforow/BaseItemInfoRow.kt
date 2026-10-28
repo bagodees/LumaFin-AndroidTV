@@ -123,6 +123,8 @@ fun InfoRowSeriesStatus(
 fun BaseItemInfoRowRuntime(
 	runTime: Duration,
 ) {
+	// A show without episodes yet reports no running time; "0:00" would read as broken
+	if (runTime.inWholeSeconds <= 0) return
 	InfoRowItem(
 		icon = ImageVector.vectorResource(id = R.drawable.ic_time),
 		contentDescription = null,

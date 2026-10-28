@@ -206,7 +206,10 @@ private fun WatchIndicator(
 
 	val isPlayed = item.userData?.played == true
 	val unplayedItems = item.userData?.unplayedItemCount?.takeIf { it > 0 }
+	// A watched title being watched again shows its progress bar, not the watched check too
+	val rewatching = isPlayed && (item.userData?.playbackPositionTicks ?: 0) > 0
 
+	if (rewatching) return
 	if (isPlayed) {
 		Badge(
 			modifier = modifier

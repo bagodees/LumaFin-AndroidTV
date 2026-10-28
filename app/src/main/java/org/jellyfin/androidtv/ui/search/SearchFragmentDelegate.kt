@@ -41,6 +41,8 @@ class SearchFragmentDelegate(
 		for (adapter in adapters) adapter.Retrieve()
 	}
 
+	fun clearBackground() = backgroundService.clearBackgrounds()
+
 	val onItemViewClickedListener = OnItemViewClickedListener { _, item, _, row ->
 		if (item !is BaseRowItem) return@OnItemViewClickedListener
 		row as ListRow
