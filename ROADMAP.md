@@ -189,7 +189,7 @@ in this repository. Every screen follows the window's width: bottom tabs on phon
 foldables, a side rail on unfolded foldables, the side menu on tablets. Test devices: the owner's
 Fire HD 10 (2021) and a friend's Galaxy Z Fold, plus phone, foldable, tablet and Fire HD emulators.
 
-1. [ ] Shell: sign-in (server, users, password, Quick Connect), adaptive navigation, first Home rows. Built; sign-in up to Quick Connect checked on the foldable emulator
+1. [x] Shell: sign-in (server, users, password, Quick Connect), adaptive navigation, first Home rows. Checked October 28 on the foldable emulator (folded, unfolded, folding mid-use keeps the open tab) and a Fire HD 10 stand-in (Android 9, no Google services, portrait and landscape)
 2. [ ] Home and libraries: the TV app's rows, library grids, Top Rated and Seerr rows; shared logic moves into a core module
 3. [ ] Details pages and the player (touch controls, picture-in-picture); first test build
 4. [ ] Search, Seerr title pages and requests, settings
