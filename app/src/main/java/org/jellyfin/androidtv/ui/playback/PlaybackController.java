@@ -739,7 +739,12 @@ public class PlaybackController implements PlaybackControllerNotifiable {
         if (mFragment != null) mFragment.updateDisplay();
 
         if (mVideoManager != null) {
-            mVideoManager.setMediaStreamInfo(api.getValue(), response);
+            // Direct play and HLS streams cover the whole title, so the player starts at the resume
+            // point instead of loading the start and then seeking (which restarts a server conversion
+            // and makes a soundbar resync). Other converted streams already begin at the resume point.
+            String url = response.getMediaUrl();
+            boolean wholeTitle = response.getPlayMethod() == PlayMethod.DIRECT_PLAY || (url != null && url.contains(".m3u8"));
+            mVideoManager.setMediaStreamInfo(api.getValue(), response, wholeTitle ? mStartPosition : 0);
         }
 
         PlaybackControllerHelperKt.applyMediaSegments(this, item, () -> {
@@ -1228,6 +1233,9 @@ public class PlaybackController implements PlaybackControllerNotifiable {
                     // use mVideoManager.getDuration here for accurate results
                     // wait until we have valid duration
                     mHandler.postDelayed(this, 25);
+                } else if (Math.abs(mVideoManager.getCurrentPosition() - position) < 1500) {
+                    // Already started at the resume point; seeking there again would only rebuffer
+                    finishedInitialSeek = true;
                 } else if (mVideoManager.isSeekable()) {
                     seek(position);
                 } else {
