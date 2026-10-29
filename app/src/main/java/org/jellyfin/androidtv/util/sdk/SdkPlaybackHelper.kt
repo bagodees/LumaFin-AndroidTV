@@ -40,6 +40,11 @@ class SdkPlaybackHelper(
 ) : PlaybackHelper {
 	companion object {
 		const val ITEM_QUERY_LIMIT = 150
+
+		// Playing an episode waits for the queue that follows it, and the server sends full media
+		// details for each one, so a long series took seconds to start. The Still watching prompt
+		// comes well before this many episodes.
+		const val EPISODE_QUEUE_LIMIT = 25
 	}
 
 	override fun getItemsToPlay(
@@ -79,7 +84,7 @@ class SdkPlaybackHelper(
 						seriesId = seriesId,
 						startItemId = mainItem.id,
 						isMissing = false,
-						limit = ITEM_QUERY_LIMIT,
+						limit = EPISODE_QUEUE_LIMIT,
 						fields = ItemRepository.itemFields
 					)
 

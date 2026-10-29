@@ -467,6 +467,16 @@ public class VideoManager {
         setMediaStreamInfo(api, streamInfo, 0);
     }
 
+    /** Turns embedded and external subtitle tracks off or back on, before the next stream loads. */
+    public void setTextTracksDisabled(boolean disabled) {
+        if (mExoPlayer == null) return;
+        mExoPlayer.setTrackSelectionParameters(mExoPlayer.getTrackSelectionParameters()
+                .buildUpon()
+                .clearOverridesOfType(C.TRACK_TYPE_TEXT)
+                .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, disabled)
+                .build());
+    }
+
     /** Loads the stream, starting at [startPositionMs] when it's above zero. */
     public void setMediaStreamInfo(ApiClient api, StreamInfo streamInfo, long startPositionMs) {
         String path = streamInfo.getMediaUrl();

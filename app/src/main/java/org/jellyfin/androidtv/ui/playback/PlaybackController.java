@@ -744,6 +744,10 @@ public class PlaybackController implements PlaybackControllerNotifiable {
             // and makes a soundbar resync). Other converted streams already begin at the resume point.
             String url = response.getMediaUrl();
             boolean wholeTitle = response.getPlayMethod() == PlayMethod.DIRECT_PLAY || (url != null && url.contains(".m3u8"));
+            // Turning subtitles off only once the player is ready restarts the video and audio
+            // decoders, so set that before loading when no subtitle track is wanted
+            Integer subtitleIndex = mCurrentOptions.getSubtitleStreamIndex();
+            mVideoManager.setTextTracksDisabled(burningSubs || subtitleIndex == null || subtitleIndex < 0);
             mVideoManager.setMediaStreamInfo(api.getValue(), response, wholeTitle ? mStartPosition : 0);
         }
 

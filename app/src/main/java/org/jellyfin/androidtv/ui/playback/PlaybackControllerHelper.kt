@@ -54,6 +54,9 @@ fun PlaybackController.disableDefaultSubtitles() {
 	Timber.i("Disabling non-baked subtitles")
 
 	with(mVideoManager.mExoPlayer.trackSelector!!) {
+		// Already off: changing the selection anyway would restart the video and audio decoders
+		if (C.TRACK_TYPE_TEXT in parameters.disabledTrackTypes && parameters.overrides.keys.none { it.type == C.TRACK_TYPE_TEXT }) return
+
 		parameters = parameters.buildUpon()
 			.clearOverridesOfType(C.TRACK_TYPE_TEXT)
 			.setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true)
