@@ -261,6 +261,16 @@ public class VideoManager {
      * @param context The associated context
      * @return A configured builder for Exoplayer
      */
+    private static final int LOW_MEMORY_BUFFER_BYTES = 64 * 1024 * 1024;
+
+    private static boolean isLowMemoryDevice(Context context) {
+        android.app.ActivityManager activityManager = context.getSystemService(android.app.ActivityManager.class);
+        if (activityManager == null) return false;
+        android.app.ActivityManager.MemoryInfo memoryInfo = new android.app.ActivityManager.MemoryInfo();
+        activityManager.getMemoryInfo(memoryInfo);
+        return activityManager.isLowRamDevice() || memoryInfo.totalMem < 3L * 1024 * 1024 * 1024;
+    }
+
     private ExoPlayer.Builder configureExoplayerBuilder(Context context, AssHandler assHandler) {
         ExoPlayer.Builder exoPlayerBuilder = new ExoPlayer.Builder(context);
         DefaultRenderersFactory defaultRendererFactory = new DefaultRenderersFactory(context) {
@@ -316,19 +326,20 @@ public class VideoManager {
 
         BufferLength bufferLength = userPreferences.get(UserPreferences.Companion.getBufferLength());
         configuredBufferLength = bufferLength;
-        DefaultLoadControl loadControl;
+        DefaultLoadControl.Builder loadControl = new DefaultLoadControl.Builder();
         if (bufferLength == BufferLength.LARGE) {
-            loadControl = new DefaultLoadControl.Builder()
-                    .setBufferDurationsMs(50_000, 120_000, 2_500, 5_000)
-                    .build();
+            loadControl.setBufferDurationsMs(50_000, 120_000, 2_500, 5_000);
         } else if (bufferLength == BufferLength.EXTRA_LARGE) {
-            loadControl = new DefaultLoadControl.Builder()
-                    .setBufferDurationsMs(80_000, 240_000, 5_000, 10_000)
-                    .build();
-        } else {
-            loadControl = new DefaultLoadControl();
+            loadControl.setBufferDurationsMs(80_000, 240_000, 5_000, 10_000);
         }
-        exoPlayerBuilder.setLoadControl(loadControl);
+        // On 2 GB devices like the Fire TV Stick 4K Max, a full buffer of a high-bitrate 4K title
+        // plus the decoder's own memory got the app closed for low memory after long seeks.
+        // Capping the buffer by size there still keeps about 30 seconds of a 17 Mbps title.
+        if (isLowMemoryDevice(context)) {
+            loadControl.setTargetBufferBytes(LOW_MEMORY_BUFFER_BYTES).setPrioritizeTimeOverSizeThresholds(false);
+            Timber.i("Low-memory device: video buffer capped at %d MB", LOW_MEMORY_BUFFER_BYTES / (1024 * 1024));
+        }
+        exoPlayerBuilder.setLoadControl(loadControl.build());
 
         exoPlayerBuilder.setAudioAttributes(new AudioAttributes.Builder()
                 .setUsage(C.USAGE_MEDIA)
