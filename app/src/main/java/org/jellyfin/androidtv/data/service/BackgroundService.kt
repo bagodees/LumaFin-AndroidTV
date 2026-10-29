@@ -144,6 +144,18 @@ class BackgroundService(
 		}
 	}
 
+	/**
+	 * Drops the loaded backdrops and keeps backgrounds off, freeing their memory while a video
+	 * plays on a low-memory device. They load again with the next page that sets one.
+	 */
+	fun releaseMemory() {
+		loadBackgroundsJob?.cancel()
+		_backgrounds = emptyList()
+		_currentIndex = 0
+		_currentBackground.value = null
+		_enabled.value = false
+	}
+
 	fun clearBackgrounds() {
 		loadBackgroundsJob?.cancel()
 

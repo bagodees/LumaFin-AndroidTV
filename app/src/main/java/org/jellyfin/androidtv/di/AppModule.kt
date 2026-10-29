@@ -3,6 +3,7 @@ package org.jellyfin.androidtv.di
 import android.content.Context
 import androidx.lifecycle.ProcessLifecycleOwner
 import coil3.ImageLoader
+import coil3.memory.MemoryCache
 import coil3.annotation.ExperimentalCoilApi
 import coil3.gif.AnimatedImageDecoder
 import coil3.gif.GifDecoder
@@ -11,6 +12,7 @@ import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import coil3.serviceLoaderEnabled
 import coil3.svg.SvgDecoder
 import coil3.util.Logger
+import org.jellyfin.androidtv.util.isLowMemoryDevice
 import org.jellyfin.androidtv.BuildConfig
 import org.jellyfin.androidtv.auth.repository.ServerRepository
 import org.jellyfin.androidtv.auth.repository.UserRepository
@@ -125,6 +127,10 @@ val appModule = module {
 	single {
 		ImageLoader.Builder(androidContext()).apply {
 			serviceLoaderEnabled(false)
+			// A smaller image cache on low-memory devices leaves room for 4K video decoding
+			if (androidContext().isLowMemoryDevice()) memoryCache {
+				MemoryCache.Builder().maxSizePercent(androidContext(), 0.1).build()
+			}
 			logger(CoilTimberLogger(if (BuildConfig.DEBUG) Logger.Level.Warn else Logger.Level.Error))
 
 			components {

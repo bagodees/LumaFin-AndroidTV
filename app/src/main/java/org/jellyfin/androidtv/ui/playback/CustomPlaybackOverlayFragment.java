@@ -41,6 +41,7 @@ import org.jellyfin.androidtv.R;
 import org.jellyfin.androidtv.constant.CustomMessage;
 import org.jellyfin.androidtv.data.repository.CustomMessageRepository;
 import org.jellyfin.androidtv.data.service.BackgroundService;
+import org.jellyfin.androidtv.util.DeviceMemoryKt;
 import org.jellyfin.androidtv.databinding.OverlayTvGuideBinding;
 import org.jellyfin.androidtv.databinding.VlcPlayerInterfaceBinding;
 import org.jellyfin.androidtv.ui.GuideChannelHeader;
@@ -169,6 +170,13 @@ public class CustomPlaybackOverlayFragment extends Fragment implements LiveTvGui
         };
 
         backgroundService.getValue().disable();
+        // On low-memory devices the Home backdrops and cached images behind the player are freed,
+        // leaving room for the video decoder (a 2 GB Fire TV Stick ran out during long seeks)
+        if (DeviceMemoryKt.isLowMemoryDevice(requireContext())) {
+            backgroundService.getValue().releaseMemory();
+            coil3.memory.MemoryCache cache = org.koin.java.KoinJavaComponent.<coil3.ImageLoader>get(coil3.ImageLoader.class).getMemoryCache();
+            if (cache != null) cache.clear();
+        }
     }
 
     @Nullable

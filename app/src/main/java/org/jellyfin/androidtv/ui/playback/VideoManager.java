@@ -37,6 +37,7 @@ import androidx.media3.exoplayer.analytics.AnalyticsListener;
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory;
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector;
 import androidx.media3.exoplayer.util.EventLogger;
+import org.jellyfin.androidtv.util.DeviceMemoryKt;
 import androidx.media3.extractor.DefaultExtractorsFactory;
 import androidx.media3.extractor.ExtractorsFactory;
 import androidx.media3.extractor.ts.TsExtractor;
@@ -126,7 +127,8 @@ public class VideoManager {
 
         mExoPlayer = configureExoplayerBuilder(activity, assHandler).build();
 
-        if (userPreferences.get(UserPreferences.Companion.getDebuggingEnabled())) {
+        // Test builds always log player events, so a problem a tester hits can be read from the log
+        if (userPreferences.get(UserPreferences.Companion.getDebuggingEnabled()) || org.jellyfin.androidtv.BuildConfig.VERSION_NAME.contains("-test")) {
             mExoPlayer.addAnalyticsListener(new EventLogger());
         }
 
@@ -263,14 +265,6 @@ public class VideoManager {
      */
     private static final int LOW_MEMORY_BUFFER_BYTES = 64 * 1024 * 1024;
 
-    private static boolean isLowMemoryDevice(Context context) {
-        android.app.ActivityManager activityManager = context.getSystemService(android.app.ActivityManager.class);
-        if (activityManager == null) return false;
-        android.app.ActivityManager.MemoryInfo memoryInfo = new android.app.ActivityManager.MemoryInfo();
-        activityManager.getMemoryInfo(memoryInfo);
-        return activityManager.isLowRamDevice() || memoryInfo.totalMem < 3L * 1024 * 1024 * 1024;
-    }
-
     private ExoPlayer.Builder configureExoplayerBuilder(Context context, AssHandler assHandler) {
         ExoPlayer.Builder exoPlayerBuilder = new ExoPlayer.Builder(context);
         DefaultRenderersFactory defaultRendererFactory = new DefaultRenderersFactory(context) {
@@ -335,7 +329,7 @@ public class VideoManager {
         // On 2 GB devices like the Fire TV Stick 4K Max, a full buffer of a high-bitrate 4K title
         // plus the decoder's own memory got the app closed for low memory after long seeks.
         // Capping the buffer by size there still keeps about 30 seconds of a 17 Mbps title.
-        if (isLowMemoryDevice(context)) {
+        if (DeviceMemoryKt.isLowMemoryDevice(context)) {
             loadControl.setTargetBufferBytes(LOW_MEMORY_BUFFER_BYTES).setPrioritizeTimeOverSizeThresholds(false);
             Timber.i("Low-memory device: video buffer capped at %d MB", LOW_MEMORY_BUFFER_BYTES / (1024 * 1024));
         }

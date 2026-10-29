@@ -72,8 +72,6 @@ class CustomSeekProvider(
 		if (index !in currentSeekPositions.indices) return
 		val token = ++requestSequence
 		requestTokens[index] = token
-		val fallback = getPlaceholderThumbnail(160, 90)
-		callback.onThumbnailLoaded(fallback, index)
 
 		val currentRequest = imageRequests[index]
 		if (currentRequest?.isDisposed == false) currentRequest.dispose()
