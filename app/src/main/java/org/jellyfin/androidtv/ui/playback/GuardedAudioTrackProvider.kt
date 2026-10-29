@@ -49,12 +49,16 @@ class GuardedAudioTrackProvider : DefaultAudioSink.AudioTrackProvider {
 /**
  * Presents a playback head that only moves forward between flushes, the way Media3 expects.
  * A drop from the platform is absorbed into an offset so the head carries on from where it was;
- * a forward jump larger than [maxJumpFrames] is a bogus reading and repeats the last value.
+ * a single forward jump larger than [maxJumpFrames] is a bogus reading and repeats the last value.
+ * A head that keeps reading far ahead is real (some MediaTek chips, like the Fire TV Stick 4K Max,
+ * still report the old position for a while after a seek flushes the track), so after
+ * [SETTLE_READS] such readings it becomes the new starting point instead of freezing the clock.
  * Media3 only expects the head to return to zero after it flushes the track, see [reset].
  */
 internal class PlaybackHeadGuard(private val maxJumpFrames: Long) {
 	private var lastRaw = 0L
 	private var offset = 0L
+	private var jumps = 0
 
 	/** Whether the last [filter] call had to correct the platform value. */
 	var corrected = false
@@ -64,10 +68,15 @@ internal class PlaybackHeadGuard(private val maxJumpFrames: Long) {
 		val raw = position.toLong() and 0xFFFFFFFFL
 		corrected = true
 		when {
-			raw - lastRaw > maxJumpFrames -> return (lastRaw + offset).toInt()
+			raw - lastRaw > maxJumpFrames -> {
+				if (++jumps < SETTLE_READS) return (lastRaw + offset).toInt()
+				// Carry on from the last value given, counting from the new platform position
+				offset += lastRaw - raw
+			}
 			raw < lastRaw -> offset += lastRaw - raw
 			else -> corrected = false
 		}
+		jumps = 0
 		lastRaw = raw
 		return (raw + offset).toInt()
 	}
@@ -75,7 +84,13 @@ internal class PlaybackHeadGuard(private val maxJumpFrames: Long) {
 	fun reset() {
 		lastRaw = 0
 		offset = 0
+		jumps = 0
 		corrected = false
+	}
+
+	private companion object {
+		// Media3 reads the head every few milliseconds, so this settles almost at once
+		const val SETTLE_READS = 3
 	}
 }
 

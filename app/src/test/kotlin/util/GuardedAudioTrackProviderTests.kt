@@ -37,6 +37,17 @@ class GuardedAudioTrackProviderTests : FunSpec({
 		guard.filter(-1) shouldBe 0
 		guard.filter(1_000) shouldBe 1_000
 	}
+	test("a head that stays far ahead after a flush becomes the new start instead of freezing") {
+		val guard = guard()
+		guard.reset()
+		// The platform still counts from before the seek
+		guard.filter(100_002_000) shouldBe 0
+		guard.filter(100_004_000) shouldBe 0
+		guard.filter(100_006_000) shouldBe 0
+		guard.filter(100_054_000) shouldBe 48_000
+		guard.filter(100_102_000) shouldBe 96_000
+		guard.corrected shouldBe false
+	}
 	test("a flush lets the head start again from zero") {
 		val guard = guard()
 		guard.filter(400_000) shouldBe 400_000
