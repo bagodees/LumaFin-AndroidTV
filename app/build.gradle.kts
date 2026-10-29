@@ -34,6 +34,10 @@ android {
 
 		// Only used for the version label shown in dev builds
 		buildConfigField("String", "NEXT_VERSION", "\"${project.property("lumafin.nextVersion")}\"")
+
+		// LumaFin's crash server; only passed for GitHub test builds, so store builds send nothing there
+		val crashDsn = providers.gradleProperty("lumafin.crashDsn").getOrElse("")
+		buildConfigField("String", "CRASH_SERVER_DSN", "\"$crashDsn\"")
 	}
 
 	buildFeatures {

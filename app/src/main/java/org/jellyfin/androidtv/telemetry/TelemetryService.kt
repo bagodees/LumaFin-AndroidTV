@@ -36,12 +36,20 @@ object TelemetryService {
 		context.initAcra {
 			buildConfigClass = BuildConfig::class.java
 			sharedPreferencesName = TelemetryPreferences.SHARED_PREFERENCES_NAME
-			pluginLoader = AcraPluginLoader(AcraReportSenderFactory::class.java)
+			pluginLoader = AcraPluginLoader(AcraReportSenderFactory::class.java, CrashServer.SenderFactory::class.java)
 			applicationLogFileLines = 250
 
 			toast {
 				text = context.getString(R.string.crash_report_toast)
 			}
+		}
+
+		// ACRA ends the process after a crash, which Android records as a kill by a signal. Noting
+		// the process first lets ExitReporter skip that exit instead of reporting the crash twice.
+		val acraHandler = Thread.getDefaultUncaughtExceptionHandler()
+		Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
+			runCatching { ExitReporter.markCrashedProcess(context) }
+			acraHandler?.uncaughtException(thread, throwable)
 		}
 	}
 

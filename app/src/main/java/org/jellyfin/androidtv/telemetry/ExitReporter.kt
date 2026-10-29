@@ -27,12 +27,19 @@ import kotlin.concurrent.thread
  */
 object ExitReporter {
 	private const val KEY_LAST_REPORTED = "last_reported_exit"
+	private const val KEY_CRASHED_PID = "crashed_pid"
 	private const val MAX_TRACE_CHARS = 120_000
 	private const val LOG_LINES = 400
 
 	// The first start with this feature also sends exits from the day before, so a crash seen
 	// on the previous build still reaches the server
 	private val FIRST_RUN_WINDOW_MS = TimeUnit.DAYS.toMillis(1)
+
+	/** Called just before ACRA ends a crashed process, so its exit isn't reported again. */
+	fun markCrashedProcess(context: Context) {
+		context.getSharedPreferences(TelemetryPreferences.SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
+			.edit().putInt(KEY_CRASHED_PID, android.os.Process.myPid()).commit()
+	}
 
 	fun reportPreviousExits(context: Context) {
 		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return
@@ -48,7 +55,9 @@ object ExitReporter {
 		if (!preferences.getBoolean(ACRA.PREF_ENABLE_ACRA, true)) return
 		val url = preferences.getString(TelemetryPreferences.crashReportUrl.key, null)
 		val token = preferences.getString(TelemetryPreferences.crashReportToken.key, null)
-		if (url.isNullOrBlank() || token.isNullOrBlank()) return
+		val toJellyfin = !url.isNullOrBlank() && !token.isNullOrBlank()
+		val toCrashServer = CrashServer.isEnabled(context)
+		if (!toJellyfin && !toCrashServer) return
 		val includeLogs = preferences.getBoolean(TelemetryPreferences.crashReportIncludeLogs.key, true)
 
 		val activityManager = context.getSystemService(ActivityManager::class.java) ?: return
@@ -57,7 +66,11 @@ object ExitReporter {
 		val lastReported = preferences.getLong(KEY_LAST_REPORTED, 0L)
 		val since = if (lastReported == 0L) System.currentTimeMillis() - FIRST_RUN_WINDOW_MS else lastReported
 		// Only while the app was on screen; Fire OS often ends apps in the background to free memory
-		val toReport = exits.filter { it.timestamp > since && it.reason in REPORTED_REASONS && it.importance <= ActivityManager.RunningAppProcessInfo.IMPORTANCE_VISIBLE }.sortedBy { it.timestamp }.takeLast(3)
+		val crashedPid = preferences.getInt(KEY_CRASHED_PID, 0)
+		val toReport = exits.filter { it.timestamp > since && it.reason in REPORTED_REASONS && it.importance <= ActivityManager.RunningAppProcessInfo.IMPORTANCE_VISIBLE }
+			// Already sent as a crash report
+			.filterNot { it.pid == crashedPid && it.reason == ApplicationExitInfo.REASON_SIGNALED }
+			.sortedBy { it.timestamp }.takeLast(3)
 
 		// Remembered before sending, so a report that fails to send isn't retried on every start
 		exits.maxOfOrNull { it.timestamp }?.let { newest ->
@@ -65,10 +78,32 @@ object ExitReporter {
 		}
 
 		for (exit in toReport) {
-			val report = buildReport(exit, if (includeLogs) logLines(exit.pid) else null)
-			runCatching { TelemetryService.postReport(url, token, report) }
-				.onSuccess { Timber.i("Reported the previous exit (%s) to the server", reasonName(exit.reason)) }
-				.onFailure { Timber.w(it, "Couldn't send the exit report") }
+			val logs = if (includeLogs) logLines(exit.pid) else null
+			if (toJellyfin) {
+				runCatching { TelemetryService.postReport(url!!, token!!, buildReport(exit, logs)) }
+					.onSuccess { Timber.i("Reported the previous exit (%s) to the server", reasonName(exit.reason)) }
+					.onFailure { Timber.w(it, "Couldn't send the exit report") }
+			}
+			if (toCrashServer) {
+				runCatching {
+					CrashServer.sendExit(
+						context = context,
+						reason = reasonName(exit.reason),
+						description = exit.description,
+						timestamp = exit.timestamp,
+						details = mapOf(
+							"status" to exit.status.toString(),
+							"was_foreground" to (exit.importance <= ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND).toString(),
+							"memory_pss_kb" to exit.pss.toString(),
+							"memory_rss_kb" to exit.rss.toString(),
+						),
+						trace = trace(exit),
+						logcat = logs,
+					)
+				}
+					.onSuccess { Timber.i("Reported the previous exit (%s) to the crash server", reasonName(exit.reason)) }
+					.onFailure { Timber.w(it, "Couldn't send the exit report to the crash server") }
+			}
 		}
 	}
 

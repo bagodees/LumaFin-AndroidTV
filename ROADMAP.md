@@ -70,6 +70,7 @@ Submitted October 24, 2026; waiting for Amazon's review. Details: [Amazon prepar
 - [x] Crash when a title is sent from a phone (Play or Resume while casting) to a TV that is already playing something; seen on a Fire TV Stick 4K Max on October 28. Two causes: the "keep the same audio language" lookup ran before the new title's tracks were loaded (also in upstream Jellyfin), and the old player then closed the new one. Fixed on lumafin-main, not yet released
 - [ ] Video stays frozen after a big skip until Play is pressed, then the sound comes 2-3 seconds late; seen on a Fire TV Stick 4K Max with Dolby passthrough (Spider-Man: No Way Home), not on the phone app. Likely cause: the 1.1.2 audio-clock guard froze when the head kept reading the old position after a seek. The guard now takes a reading that stays far ahead as the new start. Fixed on lumafin-main; waiting for a Fire Stick test of 1.2.0-test.12
 - [ ] Fire TV Stick 4K Max (2 GB) closes LumaFin for low memory during long seeks in a 4K Dolby Vision title, while the official app does not (October 28; reported by the new exit reports, test.12 to test.15). Fixed on lumafin-main so far: 64 MB buffer cap (or a third of the heap) on devices under 3 GB, Home backdrops and cached images freed while a video plays, the libass subtitle handler and replaced players now released, and no empty scrub-preview squares. Waiting for a Fire Stick test of the next build
+- [x] Crash server for test builds (approved by the owner October 29 to help with the Fire Stick crashes): GitHub test builds also send crashes and system kills to LumaFin's own GlitchTip at crash.getlumafin.com, with server addresses, IP addresses and tokens removed and devices told apart only by a random id. Store builds send nothing there. A crash is no longer also reported as a kill by a signal
 
 ### Physical TV checks ([#78](https://github.com/bagodees/LumaFin-AndroidTV/issues/78))
 
@@ -150,6 +151,8 @@ Status: Planned. Milestone: [1.3](https://github.com/bagodees/LumaFin-AndroidTV/
 Status: Planned. Milestone: [1.x later](https://github.com/bagodees/LumaFin-AndroidTV/milestone/5).
 
 These move into a numbered version when it's planned. Unordered.
+
+- [ ] Crash server for store builds: an opt-in setting, with the privacy policy and the Play and Amazon data-safety answers updated first (test builds already report there, October 29)
 
 - [ ] Redesign series and season browsing ([#91](https://github.com/bagodees/LumaFin-AndroidTV/issues/91))
 - [ ] Light theme, once every main screen supports themes ([#93](https://github.com/bagodees/LumaFin-AndroidTV/issues/93))
