@@ -1,6 +1,6 @@
 # Movie runtime filtering
 
-Tracking: [#20](https://github.com/bagodees/LumaFin-Android/issues/20).
+Tracking: [#20](https://github.com/bagodees/LumaFin-AndroidTV/issues/20).
 
 Status: implemented and validated. Runtime filtering is integrated into the movie
 filter dialog, with complete metadata scans, staged Apply, bounded result pages,

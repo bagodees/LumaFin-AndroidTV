@@ -1,6 +1,7 @@
 # Instructions for AI coding assistants
 
-LumaFin is a fork of the official Jellyfin Android TV app. These rules apply to every
+LumaFin is a fork of the official Jellyfin Android TV app. The phone, foldable and tablet app is a separate repository,
+[LumaFin-Android](https://github.com/bagodees/LumaFin-Android); `core/` and `design/` are kept in step in both. These rules apply to every
 assistant working in this repository (Claude, ChatGPT/Codex and others).
 
 ## Follow the roadmap in order

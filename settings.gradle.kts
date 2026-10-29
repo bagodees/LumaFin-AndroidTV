@@ -4,7 +4,6 @@ rootProject.name = "jellyfin-androidtv"
 
 // Application
 include(":app")
-include(":mobile")
 
 // Shared logic
 include(":core")
