@@ -704,9 +704,19 @@ public class CustomPlaybackOverlayFragment extends Fragment implements LiveTvGui
 
         // end playback from here if this fragment belongs to the current session.
         // if it doesn't, playback has already been stopped elsewhere, and the references to this have been replaced
-        if (playbackControllerContainer.getValue().getPlaybackController() != null && playbackControllerContainer.getValue().getPlaybackController().getFragment() == this) {
+        PlaybackController controller = playbackControllerContainer.getValue().getPlaybackController();
+        boolean replaced = playbackControllerContainer.getValue().getReplacingPlayer();
+        if (controller != null && controller.getFragment() == this) {
             Timber.i("this fragment belongs to the current session, ending it");
-            playbackControllerContainer.getValue().getPlaybackController().endPlayback();
+            controller.endPlayback();
+        }
+        // A newer player took over (a title sent from a phone while this one played); going back
+        // here would close that player instead of this one
+        if (replaced || (controller != null && controller.hasFragment() && controller.getFragment() != this)) {
+            Timber.i("a newer player replaced this one, leaving navigation to it");
+            playbackControllerContainer.getValue().setReplacingPlayer(false);
+            navigating = true;
+            return;
         }
 
         closePlayer();

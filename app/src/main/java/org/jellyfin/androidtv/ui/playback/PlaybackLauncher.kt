@@ -19,6 +19,7 @@ class PlaybackLauncher(
 	private val videoQueueManager: VideoQueueManager,
 	private val navigationRepository: NavigationRepository,
 	private val userPreferences: UserPreferences,
+	private val playbackControllerContainer: PlaybackControllerContainer,
 ) {
 	private val BaseItemDto.supportsExternalPlayer
 		get() = when (type) {
@@ -66,7 +67,10 @@ class PlaybackLauncher(
 				navigationRepository.navigate(destination, replace)
 			} else {
 				val destination = Destinations.videoPlayer(position)
-				navigationRepository.navigate(destination, replace)
+				// A player already open is replaced instead of stacked, and told not to close the new one
+				val playerOpen = playbackControllerContainer.playbackController?.hasFragment() == true
+				if (playerOpen) playbackControllerContainer.replacingPlayer = true
+				navigationRepository.navigate(destination, replace || playerOpen)
 			}
 		}
 	}

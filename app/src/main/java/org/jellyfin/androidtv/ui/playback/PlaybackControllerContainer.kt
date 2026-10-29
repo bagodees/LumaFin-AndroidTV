@@ -9,6 +9,12 @@ import java.util.UUID
 
 class PlaybackControllerContainer {
 	var playbackController: PlaybackController? = null
+
+	/**
+	 * Set while a new title opens over a player that's still playing (sent from a phone, for
+	 * example), so the old player ends its playback without closing the screen the new one opens on.
+	 */
+	var replacingPlayer = false
 	private val timer = SleepTimerState()
 	private val handler = Handler(Looper.getMainLooper())
 	private val expire = Runnable {

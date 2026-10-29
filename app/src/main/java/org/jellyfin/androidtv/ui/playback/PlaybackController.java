@@ -545,7 +545,12 @@ public class PlaybackController implements PlaybackControllerNotifiable {
             internalOptions.setAudioStreamIndex(mCurrentOptions.getAudioStreamIndex());
         }
         MediaSourceInfo currentMediaSource = getCurrentMediaSource();
-        if (forcedAudioLanguage != null) {
+        // A new playback started while another one was ending (a Play command from a phone, for
+        // example) has no stream info yet; the item's own media source has the same track list
+        if (currentMediaSource == null && item.getMediaSources() != null && !item.getMediaSources().isEmpty()) {
+            currentMediaSource = item.getMediaSources().get(0);
+        }
+        if (forcedAudioLanguage != null && currentMediaSource != null && currentMediaSource.getMediaStreams() != null) {
             // find the first audio stream with the requested language
             for (MediaStream stream : currentMediaSource.getMediaStreams()) {
                 if (stream.getType() == MediaStreamType.AUDIO && forcedAudioLanguage.equals(stream.getLanguage())) {

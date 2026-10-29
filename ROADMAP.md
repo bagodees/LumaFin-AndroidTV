@@ -67,6 +67,7 @@ Submitted October 24, 2026; waiting for Amazon's review. Details: [Amazon prepar
 
 - [x] Subtitles sit behind the player controls while they're open ([#119](https://github.com/bagodees/LumaFin-Android/issues/119))
 - [x] Library status line overlaps the last row of cards ([#120](https://github.com/bagodees/LumaFin-Android/issues/120)); both fixed on lumafin-main, not yet released
+- [x] Crash when a title is sent from a phone (Play or Resume while casting) to a TV that is already playing something; seen on a Fire TV Stick 4K Max on October 28. Two causes: the "keep the same audio language" lookup ran before the new title's tracks were loaded (also in upstream Jellyfin), and the old player then closed the new one. Fixed on lumafin-main, not yet released
 
 ### Physical TV checks ([#78](https://github.com/bagodees/LumaFin-Android/issues/78))
 
