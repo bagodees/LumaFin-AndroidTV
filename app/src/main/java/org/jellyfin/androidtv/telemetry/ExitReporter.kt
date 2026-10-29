@@ -114,6 +114,7 @@ object ExitReporter {
 	 * The app's log lines from the process that ended, while they're still in the system's buffer.
 	 * Android 13 and newer ask the user before an app reads the log, so there the report goes without.
 	 */
+	@RequiresApi(Build.VERSION_CODES.R)
 	private fun logLines(pid: Int): String? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) null else runCatching {
 		val process = ProcessBuilder("logcat", "-d", "-v", "time", "--pid=$pid", "-t", LOG_LINES.toString())
 			.redirectErrorStream(true)

@@ -160,6 +160,14 @@ public class CustomPlaybackOverlayFragment extends Fragment implements LiveTvGui
 
         int mediaPosition = videoQueueManager.getValue().getCurrentMediaPosition();
 
+        // A player still open (a title sent from a phone while another one plays) is ended here, so its
+        // ExoPlayer, decoders and buffer are released instead of being dropped while still running
+        PlaybackController previous = playbackControllerContainer.getValue().getPlaybackController();
+        if (previous != null && previous.hasFragment() && previous.getFragment() != this) {
+            Timber.i("Ending the previous player before starting a new one");
+            previous.endPlayback();
+            playbackControllerContainer.getValue().setReplacingPlayer(true);
+        }
         playbackControllerContainer.getValue().setPlaybackController(new PlaybackController(mItemsToPlay, this, mediaPosition));
 
         // setup fade task

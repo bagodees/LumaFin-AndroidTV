@@ -40,6 +40,7 @@ kotlin = "2.4.20"
 kotlinx-coroutines = "1.11.0"
 kotlinx-serialization = "1.11.0"
 libass-android = "0.5.1"
+leakcanary = "2.14"
 markwon = "4.6.2"
 mockk = "1.14.11"
 play-services-cast = "22.3.1"
@@ -97,6 +98,8 @@ androidx-window = { module = "androidx.window:window", version.ref = "androidx-w
 androidx-mediarouter = { module = "androidx.mediarouter:mediarouter", version.ref = "androidx-mediarouter" }
 play-services-cast-framework = { module = "com.google.android.gms:play-services-cast-framework", version.ref = "play-services-cast" }
 androidx-work-runtime = { module = "androidx.work:work-runtime", version.ref = "androidx-work" }
+
+leakcanary = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
 
 # Dependency Injection
 koin-android-compat = { module = "io.insert-koin:koin-android-compat", version.ref = "koin" }

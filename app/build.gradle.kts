@@ -148,6 +148,9 @@ tasks.register("versionTxt") {
 }
 
 dependencies {
+	// Finds screens and players left in memory; debug builds only, never in test or store builds
+	debugImplementation(libs.leakcanary)
+
 	// Jellyfin
 	implementation(projects.core)
 	implementation(projects.design)

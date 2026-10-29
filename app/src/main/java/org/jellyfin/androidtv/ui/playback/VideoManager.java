@@ -75,6 +75,8 @@ public class VideoManager {
     private ZoomMode mZoomMode;
     private Activity mActivity;
     private final AudioNightModeEffect nightModeEffect = new AudioNightModeEffect();
+    // libass keeps fonts and its renderer in native memory until released
+    private AssHandler mAssHandler;
 
     private PlaybackControllerNotifiable mPlaybackControllerNotifiable;
     private PlaybackOverlayFragmentHelper _helper;
@@ -124,6 +126,7 @@ public class VideoManager {
 
         boolean assDirectPlay = userPreferences.get(UserPreferences.Companion.getAssDirectPlay());
         AssHandler assHandler = assDirectPlay ? new AssHandler(AssRenderType.OVERLAY_OPEN_GL, new AssHandlerConfig()) : null;
+        mAssHandler = assHandler;
 
         mExoPlayer = configureExoplayerBuilder(activity, assHandler).build();
 
@@ -329,9 +332,11 @@ public class VideoManager {
         // On 2 GB devices like the Fire TV Stick 4K Max, a full buffer of a high-bitrate 4K title
         // plus the decoder's own memory got the app closed for low memory after long seeks.
         // Capping the buffer by size there still keeps about 30 seconds of a 17 Mbps title.
+        // The buffer lives in the app's own heap, so it also stays within a third of the heap limit
         if (DeviceMemoryKt.isLowMemoryDevice(context)) {
-            loadControl.setTargetBufferBytes(LOW_MEMORY_BUFFER_BYTES).setPrioritizeTimeOverSizeThresholds(false);
-            Timber.i("Low-memory device: video buffer capped at %d MB", LOW_MEMORY_BUFFER_BYTES / (1024 * 1024));
+            int bufferBytes = (int) Math.min(LOW_MEMORY_BUFFER_BYTES, Runtime.getRuntime().maxMemory() / 3);
+            loadControl.setTargetBufferBytes(bufferBytes).setPrioritizeTimeOverSizeThresholds(false);
+            Timber.i("Low-memory device: video buffer capped at %d MB", bufferBytes / (1024 * 1024));
         }
         exoPlayerBuilder.setLoadControl(loadControl.build());
 
@@ -682,6 +687,10 @@ public class VideoManager {
         mPlaybackControllerNotifiable = null;
         stopPlayback();
         releasePlayer();
+        if (mAssHandler != null) {
+            mAssHandler.release();
+            mAssHandler = null;
+        }
     }
 
     private void releasePlayer() {
