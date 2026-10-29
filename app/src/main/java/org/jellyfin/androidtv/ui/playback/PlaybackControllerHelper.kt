@@ -66,20 +66,24 @@ fun PlaybackController.disableDefaultSubtitles() {
 
 @OptIn(UnstableApi::class)
 @JvmOverloads
-fun PlaybackController.setSubtitleIndex(index: Int, force: Boolean = false) {
+fun PlaybackController.setSubtitleIndex(index: Int, force: Boolean = false, remember: Boolean = true) {
 	Timber.i("Switching subtitles from index ${mCurrentOptions.subtitleStreamIndex} to $index")
 
 	// Already using this subtitle index
 	if (mCurrentOptions.subtitleStreamIndex == index && !force) return
 
-	// Save subtitle language preference for restoration after NextUp screen
-	val videoQueueManager by fragment.inject<VideoQueueManager>()
-	if (index == -1) {
-		// Use empty string to indicate "subtitles explicitly disabled" vs null meaning "no preference"
-		videoQueueManager.setLastPlayedSubtitleLanguageIsoCode("")
-	} else {
-		val stream = currentMediaSource.mediaStreams?.firstOrNull { it.type == MediaStreamType.SUBTITLE && it.index == index }
-		videoQueueManager.setLastPlayedSubtitleLanguageIsoCode(stream?.language)
+	// Save subtitle language preference for restoration after NextUp screen. Only the viewer's own
+	// changes count: a title's automatic choice (such as its forced subtitles) used to carry over and
+	// turn on full subtitles in the next, unrelated title.
+	if (remember) {
+		val videoQueueManager by fragment.inject<VideoQueueManager>()
+		if (index == -1) {
+			// Use empty string to indicate "subtitles explicitly disabled" vs null meaning "no preference"
+			videoQueueManager.setLastPlayedSubtitleLanguageIsoCode("")
+		} else {
+			val stream = currentMediaSource.mediaStreams?.firstOrNull { it.type == MediaStreamType.SUBTITLE && it.index == index }
+			videoQueueManager.setLastPlayedSubtitleLanguageIsoCode(stream?.language)
+		}
 	}
 
 	// Disable subtitles
@@ -109,7 +113,7 @@ fun PlaybackController.setSubtitleIndex(index: Int, force: Boolean = false) {
 		val stream = mediaSource.mediaStreams?.firstOrNull { it.type == MediaStreamType.SUBTITLE && it.index == index }
 		if (stream == null) {
 			Timber.w("Failed to find correct media stream")
-			return setSubtitleIndex(-1)
+			return setSubtitleIndex(-1, remember = remember)
 		}
 
 		when {
@@ -143,7 +147,7 @@ fun PlaybackController.setSubtitleIndex(index: Int, force: Boolean = false) {
 
 					if (localIndex == null) {
 						Timber.w("Failed to find local subtitle index")
-						return setSubtitleIndex(-1)
+						return setSubtitleIndex(-1, remember = remember)
 					}
 
 					mVideoManager.mExoPlayer.currentTracks.groups
@@ -154,7 +158,7 @@ fun PlaybackController.setSubtitleIndex(index: Int, force: Boolean = false) {
 
 				if (group == null) {
 					Timber.w("Failed to find correct subtitle group for method ${stream.deliveryMethod}")
-					return setSubtitleIndex(-1)
+					return setSubtitleIndex(-1, remember = remember)
 				}
 
 				Timber.i("Enabling subtitle group $index via method ${stream.deliveryMethod}")
@@ -170,7 +174,7 @@ fun PlaybackController.setSubtitleIndex(index: Int, force: Boolean = false) {
 
 			stream.deliveryMethod == SubtitleDeliveryMethod.DROP || stream.deliveryMethod == null -> {
 				Timber.i("Dropping subtitles")
-				setSubtitleIndex(-1)
+				setSubtitleIndex(-1, remember = remember)
 			}
 		}
 	}

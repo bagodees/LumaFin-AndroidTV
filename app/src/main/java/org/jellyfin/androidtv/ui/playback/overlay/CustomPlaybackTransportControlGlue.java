@@ -7,7 +7,7 @@ import android.os.Handler;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.View;
-import android.view.ViewTreeObserver;
+import org.jellyfin.androidtv.util.FocusListenersKt;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -89,7 +89,7 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
     private ChapterTicksView mChapterTicks = null;
     private View mControlsDock = null;
     private View mSecondaryDock = null;
-    private ViewTreeObserver.OnGlobalFocusChangeListener mFocusListener = null;
+    private Runnable mStopFocusListener = null;
 
     private final Handler mHandler = new Handler();
     private Runnable mRefreshEndTime;
@@ -209,8 +209,8 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
                 mHandler.removeCallbacks(mRefreshRemaining);
                 mHandler.post(mRefreshRemaining);
 
-                mFocusListener = (oldFocus, newFocus) -> updateFocusLabel(newFocus);
-                vh.view.getViewTreeObserver().addOnGlobalFocusChangeListener(mFocusListener);
+                if (mStopFocusListener != null) mStopFocusListener.run();
+                mStopFocusListener = FocusListenersKt.listenForFocusWhileAttached(vh.view, (oldFocus, newFocus) -> updateFocusLabel(newFocus));
             }
 
             @Override
@@ -219,9 +219,9 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
                 vh.setOnKeyListener(null);
 
                 mHandler.removeCallbacks(mRefreshRemaining);
-                if (mFocusListener != null) {
-                    vh.view.getViewTreeObserver().removeOnGlobalFocusChangeListener(mFocusListener);
-                    mFocusListener = null;
+                if (mStopFocusListener != null) {
+                    mStopFocusListener.run();
+                    mStopFocusListener = null;
                 }
             }
         };

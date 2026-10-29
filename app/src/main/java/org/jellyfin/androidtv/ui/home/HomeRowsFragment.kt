@@ -22,6 +22,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.withTimeoutOrNull
 import android.widget.PopupMenu
 import org.jellyfin.androidtv.util.addHomeShortcutMenu
+import org.jellyfin.androidtv.util.listenForFocusWhileAttached
 import org.jellyfin.androidtv.preference.HomeShortcut
 import org.jellyfin.androidtv.preference.HomeShortcutPreferences
 import kotlinx.coroutines.Dispatchers
@@ -550,12 +551,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 		val listener = android.view.ViewTreeObserver.OnGlobalFocusChangeListener { old, focused ->
 			if (focused.insideRows() && !old.insideRows()) restoreFocusedBackdrop()
 		}
-		view.viewTreeObserver.addOnGlobalFocusChangeListener(listener)
-		viewLifecycleOwner.lifecycle.addObserver(object : androidx.lifecycle.DefaultLifecycleObserver {
-			override fun onDestroy(owner: androidx.lifecycle.LifecycleOwner) {
-				if (view.viewTreeObserver.isAlive) view.viewTreeObserver.removeOnGlobalFocusChangeListener(listener)
-			}
-		})
+		view.listenForFocusWhileAttached(listener)
 	}
 
 	override fun onResume() {

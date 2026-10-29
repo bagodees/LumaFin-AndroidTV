@@ -7,6 +7,7 @@ import android.graphics.Typeface;
 
 import android.net.Uri;
 import android.os.Handler;
+import android.util.Pair;
 import android.util.TypedValue;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -32,10 +33,15 @@ import androidx.media3.datasource.DefaultDataSource;
 import androidx.media3.datasource.HttpDataSource;
 import androidx.media3.exoplayer.DefaultLoadControl;
 import androidx.media3.exoplayer.DefaultRenderersFactory;
+import androidx.media3.exoplayer.ExoPlaybackException;
+import androidx.media3.exoplayer.RendererCapabilities;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.exoplayer.analytics.AnalyticsListener;
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory;
+import androidx.media3.exoplayer.source.TrackGroupArray;
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector;
+import androidx.media3.exoplayer.trackselection.ExoTrackSelection;
+import androidx.media3.exoplayer.trackselection.MappingTrackSelector;
 import androidx.media3.exoplayer.util.EventLogger;
 import org.jellyfin.androidtv.util.DeviceMemoryKt;
 import androidx.media3.extractor.DefaultExtractorsFactory;
@@ -223,6 +229,7 @@ public class VideoManager {
             public void onTracksChanged(Tracks tracks) {
                 Timber.d("Tracks changed");
                 preferOriginalVideoVariant(tracks);
+                applyStartingAudioTrack(tracks);
             }
         });
     }
@@ -244,6 +251,57 @@ public class VideoManager {
                     .setOverrideForType(new TrackSelectionOverride(group.getMediaTrackGroup(), 0))
                     .build());
             return;
+        }
+    }
+
+    // Without this the player starts on the track the file marks as default (often TrueHD) and
+    // the chosen track, such as Dolby Digital for a soundbar, was never selected
+    private int startingAudioIndex = -1;
+    @Nullable private List<MediaStream> startingAudioStreams = null;
+    // The same track as the player's group id, read by the track selector on the playback thread
+    private volatile int startingAudioTrackId = -1;
+
+    /** Selects this audio track as soon as the next stream's tracks are known, before playback starts. */
+    public void setStartingAudioTrack(int index, @Nullable List<MediaStream> allStreams) {
+        startingAudioIndex = index;
+        startingAudioStreams = allStreams;
+        startingAudioTrackId = index >= 0 ? offsetStreamIndex(index, false, allStreams) : -1;
+    }
+
+    /**
+     * Picks the chosen audio track in the player's first selection. Switching to it right after
+     * meant the new track's audio buffered from scratch, which kept a Dolby Digital start waiting
+     * about a second after the picture was ready. A later choice made in the player still wins.
+     */
+    @Nullable
+    private Pair<ExoTrackSelection.Definition, Integer> startingAudioSelection(MappingTrackSelector.MappedTrackInfo info, int[][][] formatSupports) {
+        int trackId = startingAudioTrackId;
+        if (trackId < 0) return null;
+
+        for (int renderer = 0; renderer < info.getRendererCount(); renderer++) {
+            if (info.getRendererType(renderer) != C.TRACK_TYPE_AUDIO) continue;
+            TrackGroupArray groups = info.getTrackGroups(renderer);
+            for (int g = 0; g < groups.length; g++) {
+                TrackGroup group = groups.get(g);
+                String id = group.id.contains(":") ? group.id.split(":")[1] : group.id;
+                if (!id.equals(String.valueOf(trackId))) continue;
+                if (RendererCapabilities.getFormatSupport(formatSupports[renderer][g][0]) != C.FORMAT_HANDLED) continue;
+                return Pair.create(new ExoTrackSelection.Definition(group, 0), renderer);
+            }
+        }
+        return null;
+    }
+
+    private void applyStartingAudioTrack(Tracks tracks) {
+        if (startingAudioIndex < 0 || !tracks.containsType(C.TRACK_TYPE_AUDIO)) return;
+
+        int index = startingAudioIndex;
+        startingAudioIndex = -1;
+        if (getExoPlayerTrack(MediaStreamType.AUDIO, startingAudioStreams) == index) return;
+
+        Timber.i("Starting on audio stream %s", index);
+        if (!setExoPlayerTrack(index, MediaStreamType.AUDIO, startingAudioStreams)) {
+            Timber.w("Couldn't start on audio stream %s", index);
         }
     }
 
@@ -273,17 +331,29 @@ public class VideoManager {
         DefaultRenderersFactory defaultRendererFactory = new DefaultRenderersFactory(context) {
             @Override
             protected androidx.media3.exoplayer.audio.AudioSink buildAudioSink(Context context, boolean enableFloatOutput, boolean enableAudioOutputPlaybackParams) {
-                return new androidx.media3.exoplayer.audio.DefaultAudioSink.Builder(context)
+                return new PassthroughAwareAudioSink(new androidx.media3.exoplayer.audio.DefaultAudioSink.Builder(context)
                         .setEnableFloatOutput(enableFloatOutput)
                         .setEnableAudioOutputPlaybackParameters(enableAudioOutputPlaybackParams)
                         .setAudioTrackProvider(new GuardedAudioTrackProvider())
-                        .build();
+                        .build());
             }
         };
         defaultRendererFactory.setEnableDecoderFallback(true);
         defaultRendererFactory.setExtensionRendererMode(determineExoPlayerExtensionRendererMode());
 
-        DefaultTrackSelector trackSelector = new DefaultTrackSelector(context);
+        DefaultTrackSelector trackSelector = new DefaultTrackSelector(context) {
+            @Nullable
+            @Override
+            protected Pair<ExoTrackSelection.Definition, Integer> selectAudioTrack(
+                    MappingTrackSelector.MappedTrackInfo mappedTrackInfo,
+                    int[][][] rendererFormatSupports,
+                    int[] rendererMixedMimeTypeAdaptationSupports,
+                    Parameters params) throws ExoPlaybackException {
+                Pair<ExoTrackSelection.Definition, Integer> starting = startingAudioSelection(mappedTrackInfo, rendererFormatSupports);
+                if (starting != null) return starting;
+                return super.selectAudioTrack(mappedTrackInfo, rendererFormatSupports, rendererMixedMimeTypeAdaptationSupports, params);
+            }
+        };
         trackSelector.setParameters(trackSelector.buildUponParameters()
                 .setAudioOffloadPreferences(new TrackSelectionParameters.AudioOffloadPreferences.Builder()
                         .setAudioOffloadMode(TrackSelectionParameters.AudioOffloadPreferences.AUDIO_OFFLOAD_MODE_ENABLED)

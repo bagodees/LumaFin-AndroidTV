@@ -17,6 +17,7 @@ import org.jellyfin.androidtv.BuildConfig
 import org.jellyfin.androidtv.auth.repository.ServerRepository
 import org.jellyfin.androidtv.auth.repository.UserRepository
 import org.jellyfin.androidtv.auth.repository.UserRepositoryImpl
+import org.jellyfin.androidtv.data.eventhandling.DecodableSocketConnectionFactory
 import org.jellyfin.androidtv.data.eventhandling.SocketHandler
 import org.jellyfin.androidtv.data.model.DataRefreshService
 import org.jellyfin.androidtv.data.repository.CustomMessageRepository
@@ -101,7 +102,7 @@ val appModule = module {
 
 			// Use our own shared factory instance
 			apiClientFactory = get<OkHttpFactory>()
-			socketConnectionFactory = get<OkHttpFactory>()
+			socketConnectionFactory = DecodableSocketConnectionFactory(get<OkHttpFactory>())
 		}
 	}
 

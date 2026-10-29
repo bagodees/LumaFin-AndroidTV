@@ -748,6 +748,12 @@ public class PlaybackController implements PlaybackControllerNotifiable {
             // decoders, so set that before loading when no subtitle track is wanted
             Integer subtitleIndex = mCurrentOptions.getSubtitleStreamIndex();
             mVideoManager.setTextTracksDisabled(burningSubs || subtitleIndex == null || subtitleIndex < 0);
+            // Same choice as once playback is ready, made before it starts. Converted streams carry
+            // only the requested track.
+            Integer audioIndex = mCurrentOptions.getAudioStreamIndex() != null ? mCurrentOptions.getAudioStreamIndex() : response.getMediaSource().getDefaultAudioStreamIndex();
+            if (audioIndex == null) audioIndex = mDefaultAudioIndex;
+            boolean selectAudio = response.getPlayMethod() != PlayMethod.TRANSCODE && audioIndex >= 0;
+            mVideoManager.setStartingAudioTrack(selectAudio ? audioIndex : -1, response.getMediaSource().getMediaStreams());
             mVideoManager.setMediaStreamInfo(api.getValue(), response, wholeTitle ? mStartPosition : 0);
         }
 
@@ -854,6 +860,11 @@ public class PlaybackController implements PlaybackControllerNotifiable {
     }
 
     public void switchAudioStream(int index) {
+        switchAudioStream(index, true);
+    }
+
+    /** [remember] keeps the language for later titles; only the viewer's own changes should. */
+    public void switchAudioStream(int index, boolean remember) {
         if (!(isPlaying() || isPaused()) || index < 0)
             return;
 
@@ -867,14 +878,19 @@ public class PlaybackController implements PlaybackControllerNotifiable {
         String lastAudioIsoCode = videoQueueManager.getValue().getLastPlayedAudioLanguageIsoCode();
         String currentAudioIsoCode = currentMediaSource.getMediaStreams().get(index).getLanguage();
 
-        if (currentAudioIsoCode != null
+        if (remember && currentAudioIsoCode != null
                 && (lastAudioIsoCode == null || !lastAudioIsoCode.equals(currentAudioIsoCode))) {
             videoQueueManager.getValue().setLastPlayedAudioLanguageIsoCode(
                     currentAudioIsoCode
             );
         }
 
-        int currAudioIndex = getAudioStreamIndex();
+        // Ask the player which track it's on: the recorded index can name a track that was never
+        // selected, and then the switch was skipped while another track played
+        int recordedAudioIndex = getAudioStreamIndex();
+        int playerAudioIndex = !isTranscoding() && hasInitializedVideoManager()
+                ? mVideoManager.getExoPlayerTrack(MediaStreamType.AUDIO, currentMediaSource.getMediaStreams()) : -1;
+        int currAudioIndex = playerAudioIndex >= 0 ? playerAudioIndex : recordedAudioIndex;
         Timber.i("trying to switch audio stream from %s to %s", currAudioIndex, index);
         if (currAudioIndex == index) {
             Timber.d("skipping setting audio stream, already set to requested index %s", index);
@@ -891,6 +907,9 @@ public class PlaybackController implements PlaybackControllerNotifiable {
         if (!isTranscoding() && mVideoManager.setExoPlayerTrack(index, MediaStreamType.AUDIO, currentMediaSource.getMediaStreams())) {
             mCurrentOptions.setMediaSourceId(currentMediaSource.getId());
             mCurrentOptions.setAudioStreamIndex(index);
+        } else if (recordedAudioIndex == index) {
+            // Restarting would ask for the same track again and land here each time
+            Timber.w("Couldn't select audio stream %s on the player", index);
         } else {
             startSpinner();
             mCurrentOptions.setMediaSourceId(currentMediaSource.getId());
@@ -1321,7 +1340,8 @@ public class PlaybackController implements PlaybackControllerNotifiable {
                 // Make sure the requested subtitles are enabled when external/embedded
                 Integer currentSubtitleIndex = mCurrentOptions.getSubtitleStreamIndex();
                 if (currentSubtitleIndex == null) currentSubtitleIndex = -1;
-                PlaybackControllerHelperKt.setSubtitleIndex(this, currentSubtitleIndex, true);
+                // The title's own choice at start, so it isn't kept for later titles
+                PlaybackControllerHelperKt.setSubtitleIndex(this, currentSubtitleIndex, true, false);
             } else {
                 PlaybackControllerHelperKt.disableDefaultSubtitles(this);
             }
@@ -1336,7 +1356,7 @@ public class PlaybackController implements PlaybackControllerNotifiable {
             } else if (getCurrentMediaSource().getDefaultAudioStreamIndex() != null) {
                 eligibleAudioTrack = getCurrentMediaSource().getDefaultAudioStreamIndex();
             }
-            switchAudioStream(eligibleAudioTrack);
+            switchAudioStream(eligibleAudioTrack, false);
         }
     }
 

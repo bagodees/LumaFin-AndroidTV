@@ -4,6 +4,7 @@ import android.content.ActivityNotFoundException
 import android.view.View
 import android.widget.Toast
 import org.jellyfin.androidtv.util.confirmRemoveFromContinueWatching
+import org.jellyfin.androidtv.util.listenForFocusWhileAttached
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
@@ -69,12 +70,7 @@ fun FullDetailsFragment.installDetailsHeaderFocus(root: View) {
 		val holder = rows?.findContainingViewHolder(focused) as? androidx.leanback.widget.ItemBridgeAdapter.ViewHolder
 		header.visibility = if (holder?.item is androidx.leanback.widget.ListRow) View.INVISIBLE else View.VISIBLE
 	}
-	root.viewTreeObserver.addOnGlobalFocusChangeListener(listener)
-	viewLifecycleOwner.lifecycle.addObserver(object : androidx.lifecycle.DefaultLifecycleObserver {
-		override fun onDestroy(owner: androidx.lifecycle.LifecycleOwner) {
-			if (root.viewTreeObserver.isAlive) root.viewTreeObserver.removeOnGlobalFocusChangeListener(listener)
-		}
-	})
+	root.listenForFocusWhileAttached(listener)
 }
 
 fun FullDetailsFragment.deleteItem(
