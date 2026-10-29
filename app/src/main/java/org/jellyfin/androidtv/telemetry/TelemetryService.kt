@@ -65,31 +65,7 @@ object TelemetryService {
 			if (url.isNullOrBlank()) throw ReportSenderException("No telemetry crash report URL available.")
 			if (token.isNullOrBlank()) throw ReportSenderException("No telemetry crash report token available.")
 
-			// Create connection
-			val connection = URL(url).openConnection() as HttpURLConnection
-			// Add authorization
-			val clientName = buildString {
-				append("LumaFin for Android TV")
-				if (BuildConfig.DEBUG) append(" (debug)")
-			}
-			val authorization = AuthorizationHeaderBuilder.buildHeader(
-				clientName = clientName,
-				clientVersion = BuildConfig.VERSION_NAME,
-				deviceId = "",
-				deviceName = "",
-				accessToken = token,
-			)
-			connection.setRequestProperty("Authorization", authorization)
-			// Write POST body
-			connection.requestMethod = "POST"
-			connection.doOutput = true
-			connection.outputStream.apply {
-				write(errorContent.toReport().toByteArray())
-				flush()
-				close()
-			}
-			// Close
-			connection.inputStream.close()
+			postReport(url, token, errorContent.toReport())
 		} catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
 			throw ReportSenderException("Unable to send crash report to server", e)
 		}
@@ -145,6 +121,35 @@ object TelemetryService {
 				}
 			}
 		}
+	}
+
+	/** Uploads a markdown report to the server's client log endpoint, where it shows in Dashboard > Logs. */
+	fun postReport(url: String, token: String, report: String) {
+		// Create connection
+		val connection = URL(url).openConnection() as HttpURLConnection
+		// Add authorization
+		val clientName = buildString {
+			append("LumaFin for Android TV")
+			if (BuildConfig.DEBUG) append(" (debug)")
+		}
+		val authorization = AuthorizationHeaderBuilder.buildHeader(
+			clientName = clientName,
+			clientVersion = BuildConfig.VERSION_NAME,
+			deviceId = "",
+			deviceName = "",
+			accessToken = token,
+		)
+		connection.setRequestProperty("Authorization", authorization)
+		// Write POST body
+		connection.requestMethod = "POST"
+		connection.doOutput = true
+		connection.outputStream.apply {
+			write(report.toByteArray())
+			flush()
+			close()
+		}
+		// Close
+		connection.inputStream.close()
 	}
 
 	class AcraReportSenderFactory : ReportSenderFactory {
