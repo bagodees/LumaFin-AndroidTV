@@ -734,6 +734,14 @@ public class CustomPlaybackOverlayFragment extends Fragment implements LiveTvGui
             navigating = true;
             return;
         }
+        // The screen is being rebuilt (a display change such as the TV switching to HDR). The
+        // restored copy of this player closes itself, so going back here too would drop the page
+        // under it and the next back press would close the app
+        if (requireActivity().isChangingConfigurations()) {
+            Timber.i("screen is being rebuilt, leaving navigation to the restored player");
+            navigating = true;
+            return;
+        }
 
         closePlayer();
     }
