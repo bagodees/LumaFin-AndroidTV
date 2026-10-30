@@ -12,6 +12,9 @@ import java.util.function.LongSupplier;
  * Recheck package-private ViewHolder access when upgrading Leanback.
  */
 public final class DirectionalSeek {
+    /** How long after the last skip press the chosen position is played without pressing Select */
+    static final long AUTO_COMMIT_DELAY_MS = 2000;
+
     private DirectionalSeek() {}
 
     public static long previewInterval(long backward, long forward) {
@@ -39,6 +42,10 @@ public final class DirectionalSeek {
 
     public static void install(PlaybackTransportRowPresenter.ViewHolder vh,
                                LongSupplier backwardInterval, LongSupplier forwardInterval) {
+        // Plays the chosen position once skipping stops, so Select isn't needed to confirm it
+        Runnable autoCommit = () -> {
+            if (vh.mInSeek) vh.stopSeek(false);
+        };
         vh.mProgressBar.setOnKeyListener((view, keyCode, event) -> {
             switch (keyCode) {
                 case KeyEvent.KEYCODE_DPAD_UP:
@@ -56,7 +63,7 @@ public final class DirectionalSeek {
                                 || keyCode == KeyEvent.KEYCODE_MEDIA_FAST_FORWARD;
                         long interval = forward ? forwardInterval.getAsLong() : backwardInterval.getAsLong();
                         int multiplier = SeekAcceleration.multiplier(event.getRepeatCount(), event.getEventTime() - event.getDownTime());
-                        seek(vh, forward, interval * multiplier);
+                        seek(vh, forward, interval * multiplier, autoCommit);
                     }
                     return true;
                 case KeyEvent.KEYCODE_DPAD_CENTER:
@@ -78,18 +85,21 @@ public final class DirectionalSeek {
         vh.mProgressBar.setAccessibilitySeekListener(new SeekBar.AccessibilitySeekListener() {
             @Override
             public boolean onAccessibilitySeekForward() {
-                return seek(vh, true, forwardInterval.getAsLong());
+                return seek(vh, true, forwardInterval.getAsLong(), autoCommit);
             }
 
             @Override
             public boolean onAccessibilitySeekBackward() {
-                return seek(vh, false, backwardInterval.getAsLong());
+                return seek(vh, false, backwardInterval.getAsLong(), autoCommit);
             }
         });
     }
 
-    private static boolean seek(PlaybackTransportRowPresenter.ViewHolder vh, boolean forward, long interval) {
+    private static boolean seek(PlaybackTransportRowPresenter.ViewHolder vh, boolean forward, long interval,
+                                Runnable autoCommit) {
         if (!vh.startSeek()) return false;
+        vh.mProgressBar.removeCallbacks(autoCommit);
+        vh.mProgressBar.postDelayed(autoCommit, AUTO_COMMIT_DELAY_MS);
         long target = targetPosition(vh.mCurrentTimeInMs, vh.mTotalTimeInMs, interval, forward);
         if (vh.mPositionsLength > 0) {
             int index = Arrays.binarySearch(vh.mPositions, 0, vh.mPositionsLength, target);
