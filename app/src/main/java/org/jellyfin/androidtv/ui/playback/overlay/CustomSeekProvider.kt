@@ -7,15 +7,17 @@ import androidx.leanback.widget.PlaybackSeekDataProvider
 import coil3.ImageLoader
 import coil3.network.NetworkHeaders
 import coil3.network.httpHeaders
+import coil3.request.CachePolicy
 import coil3.request.Disposable
 import coil3.request.ImageRequest
+import coil3.request.allowHardware
+import coil3.request.bitmapConfig
 import coil3.request.maxBitmapSize
-import coil3.request.transformations
 import coil3.size.Dimension
 import coil3.size.Size
 import coil3.toBitmap
 import org.jellyfin.androidtv.R
-import org.jellyfin.androidtv.util.coil.SubsetTransformation
+import org.jellyfin.androidtv.util.isLowMemoryDevice
 import org.jellyfin.sdk.api.client.ApiClient
 import org.jellyfin.sdk.api.client.extensions.trickplayApi
 import org.jellyfin.sdk.api.client.util.AuthorizationHeaderBuilder
@@ -28,7 +30,15 @@ class CustomSeekProvider(
 	private val context: Context,
 	private val forwardTime: Long
 ) : PlaybackSeekDataProvider() {
-	private val imageRequests = mutableMapOf<Int, Disposable>()
+	private companion object {
+		// Decoded preview sheets kept while scrubbing: the current one and the one before it
+		const val MAX_SHEETS = 2
+	}
+
+	private val lowMemoryDevice by lazy { context.isLowMemoryDevice() }
+	private val sheets = LinkedHashMap<Int, Bitmap>()
+	private val sheetRequests = mutableMapOf<Int, Disposable>()
+	private val sheetWaiters = mutableMapOf<Int, MutableList<(Bitmap?) -> Unit>>()
 	private var currentSeekPositions = LongArray(0)
 	private var requestSequence = 0L
 	private val requestTokens = mutableMapOf<Int, Long>()
@@ -73,9 +83,6 @@ class CustomSeekProvider(
 		val token = ++requestSequence
 		requestTokens[index] = token
 
-		val currentRequest = imageRequests[index]
-		if (currentRequest?.isDisposed == false) currentRequest.dispose()
-
 		val item = videoPlayerAdapter.currentlyPlayingItem
 		val mediaSource = videoPlayerAdapter.currentMediaSource
 		val mediaSourceId = mediaSource?.id?.toUUIDOrNull()
@@ -107,10 +114,36 @@ class CustomSeekProvider(
 
 		val placeholderThumbnail = getPlaceholderThumbnail(trickPlayInfo.width, trickPlayInfo.height)
 
-		imageRequests[index] = imageLoader.enqueue(ImageRequest.Builder(context).apply {
+		val deliver = { sheet: Bitmap? ->
+			if (requestTokens[index] == token) {
+				val thumbnail = sheet?.let { crop(it, offsetX, offsetY, trickPlayInfo.width, trickPlayInfo.height) }
+				callback.onThumbnailLoaded(thumbnail ?: placeholderThumbnail, index)
+			}
+		}
+
+		// A preview is one tile of a sheet of previews. Each sheet is decoded once and every preview
+		// is cut from it; decoding the whole sheet for every preview while scrubbing got LumaFin
+		// closed for low memory on a 2 GB Fire TV Stick
+		val sheet = sheets[tileIndex]
+		if (sheet != null) {
+			sheets.remove(tileIndex)
+			sheets[tileIndex] = sheet
+			deliver(sheet)
+			return
+		}
+
+		callback.onThumbnailLoaded(placeholderThumbnail, index)
+		val waiting = sheetWaiters.getOrPut(tileIndex) { mutableListOf() }
+		waiting += deliver
+		if (sheetRequests[tileIndex]?.isDisposed == false) return
+
+		sheetRequests[tileIndex] = imageLoader.enqueue(ImageRequest.Builder(context).apply {
 			data(url)
 			size(Size.ORIGINAL)
 			maxBitmapSize(Size(Dimension.Undefined, Dimension.Undefined))
+			memoryCachePolicy(CachePolicy.DISABLED)
+			allowHardware(false)
+			if (lowMemoryDevice) bitmapConfig(Bitmap.Config.RGB_565)
 			httpHeaders(NetworkHeaders.Builder().apply {
 				set(
 					key = "Authorization",
@@ -124,25 +157,35 @@ class CustomSeekProvider(
 				)
 			}.build())
 
-			transformations(SubsetTransformation(offsetX, offsetY, trickPlayInfo.width, trickPlayInfo.height))
-
 			target(
-				onStart = { _ -> if (requestTokens[index] == token) callback.onThumbnailLoaded(placeholderThumbnail, index) },
-				onError = { _ -> if (requestTokens[index] == token) callback.onThumbnailLoaded(placeholderThumbnail, index) },
+				onError = { _ ->
+					sheetRequests.remove(tileIndex)
+					sheetWaiters.remove(tileIndex)?.forEach { it(null) }
+				},
 				onSuccess = { image ->
+					sheetRequests.remove(tileIndex)
 					val bitmap = image.toBitmap()
-					if (requestTokens[index] == token) callback.onThumbnailLoaded(bitmap, index)
+					sheets[tileIndex] = bitmap
+					while (sheets.size > MAX_SHEETS) sheets.remove(sheets.keys.first())
+					sheetWaiters.remove(tileIndex)?.forEach { it(bitmap) }
 				}
 			)
 		}.build())
 	}
 
+	private fun crop(sheet: Bitmap, x: Int, y: Int, width: Int, height: Int): Bitmap? {
+		if (x >= sheet.width || y >= sheet.height) return null
+		return Bitmap.createBitmap(sheet, x, y, width.coerceAtMost(sheet.width - x), height.coerceAtMost(sheet.height - y))
+	}
+
 	override fun reset() {
 		requestTokens.clear()
-		for (request in imageRequests.values) {
+		for (request in sheetRequests.values) {
 			if (!request.isDisposed) request.dispose()
 		}
-		imageRequests.clear()
+		sheetRequests.clear()
+		sheetWaiters.clear()
+		sheets.clear()
 
 		currentSeekPositions = LongArray(0)
 	}
