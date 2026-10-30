@@ -56,7 +56,12 @@ submission remains unchanged. No new Play/Amazon checklist items are completed.
 
 ### Amazon Appstore ([#79](https://github.com/bagodees/LumaFin-AndroidTV/issues/79))
 
-Submitted October 24, 2026; waiting for Amazon's review. Details: [Amazon preparation](docs/amazon-appstore.md).
+Initial 1.0.0 listing verified Live on Appstore October 28, 2026. The owner approved
+updating Amazon to stable 1.1.2; the Fire TV package is built from the 1.1.2 release
+source, with no unreleased 1.2 changes. 1.1.2 (1010299) was submitted October 28,
+approved and live on October 29 (Amazon Console checked October 30: Live, no upcoming
+version). Submission status and verification:
+[Amazon preparation](docs/amazon-appstore.md).
 
 - [x] Developer profile, Fire TV build, artwork and privacy declarations
 - [x] Submit for review

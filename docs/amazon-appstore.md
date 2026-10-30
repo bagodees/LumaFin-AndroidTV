@@ -1,5 +1,44 @@
 # Amazon Fire TV / Appstore preparation
 
+## October 29: 1.1.2 live
+
+Amazon approved the 1.1.2 update the morning after submission; the owner reported it
+live on October 29. Amazon Console checked October 30: LumaFin is **Live**, the current
+version is release `amzn1.devportal.apprelease.a898550f20ed4c19994bda56fe1dddc7`
+(1.1.2, 1010299), and there is no upcoming version. Physical Appstore install/update
+checks are still pending.
+
+## October 28: 1.0.0 live; 1.1.2 update
+
+The owner reported approval, and Amazon Console was independently verified as
+**Live on Appstore** for 1.0.0. Physical Appstore install/update checks remain pending.
+The owner explicitly approved bringing Amazon to stable 1.1.2 on October 28.
+
+An isolated checkout of `962a7d542` (the published 1.1.2 release source) was used,
+so no in-progress 1.2 features enter this package. Build command:
+
+```powershell
+.\gradlew.bat :app:testDebugUnitTest :app:assembleRelease '-Pjellyfin.version=1.1.2' '-Plumafin.distribution=amazon'
+```
+
+- Build succeeded; 383 app unit tests passed, zero failures/errors/skips.
+- Package `io.github.bagodees.lumafin`, version 1.1.2 / 1010299, min SDK 23,
+  target SDK 36, four ABIs; Leanback optional for Fire OS packaging.
+- APK signature verified; release certificate SHA-256:
+  `A5244CB88542ECBE8E94255792B2E91512FAC4F6C7ADBF3A8F6993B475CF6855`.
+- File: `LumaFin-AndroidTV-v1.1.2-firetv-release.apk`.
+- APK SHA-256: `19CB678D04148A38626B82155A5E30B91AED71C3FCCF78D30D56127AAEBC34B8`.
+- Update draft: `amzn1.devportal.apprelease.a898550f20ed4c19994bda56fe1dddc7`.
+- Existing targeting: 91 Fire TV models, zero tablets/automotive, all available
+  countries; DRM No. Existing reviewer instructions include the restricted server
+  and review account; credentials are retained privately and not recorded here.
+- Release notes cover the new 1.1 layout and 1.0.1–1.1.2 fixes since Amazon's
+  initial 1.0.0. Replacement APK processed as code 1010299; submission completed
+  October 28 and status verified **SUBMITTED**. Amazon estimates November 2,
+  2026 at 05:00 AM PST. The update is not yet approved/live; 1.0.0 remains live.
+
+Historical preparation notes below are preserved as a record of earlier stages.
+
 ## October 24: submitted
 
 The owner submitted LumaFin 1.0.0 (code 1000101) to the Amazon Appstore on
