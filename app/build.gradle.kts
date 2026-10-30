@@ -35,8 +35,9 @@ android {
 		// Only used for the version label shown in dev builds
 		buildConfigField("String", "NEXT_VERSION", "\"${project.property("lumafin.nextVersion")}\"")
 
-		// LumaFin's crash server; only passed for GitHub test builds, so store builds send nothing there
-		val crashDsn = providers.gradleProperty("lumafin.crashDsn").getOrElse("")
+		// LumaFin's crash server; only test versions (1.2.0-test.N) get the address, so release and
+		// store builds don't contain it and send nothing there
+		val crashDsn = if (versionName!!.contains("-test")) providers.gradleProperty("lumafin.crashDsn").getOrElse("") else ""
 		buildConfigField("String", "CRASH_SERVER_DSN", "\"$crashDsn\"")
 	}
 
