@@ -124,7 +124,7 @@ Release notes: [1.1.2](docs/releases/1.1.2.md).
 
 ## 1.2: settings, menus and Home options
 
-Status: All items built (October 28, 2026); waiting for the owner's TV test of 1.2.0-test.10 and approval to release. Milestone: [1.2](https://github.com/bagodees/LumaFin-AndroidTV/milestone/3). Draft release notes: [1.2.0](docs/releases/1.2.0.md).
+Status: Released October 30, 2026 as 1.2.0 (1020099) on GitHub and the website, Google Play closed testing (Alpha) and Amazon (submitted for review). Milestone: [1.2](https://github.com/bagodees/LumaFin-AndroidTV/milestone/3). Release notes: [1.2.0](docs/releases/1.2.0.md).
 
 Also done since 1.1.2 and shipping with 1.2: the show's cast on episode pages, whole posters in wide cards, a Top Rated row that favours well-reviewed titles, and fixes from the October 27 TV pass (Back to Home in Settings, the episode button row, season episode cards, matching Continue Watching artwork in the TV library).
 
