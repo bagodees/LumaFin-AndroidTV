@@ -1,5 +1,9 @@
 # Amazon Fire TV / Appstore preparation
 
+## October 30: 1.2.1 submitted
+
+1.2.0 was prepared in upcoming version `amzn1.devportal.apprelease.a201e05683874b14bc0defdc71b29c59` but held for the Fire Stick low-memory fix. The same version now carries the 1.2.1 Fire TV APK (1020199) and notes covering 1.2.0 and 1.2.1. Targeting (91 Fire TV, 0 tablets), DRM No, reviewer instructions and export compliance carried over. Submitted October 30; status SUBMITTED, estimate November 4, 6:00 PM PST. Details: [1.2.1 build](releases/1.2.1-build.md).
+
 ## October 29: 1.1.2 live
 
 Amazon approved the 1.1.2 update the morning after submission; the owner reported it

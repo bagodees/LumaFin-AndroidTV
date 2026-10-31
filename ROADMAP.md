@@ -60,7 +60,7 @@ Initial 1.0.0 listing verified Live on Appstore October 28, 2026. The owner appr
 updating Amazon to stable 1.1.2; the Fire TV package is built from the 1.1.2 release
 source, with no unreleased 1.2 changes. 1.1.2 (1010299) was submitted October 28,
 approved and live on October 29 (Amazon Console checked October 30: Live, no upcoming
-version). Submission status and verification:
+version). 1.2.0 was held for the Fire Stick memory fix; 1.2.1 (1020199) submitted October 30, Amazon estimates November 4. Submission status and verification:
 [Amazon preparation](docs/amazon-appstore.md).
 
 - [x] Developer profile, Fire TV build, artwork and privacy declarations
