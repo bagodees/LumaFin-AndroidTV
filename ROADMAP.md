@@ -60,7 +60,7 @@ Initial 1.0.0 listing verified Live on Appstore October 28, 2026. The owner appr
 updating Amazon to stable 1.1.2; the Fire TV package is built from the 1.1.2 release
 source, with no unreleased 1.2 changes. 1.1.2 (1010299) was submitted October 28,
 approved and live on October 29 (Amazon Console checked October 30: Live, no upcoming
-version). 1.2.0 was held for the Fire Stick memory fix; 1.2.1 (1020199) submitted October 30, Amazon estimates November 4. Submission status and verification:
+version). 1.2.0 was held for the Fire Stick memory fix; 1.2.1 (1020199) submitted October 30, In Review on October 31, Amazon estimates November 4. Submission status and verification:
 [Amazon preparation](docs/amazon-appstore.md).
 
 - [x] Developer profile, Fire TV build, artwork and privacy declarations
@@ -83,6 +83,7 @@ version). 1.2.0 was held for the Fire Stick memory fix; 1.2.1 (1020199) submitte
 - [x] A title's automatic subtitle or audio choice carried over to the next, unrelated title: after Spider-Man: Homecoming started with its default forced subtitles, The Two Towers turned on full English subtitles, which the server had to burn in, so the stream restarted (about 3 extra seconds; October 29, test.22 on the Sony). Only the viewer's own changes in the player now carry over to later titles. Fixed on lumafin-main, not yet released
 - [x] Crash when the server sends a message the Jellyfin SDK can't read, such as a plugin's install notice without an overview (seen when SeerrFin was installed). The SDK reads these in its own background task, so the app can't catch the error there; unreadable messages are now left out before the SDK reads them. Fixed on lumafin-main, not yet released
 - [x] Back on a movie's details page closed the app after watching it (seen on the Sony with The Two Towers). When the screen was rebuilt during the movie, such as the TV switching to HDR, the player closed and went back twice: the details page stayed on screen but the app thought nothing was behind it. The player now goes back once, and an HDR switch no longer rebuilds the screen. Fixed on lumafin-main, not yet released
+- [x] My Requests can show an "Unknown" card with no artwork when SeerrFin sends a request without its title or images (seen in the Apple app on the owner's server, October 31). Those requests now take the title, year and artwork from Seerr's details for the title; in the shared core, so the phone app gets it too. Fixed on lumafin-main for 1.2.2, not yet checked on a device
 
 ### Physical TV checks ([#78](https://github.com/bagodees/LumaFin-AndroidTV/issues/78))
 

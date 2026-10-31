@@ -2,6 +2,9 @@ package io.github.bagodees.lumafin.core.seerr
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -152,7 +155,12 @@ object SeerrClient {
 	suspend fun myRequests(api: ApiClient): List<SeerrItem>? = try {
 		val response = get(api, "requests", mapOf("take" to 20))
 		if (response.status !in 200..299) null
-		else parseRequests(json.parseToJsonElement(response.body.decodeToString()).jsonObject)
+		else coroutineScope {
+			// SeerrFin can answer "Unknown" with no artwork for a request; Seerr's details for the title have both
+			parseRequests(json.parseToJsonElement(response.body.decodeToString()).jsonObject).map { item ->
+				async { if (item.needsDetails) detailsJson(api, item.mediaType, item.mediaId)?.let(item::withDetails) ?: item else item }
+			}.awaitAll()
+		}
 	} catch (error: CancellationException) {
 		throw error
 	} catch (error: Exception) {
@@ -207,7 +215,7 @@ fun parseRequests(body: JsonObject): List<SeerrItem> = (body["requests"] as? Jso
 			}
 		}
 		SeerrItem(
-			name = text("title") ?: return@mapNotNull null,
+			name = text("title") ?: UNKNOWN_TITLE,
 			mediaType = text("type") ?: "movie",
 			mediaId = tmdbId,
 			imageUrl = text("backdropUrl") ?: text("posterUrl"),
@@ -218,6 +226,25 @@ fun parseRequests(body: JsonObject): List<SeerrItem> = (body["requests"] as? Jso
 			requestStatus = status,
 		)
 	}.distinctBy { it.mediaType to it.mediaId }
+
+/** What SeerrFin calls a request whose title it doesn't know. */
+private const val UNKNOWN_TITLE = "Unknown"
+private const val TMDB_IMAGES = "https://image.tmdb.org/t/p"
+
+/** A request SeerrFin sent without its title or artwork. */
+val SeerrItem.needsDetails get() = name == UNKNOWN_TITLE || (posterUrl == null && imageUrl == null)
+
+/** A request with the title, year and artwork it's missing taken from Seerr's [details] for it. */
+fun SeerrItem.withDetails(details: JsonObject): SeerrItem {
+	fun text(key: String) = details[key]?.jsonPrimitive?.contentOrNull?.takeIf { it.isNotBlank() }
+	val poster = text("posterPath")?.let { "$TMDB_IMAGES/w342$it" }
+	return copy(
+		name = if (name == UNKNOWN_TITLE) text("title") ?: text("name") ?: name else name,
+		year = year ?: (text("releaseDate") ?: text("firstAirDate"))?.take(4)?.toIntOrNull(),
+		imageUrl = imageUrl ?: text("backdropPath")?.let { "$TMDB_IMAGES/w780$it" } ?: poster,
+		posterUrl = posterUrl ?: poster,
+	)
+}
 
 /**
  * Aired seasons of a show that Seerr can still get. Only for shows Seerr knows as requested, being
