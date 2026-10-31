@@ -33,14 +33,22 @@ This is not an officially supported Jellyfin project - it's built for personal u
 ### Home screen
 
 <p align="center">
-  <img alt="LumaFin home screen with the side menu, Latest Movies row and a preview of the focused title" src="docs/screenshots/home-screen.png" width="100%" />
+  <img alt="LumaFin home screen with the side menu, Sprite Fright focused in the New Movie Releases row and its title, rating, runtime, description and title logo above the rows" src="docs/screenshots/home-screen.png" width="100%" />
 </p>
 
 ### Details screens
 
 | Movie details | Episode details |
 | --- | --- |
-| <img alt="LumaFin movie details screen with title logo, quality tags, actions, audio and subtitle choices and cast" src="docs/screenshots/movie-details.png" /> | <img alt="LumaFin episode details screen with Resume, Restart and Previous episode buttons and a Next episode row" src="docs/screenshots/episode-details.png" /> |
+| <img alt="LumaFin movie details screen with title logo, quality tags, Play, Watched and More buttons, audio and subtitle choices and a Cast and Crew row" src="docs/screenshots/movie-details.png" /> | <img alt="LumaFin episode details screen with Resume, Restart and Previous episode buttons and a Next Episode row" src="docs/screenshots/episode-details.png" /> |
+
+### Request movies and shows
+
+With the SeerrFin plugin on your server, Home shows what's trending and coming soon, and every title opens its own page.
+
+| Trending and upcoming | Title page |
+| --- | --- |
+| <img alt="LumaFin Home with Trending Shows and Upcoming Movies rows from Seerr and a preview of the focused show" src="docs/screenshots/seerr-discover.png" /> | <img alt="LumaFin page for a show that isn't in the library yet, with Request and Trailer buttons, cast and a More Like This row" src="docs/screenshots/seerr-title.png" /> |
 
 ### Playback
 
@@ -50,19 +58,30 @@ This is not an officially supported Jellyfin project - it's built for personal u
 
 ### Libraries
 
-| Library grid | Filters |
+| Recommended | Library grid |
 | --- | --- |
-| <img alt="LumaFin movie library with tabs, a grid of landscape cards and an A to Z strip" src="docs/screenshots/library-grid.png" /> | <img alt="LumaFin library Filters panel with switches" src="docs/screenshots/library-filters.png" /> |
+| <img alt="LumaFin movie library on the Recommended tab with Recently Added and Top Rated rows" src="docs/screenshots/library-recommended.png" /> | <img alt="LumaFin movie library on the Library tab with a grid of landscape cards, an A to Z strip and sort and filter icons" src="docs/screenshots/library-grid.png" /> |
 
-### Home customization and profiles
+| Filters |
+| --- |
+| <img alt="LumaFin library Filters panel with switches" src="docs/screenshots/library-filters.png" width="50%" /> |
 
-| Home customization | Who's watching |
+### Settings
+
+| Settings | Home rows |
 | --- | --- |
-| <img alt="LumaFin Home customization panel with a visibility toggle and move handle on each section" src="docs/screenshots/home-customization.png" /> | <img alt="LumaFin profile picker with the LumaFin logo" src="docs/screenshots/account-picker.png" /> |
+| <img alt="LumaFin full-screen settings with a category menu on the left and Home options on the right" src="docs/screenshots/settings.png" /> | <img alt="LumaFin Home sections list with a visibility icon and move handle on each section" src="docs/screenshots/home-customization.png" /> |
+
+### Profiles
+
+<p align="center">
+  <img alt="LumaFin Who's watching profile picker with two profiles and Add User" src="docs/screenshots/account-picker.png" width="50%" />
+</p>
 
 <sub>Screenshots show Creative Commons films from Blender Studio ([studio.blender.org](https://studio.blender.org/films/)),
 CC BY: Elephants Dream, Big Buck Bunny, Sintel, Tears of Steel, Caminandes, Cosmos Laundromat, Agent 327, Spring,
-Sprite Fright and Charge; and Pioneer One by Josh Bernhard and Bracey Smith, Creative Commons.</sub>
+Sprite Fright and Charge; and Pioneer One by Josh Bernhard and Bracey Smith, Creative Commons. Titles in the request
+screenshots come from Seerr and TMDB and belong to their owners.</sub>
 
 ## What's different from upstream
 
