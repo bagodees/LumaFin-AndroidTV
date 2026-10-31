@@ -53,6 +53,9 @@ import org.jellyfin.androidtv.ui.search.SearchFragmentDelegate
 import org.jellyfin.androidtv.ui.search.SearchRepository
 import org.jellyfin.androidtv.ui.search.SearchRepositoryImpl
 import org.jellyfin.androidtv.ui.search.SearchViewModel
+import org.jellyfin.androidtv.ui.home.SeerrFin
+import org.jellyfin.androidtv.preference.UserPreferences
+import org.jellyfin.sdk.api.client.ApiClient
 import org.jellyfin.androidtv.ui.settings.compat.SettingsViewModel
 import org.jellyfin.androidtv.ui.settings.screen.library.SettingsLibrariesScreenViewModel
 import org.jellyfin.androidtv.ui.startup.ServerAddViewModel
@@ -173,7 +176,14 @@ val appModule = module {
 	viewModel { NextUpViewModel(get(), get(), get()) }
 	viewModel { StillWatchingViewModel(get(), get(), get(), get()) }
 	viewModel { PhotoPlayerViewModel(get(), get()) }
-	viewModel { SearchViewModel(get()) }
+	viewModel {
+		val api = get<ApiClient>()
+		val preferences = get<UserPreferences>()
+		// Search also asks Seerr for titles that aren't in the library yet, when its rows are on (#100)
+		SearchViewModel(get(), seerrSearch = { query ->
+			if (preferences[UserPreferences.seerrRows] && SeerrFin.available.value) SeerrFin.search(api, query) else emptyList()
+		})
+	}
 	viewModel { DreamViewModel(get(), get(), get(), get(), get()) }
 	viewModel { SettingsViewModel() }
 	viewModel { SettingsLibrariesScreenViewModel(get()) }
@@ -186,5 +196,5 @@ val appModule = module {
 	single { ReportingHelper(get(), get()) }
 	single<PlaybackHelper> { SdkPlaybackHelper(get(), get(), get(), get()) }
 
-	factory { (context: Context) -> SearchFragmentDelegate(context, get(), get()) }
+	factory { (context: Context) -> SearchFragmentDelegate(context, get(), get(), get()) }
 }

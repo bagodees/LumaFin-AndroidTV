@@ -85,6 +85,10 @@ version). 1.2.0 was held for the Fire Stick memory fix; 1.2.1 (1020199) submitte
 - [x] Back on a movie's details page closed the app after watching it (seen on the Sony with The Two Towers). When the screen was rebuilt during the movie, such as the TV switching to HDR, the player closed and went back twice: the details page stayed on screen but the app thought nothing was behind it. The player now goes back once, and an HDR switch no longer rebuilds the screen. Fixed on lumafin-main, not yet released
 - [x] My Requests can show an "Unknown" card with no artwork when SeerrFin sends a request without its title or images (seen in the Apple app on the owner's server, October 31). Those requests now take the title, year and artwork from Seerr's details for the title; in the shared core, so the phone app gets it too. Fixed on lumafin-main for 1.2.2, not yet checked on a device
 
+### 1.2.2 additions
+
+- [x] Search also shows titles from Seerr that aren't in the library, in a "Not in your library" row after the library results; selecting one opens its Seerr page with Request ([#100](https://github.com/bagodees/LumaFin-AndroidTV/issues/100)). Only when SeerrFin is on the server and Seerr rows are turned on; titles already in the library are left out. The phone app already did this. Added October 31 with the owner's approval. Checked on the TV emulator; done on lumafin-main, not yet released
+
 ### Physical TV checks ([#78](https://github.com/bagodees/LumaFin-AndroidTV/issues/78))
 
 - [x] Confirm the October fixes on a real TV ([checklist](docs/v1-remaining-checks.md)); completed by the owner on the Sony X90J, October 2026

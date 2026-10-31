@@ -93,8 +93,8 @@ class SearchFragment : Fragment() {
 				textInputFocusRequester.requestFocus()
 			}
 		}
-		LaunchedEffect(state.groups) {
-			searchFragmentDelegate.showResults(state.groups)
+		LaunchedEffect(state.groups, state.seerr) {
+			searchFragmentDelegate.showResults(state.groups, state.seerr)
 			if ((submitted || restoringResults) && state.hasResults) resultFocusRequester.requestFocus()
 			restoringResults = false
 		}

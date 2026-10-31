@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,11 +14,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.jellyfin.androidtv.R
+import org.jellyfin.androidtv.ui.home.SeerrItem
 import org.jellyfin.sdk.model.api.BaseItemKind
 
 class SearchViewModel(
 	private val searchRepository: SearchRepository,
 	private val dispatcher: CoroutineDispatcher = Dispatchers.Main.immediate,
+	/** Titles Seerr finds for a query; empty when Seerr isn't set up or its rows are turned off. */
+	private val seerrSearch: suspend (String) -> List<SeerrItem> = { emptyList() },
 ) : ViewModel() {
 	companion object {
 		private val debounceDuration = 600.milliseconds
@@ -66,7 +71,11 @@ class SearchViewModel(
 		_state.value = SearchState(query = trimmed, loading = true)
 		searchJob = viewModelScope.launch(dispatcher) {
 			delay(debounce)
-			_state.value = searchGroups(trimmed, groups, searchRepository)
+			_state.value = coroutineScope {
+				val seerr = async { seerrSearch(trimmed) }
+				val library = searchGroups(trimmed, groups, searchRepository)
+				library.copy(seerr = notInLibrary(seerr.await(), library.groups))
+			}
 		}
 
 		return true

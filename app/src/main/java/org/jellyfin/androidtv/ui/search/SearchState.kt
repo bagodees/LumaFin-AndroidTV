@@ -3,6 +3,7 @@ package org.jellyfin.androidtv.ui.search
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import org.jellyfin.androidtv.ui.home.SeerrItem
 import org.jellyfin.sdk.model.api.BaseItemKind
 
 data class SearchState(
@@ -11,8 +12,21 @@ data class SearchState(
 	val completed: Boolean = false,
 	val groups: List<SearchResultGroup> = emptyList(),
 	val failedGroups: List<Int> = emptyList(),
+	/** Titles Seerr found that aren't in the library, shown last so they can be requested. */
+	val seerr: List<SeerrItem> = emptyList(),
 ) {
-	val hasResults get() = groups.any { it.items.isNotEmpty() }
+	val hasResults get() = groups.any { it.items.isNotEmpty() } || seerr.isNotEmpty()
+}
+
+/** Seerr's titles without the movies and shows the library search already found (same name, and year when both have one). */
+internal fun notInLibrary(seerr: List<SeerrItem>, groups: List<SearchResultGroup>): List<SeerrItem> {
+	val library = groups.flatMap { it.items }.filter { it.type == BaseItemKind.MOVIE || it.type == BaseItemKind.SERIES }
+	return seerr.filter { title ->
+		library.none { item ->
+			item.name.equals(title.name, ignoreCase = true) &&
+				(item.productionYear == null || title.year == null || item.productionYear == title.year)
+		}
+	}
 }
 
 /** Await one bounded request per category; retain ordered successes and identify failed categories. */

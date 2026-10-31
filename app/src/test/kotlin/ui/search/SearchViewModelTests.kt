@@ -4,6 +4,7 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.awaitCancellation
+import org.jellyfin.androidtv.ui.home.SeerrItem
 import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.BaseItemKind
 import java.util.UUID
@@ -15,6 +16,31 @@ private class SearchRepositoryFake(
 }
 
 class SearchViewModelTests : FunSpec({
+	test("Seerr titles not in the library are added after the library results") {
+		val owned = BaseItemDto(id = UUID.randomUUID(), type = BaseItemKind.MOVIE, name = "Sintel", productionYear = 2010)
+		val seerr = listOf(
+			SeerrItem(name = "Sintel", mediaType = "movie", mediaId = 1, imageUrl = null, year = 2010),
+			SeerrItem(name = "Sintel", mediaType = "movie", mediaId = 2, imageUrl = null, year = 1985),
+			SeerrItem(name = "Spring", mediaType = "movie", mediaId = 3, imageUrl = null, year = 2019),
+		)
+		val model = SearchViewModel(
+			SearchRepositoryFake { Result.success(listOf(owned)) },
+			Dispatchers.Unconfined,
+			seerrSearch = { seerr },
+		)
+		model.searchImmediately("s")
+		model.state.value.seerr.map { it.mediaId } shouldBe listOf(2, 3)
+		model.state.value.hasResults shouldBe true
+	}
+	test("Seerr titles alone count as results") {
+		val model = SearchViewModel(
+			SearchRepositoryFake { Result.success(emptyList()) },
+			Dispatchers.Unconfined,
+			seerrSearch = { listOf(SeerrItem(name = "Spring", mediaType = "movie", mediaId = 3, imageUrl = null, year = 2019)) },
+		)
+		model.searchImmediately("spring")
+		model.state.value.hasResults shouldBe true
+	}
 	test("retry reruns an unchanged failed query and clears the failure state") {
 		var failing = true
 		val item = BaseItemDto(id = UUID.randomUUID(), type = BaseItemKind.MOVIE, name = "Example")

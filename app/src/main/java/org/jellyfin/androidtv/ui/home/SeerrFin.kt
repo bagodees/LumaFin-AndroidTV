@@ -104,6 +104,15 @@ object SeerrFin {
 
 	suspend fun discover(api: ApiClient, path: String): List<SeerrItem>? = SeerrClient.discover(api, path)
 
+	/** Titles Seerr finds for [query], with the titled backdrops landscape cards use; empty without SeerrFin. */
+	suspend fun search(api: ApiClient, query: String): List<SeerrItem> = coroutineScope {
+		SeerrClient.search(api, query).take(SEARCH_LIMIT)
+			.map { item -> async { titledBackdrop(api, item)?.let { item.copy(imageUrl = it) } ?: item } }
+			.map { it.await() }
+	}
+
+	private const val SEARCH_LIMIT = 20
+
 	/** The English backdrop with the title on it, like the artwork on LumaFin's other cards; null without one. */
 	suspend fun titledBackdrop(api: ApiClient, item: SeerrItem): String? = SeerrClient.titledBackdrop(api, item)
 

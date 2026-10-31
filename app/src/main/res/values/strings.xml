@@ -517,6 +517,7 @@
     <string name="seerr_request_movie_detail">Not in your library yet. Request it through Seerr?</string>
     <string name="seerr_request">Request</string>
     <string name="seerr_my_requests">My Requests</string>
+    <string name="search_not_in_library">Not in your library</string>
     <string name="seerr_open_in_library">Open in library</string>
     <string name="seerr_trailer">Trailer</string>
     <string name="seerr_trailer_failed">Couldn\'t open the trailer. Is YouTube installed?</string>
