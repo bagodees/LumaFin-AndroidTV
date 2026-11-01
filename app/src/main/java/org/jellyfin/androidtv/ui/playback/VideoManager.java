@@ -324,7 +324,7 @@ public class VideoManager {
      * @param context The associated context
      * @return A configured builder for Exoplayer
      */
-    private static final int LOW_MEMORY_BUFFER_BYTES = 64 * 1024 * 1024;
+    private static final int LOW_MEMORY_BUFFER_BYTES = 128 * 1024 * 1024;
 
     private ExoPlayer.Builder configureExoplayerBuilder(Context context, AssHandler assHandler) {
         ExoPlayer.Builder exoPlayerBuilder = new ExoPlayer.Builder(context);
@@ -401,7 +401,8 @@ public class VideoManager {
         }
         // On 2 GB devices like the Fire TV Stick 4K Max, a full buffer of a high-bitrate 4K title
         // plus the decoder's own memory got the app closed for low memory after long seeks.
-        // Capping the buffer by size there still keeps about 30 seconds of a 17 Mbps title.
+        // The cap still keeps about 38 seconds of a 27 Mbps stream the server converts; 64 MB
+        // (19 seconds) stalled over the internet whenever the connection slowed for a moment.
         // The buffer lives in the app's own heap, so it also stays within a third of the heap limit
         if (DeviceMemoryKt.isLowMemoryDevice(context)) {
             int bufferBytes = (int) Math.min(LOW_MEMORY_BUFFER_BYTES, Runtime.getRuntime().maxMemory() / 3);
