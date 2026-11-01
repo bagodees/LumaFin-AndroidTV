@@ -577,7 +577,8 @@ public class ItemRowAdapter extends MutableObjectAdapter<Object> {
     }
 
     public boolean ReRetrieveIfNeeded() {
-        if (reRetrieveTriggers == null) {
+        // A row whose first load hasn't started yet (Home queues it until it's on screen) will fetch fresh items anyway
+        if (reRetrieveTriggers == null || lastFullRetrieve == null) {
             return false;
         }
 
