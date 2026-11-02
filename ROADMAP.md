@@ -19,7 +19,7 @@ project view shows them together. Design details for the redesign are in
 
 Statuses: **Planned**, **In progress**, **Complete**, **Deferred**.
 
-**Current version: 1.2.** Next: 1.3. The remaining 1.0.x items wait only on outside steps (Amazon's review and the Google Play testing period); fixes for the released app still go in 1.0.x.
+**Current version: 1.2.2.** Next: 1.3. The remaining 1.0.x items wait only on outside steps (Amazon's review and the Google Play testing period); fixes for the released app still go in 1.0.x.
 
 ---
 
